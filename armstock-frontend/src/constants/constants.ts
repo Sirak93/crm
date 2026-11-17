@@ -29,6 +29,9 @@ export const HTTP_METHODS = ['GET', 'POST', 'PUT', 'PATCH', 'DELETE'] as const;
 
 export const DEFAULT_PAGE_SIZE = 20;
 
+/** Required-field rules also run while typing, so the error clears as soon as the field is filled. */
+export const REQUIRED_RULE_TRIGGER = ['blur', 'change'];
+
 /** Wait after the last keystroke before a search request. */
 export const SEARCH_DEBOUNCE_MS = 400;
 

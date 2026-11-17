@@ -9,6 +9,7 @@ import RoleSelect from './RoleSelect.vue';
 import { NotificationService } from '../../services/NotificationService';
 import { useApiErrorMessage } from '../../composables/useApiErrorMessage';
 import { toUserForm, toUserPayload } from '../../utils/formPayload';
+import { REQUIRED_RULE_TRIGGER } from '../../constants/constants';
 import type { ICompanyUsersApi } from '../../interfaces/ICompanyUsersApi';
 
 const props = defineProps<{
@@ -36,12 +37,13 @@ const canLogIn = computed(() => !!form.value.role && COMPANY_LOGIN_ROLES.include
 /** A user who already has a password may leave the field empty to keep it. */
 const keepsPassword = computed(() => !!props.user?.hasPassword);
 
-const required = (key: string, trigger = 'blur'): FormItemRule => ({ required: true, whitespace: true, message: () => t(key), trigger });
+const required = (key: string): FormItemRule => ({ required: true, whitespace: true, message: () => t(key), trigger: REQUIRED_RULE_TRIGGER });
 
 const rules = computed(() => ({
   firstName: [required('forms.user.firstNameRequired')],
   lastName: [required('forms.user.lastNameRequired')],
-  role: [required('forms.user.roleRequired', 'change')],
+  // `type: 'number'`: without it the check expects a string and keeps failing after a pick.
+  role: [{ required: true, type: 'number', message: () => t('forms.user.roleRequired'), trigger: 'change' } as FormItemRule],
   email: [
     ...(canLogIn.value ? [required('forms.emailRequired')] : []),
     { type: 'email', message: () => t('forms.emailInvalid'), trigger: 'blur' } as FormItemRule,

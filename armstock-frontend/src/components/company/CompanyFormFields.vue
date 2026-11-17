@@ -3,6 +3,7 @@ import { useI18n } from 'vue-i18n';
 import type { FormItemRule } from 'element-plus';
 import { Building2, FileText, Mail, MapPin, Phone } from 'lucide-vue-next';
 import type { ICompanyForm } from '../../interfaces/ICompanyForm';
+import { REQUIRED_RULE_TRIGGER } from '../../constants/constants';
 
 /** Must be the parent `el-form`'s model, so the `prop` paths match. */
 const form = defineModel<ICompanyForm>({ required: true });
@@ -10,7 +11,7 @@ const form = defineModel<ICompanyForm>({ required: true });
 const { t } = useI18n();
 
 const nameRules: FormItemRule[] = [
-  { required: true, whitespace: true, message: () => t('forms.company.nameRequired'), trigger: 'blur' },
+  { required: true, whitespace: true, message: () => t('forms.company.nameRequired'), trigger: REQUIRED_RULE_TRIGGER },
 ];
 const emailRules: FormItemRule[] = [
   { type: 'email', message: () => t('forms.emailInvalid'), trigger: 'blur' },

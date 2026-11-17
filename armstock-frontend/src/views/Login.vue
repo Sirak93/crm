@@ -7,6 +7,7 @@ import { Lock, LogIn, Mail } from 'lucide-vue-next';
 import { useAuthStore } from '../stores/auth';
 import { useApiErrorMessage } from '../composables/useApiErrorMessage';
 import { NotificationService } from '../services/NotificationService';
+import { REQUIRED_RULE_TRIGGER } from '../constants/constants';
 
 const authStore = useAuthStore();
 const router = useRouter();
@@ -18,8 +19,8 @@ const form = reactive({ email: '', password: '' });
 const isLoading = ref(false);
 
 const rules: FormRules = {
-  email: [{ required: true, message: () => t('auth.emailRequired'), trigger: 'blur' }],
-  password: [{ required: true, message: () => t('auth.passwordRequired'), trigger: 'blur' }],
+  email: [{ required: true, message: () => t('auth.emailRequired'), trigger: REQUIRED_RULE_TRIGGER }],
+  password: [{ required: true, message: () => t('auth.passwordRequired'), trigger: REQUIRED_RULE_TRIGGER }],
 };
 
 const handleLogin = async () => {

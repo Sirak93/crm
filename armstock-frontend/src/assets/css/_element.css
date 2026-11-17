@@ -90,7 +90,9 @@
     box-shadow: 0 0 0 4px var(--primary-light) !important;
 }
 
-.el-form-item.is-error .el-input__wrapper {
+.el-form-item.is-error .el-input__wrapper,
+.el-form-item.is-error .el-select__wrapper,
+.el-form-item.is-error .el-textarea__inner {
     border-color: var(--danger) !important;
 }
 
