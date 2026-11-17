@@ -24,7 +24,7 @@ Decisions behind these steps: [decisions.md](decisions.md).
 - [x] Step 4 — Companies
 - [x] Step 5 — Users
 - [ ] Step 6 — Units
-- [ ] Step 7 — Categories
+- [ ] Step 7 — Product categories
 - [ ] Step 8 — Products
 - [ ] Step 9 — Suppliers
 - [ ] Step 10 — Stock-in documents
@@ -176,11 +176,11 @@ Each is its own top-level menu item.
 
 ## Step 6 — Units
 
-- [x] `Unit` table: company, name ("Կիլոգրամ"), short name ("կգ"), allows decimals. Name
+- [x] `MeasureUnit` table (`measure_units`): company, name ("Կիլոգրամ"), short name ("կգ"), allows decimals. Name
       and short name are unique inside the company (ignoring case).
 - [x] New company gets the default units: Հատ (հատ), Կիլոգրամ (կգ), Լիտր (լ), Մետր (մ)
 - [x] Shared: `CATALOG_MANAGER_ROLES` (Company Owner, Storekeeper)
-- [x] API (`/api/units`, own company only)
+- [x] API (`/api/measure-units`, own company only)
   - [x] All company roles can read
   - [x] Company Owner and Storekeeper add, edit, delete
   - [x] Delete — always allowed for now; the "no product uses it" check comes in Step 8
@@ -192,7 +192,7 @@ Each is its own top-level menu item.
 - [ ] Checked in browser: as Company Owner add, edit, and delete a unit; a new company
       starts with the 4 default units; as Accountant the list has no actions
 
-## Step 7 — Categories
+## Step 7 — Product categories
 
 - [ ] `Category` table: company, name (unique inside the company)
 - [ ] API

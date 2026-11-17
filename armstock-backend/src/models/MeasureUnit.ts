@@ -11,9 +11,9 @@ import {
 import { Company } from "./Company";
 
 /** Each company has its own list; new companies get the defaults. */
-@Entity("units")
-@Index("IDX_units_company_uuid", ["companyUuid"])
-export class Unit {
+@Entity("measure_units")
+@Index("IDX_measure_units_company_uuid", ["companyUuid"])
+export class MeasureUnit {
     @PrimaryGeneratedColumn("uuid")
     uuid!: string;
 

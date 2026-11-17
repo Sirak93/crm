@@ -57,7 +57,7 @@ export default {
     openMenu: 'Open menu',
     dashboard: 'Dashboard',
     companies: 'Companies',
-    units: 'Units',
+    measureUnits: 'Units',
     users: 'Users',
     company: 'Company',
     database: 'Database',
@@ -229,7 +229,7 @@ export default {
       saved: 'Company details saved.',
     },
   },
-  units: {
+  measureUnits: {
     title: 'Units',
     subtitle: 'Units of measure for your products. Each product has one unit.',
     add: 'Add unit',
@@ -320,8 +320,8 @@ export default {
     USER_NOT_FOUND: 'This user no longer exists.',
     USER_PASSWORD_REQUIRED: 'Set a password - this role signs in.',
     USER_OWN_ACCOUNT: 'You cannot change your own role or status.',
-    UNIT_NOT_FOUND: 'This unit no longer exists.',
-    UNIT_NAME_TAKEN: 'A unit with this name or short name already exists.',
+    MEASURE_UNIT_NOT_FOUND: 'This unit no longer exists.',
+    MEASURE_UNIT_NAME_TAKEN: 'A unit with this name or short name already exists.',
     RATE_LIMIT_TOO_MANY_REQUESTS: 'Too many attempts. Please wait a few minutes and try again.',
   },
 };

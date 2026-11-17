@@ -21,7 +21,7 @@ export const ROUTE_NAME = {
   PLATFORM_DATABASE: 'platform-database',
   PLATFORM_LOGS: 'platform-logs',
   COMPANY_DASHBOARD: 'company-dashboard',
-  COMPANY_UNITS: 'company-units',
+  COMPANY_MEASURE_UNITS: 'company-measure-units',
   COMPANY_USERS: 'company-users',
   COMPANY_PROFILE: 'company-profile',
 } as const;

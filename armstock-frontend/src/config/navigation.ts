@@ -49,10 +49,10 @@ export const NAV_ITEMS: INavItem[] = [
     roles: [...COMPANY_LOGIN_ROLES],
   },
   {
-    id: 'company-units',
-    labelKey: 'nav.units',
+    id: 'company-measure-units',
+    labelKey: 'nav.measureUnits',
     icon: Ruler,
-    routeName: ROUTE_NAME.COMPANY_UNITS,
+    routeName: ROUTE_NAME.COMPANY_MEASURE_UNITS,
     roles: [...COMPANY_LOGIN_ROLES],
   },
   {

@@ -4,19 +4,19 @@ import { AuthMiddleware } from "../middlewares/AuthMiddleware";
 import { RoleMiddleware } from "../middlewares/RoleMiddleware";
 import { validate } from "../middlewares/Validate";
 import { asyncHandler } from "../utils/asyncHandler";
-import { UnitController } from "../controllers/UnitController";
-import { UnitBodySchema } from "../schemas/UnitSchema";
+import { MeasureUnitController } from "../controllers/MeasureUnitController";
+import { MeasureUnitBodySchema } from "../schemas/MeasureUnitSchema";
 import { UuidParamsSchema } from "../schemas/SharedSchema";
 
 const router = Router();
-const unitController = new UnitController();
+const unitController = new MeasureUnitController();
 const canManage = RoleMiddleware([...CATALOG_MANAGER_ROLES]);
 
 router.use(AuthMiddleware);
 
 router.get("/", RoleMiddleware([...COMPANY_LOGIN_ROLES]), asyncHandler(unitController.list));
-router.post("/", canManage, validate(UnitBodySchema), asyncHandler(unitController.create));
-router.put("/:uuid", canManage, validate(UuidParamsSchema, "params"), validate(UnitBodySchema), asyncHandler(unitController.update));
+router.post("/", canManage, validate(MeasureUnitBodySchema), asyncHandler(unitController.create));
+router.put("/:uuid", canManage, validate(UuidParamsSchema, "params"), validate(MeasureUnitBodySchema), asyncHandler(unitController.update));
 router.delete("/:uuid", canManage, validate(UuidParamsSchema, "params"), asyncHandler(unitController.delete));
 
 export default router;

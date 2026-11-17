@@ -58,13 +58,13 @@ export const ErrorCodes = {
             STATUS: 423,
         },
     },
-    UNIT: {
+    MEASURE_UNIT: {
         NOT_FOUND: {
-            CODE: "UNIT_NOT_FOUND",
+            CODE: "MEASURE_UNIT_NOT_FOUND",
             STATUS: 404,
         },
         NAME_TAKEN: {
-            CODE: "UNIT_NAME_TAKEN",
+            CODE: "MEASURE_UNIT_NAME_TAKEN",
             STATUS: 409,
         },
     },

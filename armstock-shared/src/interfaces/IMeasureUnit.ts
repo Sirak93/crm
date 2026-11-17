@@ -1,4 +1,4 @@
-export interface IUnit {
+export interface IMeasureUnit {
     uuid: string;
     /** e.g. "Kilogram" */
     name: string;

@@ -2,20 +2,20 @@
 import { computed, ref, watch } from 'vue';
 import { useI18n } from 'vue-i18n';
 import type { FormInstance, FormRules } from 'element-plus';
-import type { IUnit } from 'armstock-shared';
+import type { IMeasureUnit } from 'armstock-shared';
 import { Ruler } from 'lucide-vue-next';
 import AppDialog from '../AppDialog.vue';
-import { UnitService } from '../../services/UnitService';
+import { MeasureUnitService } from '../../services/MeasureUnitService';
 import { NotificationService } from '../../services/NotificationService';
 import { useApiErrorMessage } from '../../composables/useApiErrorMessage';
 import { REQUIRED_RULE_TRIGGER } from '../../constants/constants';
 
 const props = defineProps<{
   /** null = add a new unit. */
-  unit: IUnit | null;
+  unit: IMeasureUnit | null;
 }>();
 
-const emit = defineEmits<{ saved: [unit: IUnit] }>();
+const emit = defineEmits<{ saved: [unit: IMeasureUnit] }>();
 
 const open = defineModel<boolean>({ required: true });
 
@@ -29,8 +29,8 @@ const form = ref({ name: '', shortName: '', allowsDecimals: false });
 const isEdit = computed(() => !!props.unit);
 
 const rules: FormRules = {
-  name: [{ required: true, whitespace: true, message: () => t('units.form.nameRequired'), trigger: REQUIRED_RULE_TRIGGER }],
-  shortName: [{ required: true, whitespace: true, message: () => t('units.form.shortNameRequired'), trigger: REQUIRED_RULE_TRIGGER }],
+  name: [{ required: true, whitespace: true, message: () => t('measureUnits.form.nameRequired'), trigger: REQUIRED_RULE_TRIGGER }],
+  shortName: [{ required: true, whitespace: true, message: () => t('measureUnits.form.shortNameRequired'), trigger: REQUIRED_RULE_TRIGGER }],
 };
 
 watch(open, (isOpen) => {
@@ -55,13 +55,13 @@ const save = async () => {
   isSaving.value = true;
   try {
     const saved = props.unit
-      ? await UnitService.update(props.unit.uuid, payload)
-      : await UnitService.create(payload);
-    NotificationService.success(t(isEdit.value ? 'units.updated' : 'units.created'));
+      ? await MeasureUnitService.update(props.unit.uuid, payload)
+      : await MeasureUnitService.create(payload);
+    NotificationService.success(t(isEdit.value ? 'measureUnits.updated' : 'measureUnits.created'));
     emit('saved', saved);
     open.value = false;
   } catch (error) {
-    NotificationService.error(parseError(error, 'units.saveError'));
+    NotificationService.error(parseError(error, 'measureUnits.saveError'));
   } finally {
     isSaving.value = false;
   }
@@ -71,8 +71,8 @@ const save = async () => {
 <template>
   <AppDialog
     v-model="open"
-    :title="$t(isEdit ? 'units.editTitle' : 'units.addTitle')"
-    :subtitle="unit ? unit.name : $t('units.addSubtitle')"
+    :title="$t(isEdit ? 'measureUnits.editTitle' : 'measureUnits.addTitle')"
+    :subtitle="unit ? unit.name : $t('measureUnits.addSubtitle')"
     width="460px"
     :locked="isSaving"
   >
@@ -80,17 +80,17 @@ const save = async () => {
 
     <el-form ref="formRef" :model="form" :rules="rules" label-position="top" :disabled="isSaving" @submit.prevent="save">
       <div class="form-row">
-        <el-form-item :label="$t('units.form.name')" prop="name">
-          <el-input v-model="form.name" maxlength="50" :placeholder="$t('units.form.namePlaceholder')" />
+        <el-form-item :label="$t('measureUnits.form.name')" prop="name">
+          <el-input v-model="form.name" maxlength="50" :placeholder="$t('measureUnits.form.namePlaceholder')" />
         </el-form-item>
-        <el-form-item :label="$t('units.form.shortName')" prop="shortName">
-          <el-input v-model="form.shortName" maxlength="10" :placeholder="$t('units.form.shortNamePlaceholder')" />
+        <el-form-item :label="$t('measureUnits.form.shortName')" prop="shortName">
+          <el-input v-model="form.shortName" maxlength="10" :placeholder="$t('measureUnits.form.shortNamePlaceholder')" />
         </el-form-item>
       </div>
 
       <el-form-item prop="allowsDecimals">
-        <el-checkbox v-model="form.allowsDecimals">{{ $t('units.form.allowsDecimals') }}</el-checkbox>
-        <p class="field-hint">{{ $t('units.form.allowsDecimalsHint') }}</p>
+        <el-checkbox v-model="form.allowsDecimals">{{ $t('measureUnits.form.allowsDecimals') }}</el-checkbox>
+        <p class="field-hint">{{ $t('measureUnits.form.allowsDecimalsHint') }}</p>
       </el-form-item>
 
       <!-- Lets Enter submit the form. -->

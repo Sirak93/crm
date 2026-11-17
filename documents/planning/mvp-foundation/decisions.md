@@ -53,7 +53,10 @@ from the route middleware.
   shared service.
 - Goods are issued to a User (any role, including Staff).
 
-## Units
+## Units (measure units)
+
+- Stored as `measure_units` (`MeasureUnit`) — "unit" alone could later mean a branch or
+  department.
 
 - Each company has its own list. A new company gets the defaults copied in:
   Հատ (հատ), Կիլոգրամ (կգ), Լիտր (լ), Մետր (մ).

@@ -3,7 +3,7 @@ import { AppDataSource } from "../../config/database";
 import { Company } from "../../models/Company";
 import { AuthCacheService } from "../AuthCacheService";
 import { CompanyService } from "../CompanyService";
-import { UnitService } from "../UnitService";
+import { MeasureUnitService } from "../MeasureUnitService";
 import type { CompanyBody } from "../../schemas/CompanySchema";
 import type { PaginatedSearchQuery } from "../../schemas/SharedSchema";
 
@@ -34,7 +34,7 @@ export class PlatformCompaniesService {
         const company = await AppDataSource.transaction(async (manager) => {
             const repo = manager.getRepository(Company);
             const saved = await repo.save(repo.create(body));
-            await UnitService.createDefaults(manager, saved.uuid);
+            await MeasureUnitService.createDefaults(manager, saved.uuid);
             return saved;
         });
         return CompanyService.toCompany(company);
