@@ -19,6 +19,9 @@ export const ROUTE_NAME = {
   PLATFORM_COMPANIES: 'platform-companies',
   PLATFORM_DATABASE: 'platform-database',
   PLATFORM_LOGS: 'platform-logs',
+  COMPANY_DASHBOARD: 'company-dashboard',
+  COMPANY_STAFF: 'company-staff',
+  COMPANY_PROFILE: 'company-profile',
 } as const;
 
 export const HTTP_METHODS = ['GET', 'POST', 'PUT', 'PATCH', 'DELETE'] as const;

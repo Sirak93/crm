@@ -8,6 +8,7 @@ import AppCard from '../../components/AppCard.vue';
 import LoadError from '../../components/LoadError.vue';
 import CompaniesTable from '../../components/platform/CompaniesTable.vue';
 import CompanyDialog from '../../components/platform/CompanyDialog.vue';
+import CompanyOwnerDialog from '../../components/platform/CompanyOwnerDialog.vue';
 import { PlatformCompaniesService } from '../../services/platform/PlatformCompaniesService';
 import { NotificationService } from '../../services/NotificationService';
 import { useApiErrorMessage } from '../../composables/useApiErrorMessage';
@@ -28,6 +29,8 @@ const updatingUuid = ref<string | null>(null);
 
 const isDialogOpen = ref(false);
 const editingCompany = ref<ICompany | null>(null);
+const isOwnerDialogOpen = ref(false);
+const ownerCompany = ref<ICompany | null>(null);
 
 const load = async (page = meta.value.page) => {
   isLoading.value = true;
@@ -59,6 +62,11 @@ const openAdd = () => {
 const openEdit = (company: ICompany) => {
   editingCompany.value = company;
   isDialogOpen.value = true;
+};
+
+const openAddOwner = (company: ICompany) => {
+  ownerCompany.value = company;
+  isOwnerDialogOpen.value = true;
 };
 
 const onSaved = (saved: ICompany) => {
@@ -139,6 +147,7 @@ onMounted(() => load(1));
         :companies="companies"
         :updating-uuid="updatingUuid"
         @edit="openEdit"
+        @add-owner="openAddOwner"
         @set-status="setStatus"
       />
     </AppCard>
@@ -155,6 +164,7 @@ onMounted(() => load(1));
     />
 
     <CompanyDialog v-model="isDialogOpen" :company="editingCompany" @saved="onSaved" />
+    <CompanyOwnerDialog v-model="isOwnerDialogOpen" :company="ownerCompany" />
   </section>
 </template>
 

@@ -52,26 +52,34 @@ export class AuthCacheService {
     }
 
     /**
-     * Applies a company status change to its users' cached snapshots at once. Updated in place, not
-     * deleted, so a logout's `revokedBefore` is kept.
+     * Applies a change to cached snapshots at once. Updated in place, not deleted, so a logout's
+     * `revokedBefore` is kept; users with no cached snapshot load the new state from the DB.
      */
-    static async setCompanyStatus(companyUuid: string, companyStatus: CompanyStatus): Promise<void> {
+    private static async patchSnapshots(userUuids: string[], patch: Partial<IAuthSnapshot>): Promise<void> {
         // While Redis is down, reads fall back to the DB anyway (and ioredis would queue these calls).
         if (!RedisService.isReady) return;
 
-        const users = await this.userRepo.find({ where: { companyUuid }, select: { uuid: true } });
-
         try {
-            await Promise.all(users.map(async (user) => {
-                const key = RedisKeys.auth.userSnapshot.key(user.uuid);
+            await Promise.all(userUuids.map(async (uuid) => {
+                const key = RedisKeys.auth.userSnapshot.key(uuid);
                 const snapshot = await RedisService.get<IAuthSnapshot>(key);
                 if (snapshot) {
-                    await RedisService.set(key, { ...snapshot, companyStatus } satisfies IAuthSnapshot, RedisKeys.auth.userSnapshot.ttl);
+                    await RedisService.set(key, { ...snapshot, ...patch } satisfies IAuthSnapshot, RedisKeys.auth.userSnapshot.ttl);
                 }
             }));
         } catch (error) {
-            AppLogger.warn(`Could not update auth snapshots of company ${companyUuid}:`, error);
+            AppLogger.warn("Could not update auth snapshots:", error);
         }
+    }
+
+    static async setCompanyStatus(companyUuid: string, companyStatus: CompanyStatus): Promise<void> {
+        const users = await this.userRepo.find({ where: { companyUuid }, select: { uuid: true } });
+        await this.patchSnapshots(users.map((user) => user.uuid), { companyStatus });
+    }
+
+    /** After a role or status change, so open sessions follow it at once. */
+    static async setUserAccess(user: User): Promise<void> {
+        await this.patchSnapshots([user.uuid], { role: user.role, status: user.status });
     }
 
     /** Rejects every access token issued before now; a later login overwrites it. */

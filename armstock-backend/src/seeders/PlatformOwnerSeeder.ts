@@ -2,6 +2,7 @@ import bcrypt from "bcrypt";
 import { UserRole } from "armstock-shared";
 import { AppDataSource } from "../config/database";
 import { User } from "../models/User";
+import { BCRYPT_ROUNDS } from "../constants/AuthConstants";
 
 export const seedPlatformOwner = async () => {
     const email = process.env.PLATFORM_OWNER_EMAIL?.trim().toLowerCase();
@@ -21,7 +22,7 @@ export const seedPlatformOwner = async () => {
 
     const owner = userRepo.create({
         email,
-        password: await bcrypt.hash(password, 10),
+        password: await bcrypt.hash(password, BCRYPT_ROUNDS),
         role: UserRole.PLATFORM_OWNER,
     });
     await userRepo.save(owner);

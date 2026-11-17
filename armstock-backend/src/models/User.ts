@@ -8,9 +8,11 @@ import {
     Index,
     ManyToOne,
     JoinColumn,
+    OneToOne,
 } from "typeorm";
 import { UserRole, UserStatus } from "armstock-shared";
 import { Company } from "./Company";
+import { CompanyStaff } from "./CompanyStaff";
 
 @Entity("users")
 @Unique("UQ_users_email", ["email"])
@@ -39,6 +41,14 @@ export class User {
     @ManyToOne(() => Company, { nullable: true, onDelete: "RESTRICT" })
     @JoinColumn({ name: "company_uuid" })
     company?: Company | null;
+
+    /** At most one login per staff member (OneToOne adds the unique constraint); null for the Platform Owner. */
+    @Column({ name: "staff_uuid", type: "uuid", nullable: true })
+    staffUuid!: string | null;
+
+    @OneToOne(() => CompanyStaff, { nullable: true, onDelete: "RESTRICT" })
+    @JoinColumn({ name: "staff_uuid" })
+    staff?: CompanyStaff | null;
 
     /** SHA-256 of the current refresh token; null after logout. */
     @Column({ name: "refresh_token", type: "varchar", nullable: true })

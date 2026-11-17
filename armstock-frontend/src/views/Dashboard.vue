@@ -1,12 +1,12 @@
 <script setup lang="ts">
-import PageHeader from '../../components/PageHeader.vue';
+import PageHeader from '../components/PageHeader.vue';
 </script>
 
 <template>
   <section>
-    <PageHeader :title="$t('platform.dashboard.title')" />
+    <PageHeader :title="$t('dashboard.title')" />
     <div class="dashboard-card">
-      <el-empty :description="$t('platform.dashboard.empty')" />
+      <el-empty :description="$t('dashboard.empty')" />
     </div>
   </section>
 </template>

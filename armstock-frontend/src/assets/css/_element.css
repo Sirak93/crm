@@ -185,3 +185,27 @@
         padding: 0.75rem 1rem 1rem;
     }
 }
+
+/* Table cells: one line, cut with "…" (the card scrolls sideways instead of squeezing columns). */
+.app-table.app-table--nowrap .el-table__body .cell,
+.app-table.app-table--nowrap .el-table__header .cell {
+    white-space: nowrap;
+}
+
+.app-table.app-table--nowrap .el-table__body .cell {
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.cell-text {
+    font-size: var(--text-sm);
+    color: var(--text-main);
+}
+
+.cell-text--strong {
+    font-weight: 600;
+}
+
+.cell-text--muted {
+    color: var(--text-muted);
+}

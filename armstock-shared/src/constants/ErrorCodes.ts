@@ -30,6 +30,28 @@ export const ErrorCodes = {
             CODE: "USER_BLOCKED",
             STATUS: 423,
         },
+        EMAIL_TAKEN: {
+            CODE: "USER_EMAIL_TAKEN",
+            STATUS: 409,
+        },
+    },
+    STAFF: {
+        NOT_FOUND: {
+            CODE: "STAFF_NOT_FOUND",
+            STATUS: 404,
+        },
+        HAS_LOGIN: {
+            CODE: "STAFF_HAS_LOGIN",
+            STATUS: 409,
+        },
+        NO_LOGIN: {
+            CODE: "STAFF_NO_LOGIN",
+            STATUS: 409,
+        },
+        OWN_LOGIN: {
+            CODE: "STAFF_OWN_LOGIN",
+            STATUS: 403,
+        },
     },
     COMPANY: {
         NOT_FOUND: {

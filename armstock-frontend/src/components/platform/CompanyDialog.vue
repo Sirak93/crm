@@ -1,13 +1,15 @@
 <script setup lang="ts">
-import { computed, reactive, ref, watch } from 'vue';
+import { computed, ref, watch } from 'vue';
 import { useI18n } from 'vue-i18n';
-import type { FormInstance, FormRules } from 'element-plus';
-import type { ICompany, ICompanyPayload } from 'armstock-shared';
-import { Building2, FileText, Mail, MapPin, Phone } from 'lucide-vue-next';
+import type { FormInstance } from 'element-plus';
+import type { ICompany } from 'armstock-shared';
+import { Building2 } from 'lucide-vue-next';
 import AppDialog from '../AppDialog.vue';
+import CompanyFormFields from '../company/CompanyFormFields.vue';
 import { PlatformCompaniesService } from '../../services/platform/PlatformCompaniesService';
 import { NotificationService } from '../../services/NotificationService';
 import { useApiErrorMessage } from '../../composables/useApiErrorMessage';
+import { toCompanyForm, toCompanyPayload } from '../../utils/formPayload';
 
 const props = defineProps<{
   /** null = add a new company. */
@@ -23,41 +25,20 @@ const { parseError } = useApiErrorMessage();
 
 const formRef = ref<FormInstance>();
 const isSaving = ref(false);
-const form = reactive({ name: '', taxId: '', phone: '', email: '', address: '' });
+const form = ref(toCompanyForm(null));
 
 const isEdit = computed(() => !!props.company);
 
-const rules: FormRules = {
-  name: [{ required: true, whitespace: true, message: () => t('platform.companies.form.nameRequired'), trigger: 'blur' }],
-  email: [{ type: 'email', message: () => t('platform.companies.form.emailInvalid'), trigger: 'blur' }],
-};
-
 watch(open, (isOpen) => {
   if (!isOpen) return;
-  const c = props.company;
-  Object.assign(form, {
-    name: c?.name ?? '',
-    taxId: c?.taxId ?? '',
-    phone: c?.phone ?? '',
-    email: c?.email ?? '',
-    address: c?.address ?? '',
-  });
+  form.value = toCompanyForm(props.company);
   formRef.value?.clearValidate();
 });
-
-const orNull = (value: string) => value.trim() || null;
 
 const save = async () => {
   if (!(await formRef.value?.validate().catch(() => false))) return;
 
-  const payload: ICompanyPayload = {
-    name: form.name.trim(),
-    taxId: orNull(form.taxId),
-    phone: orNull(form.phone),
-    email: orNull(form.email),
-    address: orNull(form.address),
-  };
-
+  const payload = toCompanyPayload(form.value);
   isSaving.value = true;
   try {
     const saved = props.company
@@ -83,45 +64,8 @@ const save = async () => {
   >
     <template #icon><Building2 :size="20" /></template>
 
-    <el-form
-      ref="formRef"
-      :model="form"
-      :rules="rules"
-      label-position="top"
-      :disabled="isSaving"
-      @submit.prevent="save"
-    >
-      <el-form-item :label="$t('platform.companies.form.name')" prop="name">
-        <el-input v-model="form.name" maxlength="255">
-          <template #prefix><Building2 :size="16" aria-hidden="true" /></template>
-        </el-input>
-      </el-form-item>
-
-      <div class="form-row">
-        <el-form-item :label="$t('platform.companies.form.taxId')" prop="taxId">
-          <el-input v-model="form.taxId" maxlength="50">
-            <template #prefix><FileText :size="16" aria-hidden="true" /></template>
-          </el-input>
-        </el-form-item>
-        <el-form-item :label="$t('platform.companies.form.phone')" prop="phone">
-          <el-input v-model="form.phone" type="tel" maxlength="50">
-            <template #prefix><Phone :size="16" aria-hidden="true" /></template>
-          </el-input>
-        </el-form-item>
-      </div>
-
-      <el-form-item :label="$t('platform.companies.form.email')" prop="email">
-        <el-input v-model="form.email" type="email" maxlength="255">
-          <template #prefix><Mail :size="16" aria-hidden="true" /></template>
-        </el-input>
-      </el-form-item>
-
-      <el-form-item :label="$t('platform.companies.form.address')" prop="address">
-        <el-input v-model="form.address" maxlength="500">
-          <template #prefix><MapPin :size="16" aria-hidden="true" /></template>
-        </el-input>
-      </el-form-item>
-
+    <el-form ref="formRef" :model="form" label-position="top" :disabled="isSaving" @submit.prevent="save">
+      <CompanyFormFields v-model="form" />
       <!-- Lets Enter submit the form. -->
       <button type="submit" hidden />
     </el-form>
@@ -132,17 +76,3 @@ const save = async () => {
     </template>
   </AppDialog>
 </template>
-
-<style scoped>
-.form-row {
-  display: grid;
-  grid-template-columns: 1fr;
-  column-gap: 1rem;
-}
-
-@media (min-width: 576px) {
-  .form-row {
-    grid-template-columns: 1fr 1fr;
-  }
-}
-</style>

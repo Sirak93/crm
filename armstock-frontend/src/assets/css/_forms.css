@@ -1,0 +1,12 @@
+/* Two-field row (e.g. first/last name): stacked on small screens, side by side from 576px. */
+.form-row {
+    display: grid;
+    grid-template-columns: 1fr;
+    column-gap: 1rem;
+}
+
+@media (min-width: 576px) {
+    .form-row {
+        grid-template-columns: 1fr 1fr;
+    }
+}

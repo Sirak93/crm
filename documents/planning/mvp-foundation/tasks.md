@@ -147,25 +147,27 @@ Each is its own top-level menu item.
   - [x] API: `PATCH /api/platform/companies/:uuid/status`
   - [x] Companies table: Status column and a "⋯" menu (Edit, Block / Activate)
   - [x] Lint and build pass
-  - [ ] Checked in browser: Status column, block (with confirm) and activate from the menu
+  - [x] Checked in browser: Status column, block (with confirm) and activate from the menu
 
 ## Step 5 — Staff + users
 
 - [x] To confirm: the creator sets the password by hand (no emails in MVP)? → yes
 - [x] To confirm: does turning off a staff member also turn off their login? → staff has
       no status for now; only the login (user) can be blocked
-- [ ] `CompanyStaff` table: company, full name, position
-- [ ] Link a user to one staff record (API sends staff names to `UserModel`)
-- [ ] Platform Owner: on a company, add its Company Owner (staff + login together)
-- [ ] Company Owner — Staff page
-  - [ ] List
-  - [ ] Add / edit
-- [ ] Company Owner — logins
-  - [ ] "Give login" on a staff member: email, password, role
-  - [ ] Change role
-  - [ ] Block / activate login
-- [ ] Company Owner — edit own company details
-- [ ] Lint and build pass
+- [x] `CompanyStaff` table: company, first name, last name, position (optional text)
+- [x] Link a user to one staff record (API sends staff names to `UserModel`)
+- [x] Platform Owner: on a company, add its Company Owner (staff + login together)
+- [x] Company start page (empty dashboard) for Company Owner, Storekeeper, Accountant
+- [x] Company Owner — Staff page
+  - [x] List with search and paging
+  - [x] Add / edit
+- [x] Company Owner — logins
+  - [x] "Give login" on a staff member: email, password, role
+  - [x] Change role
+  - [x] Block / activate login
+  - [x] Cannot change their own login
+- [x] Company Owner — edit own company details
+- [x] Lint and build pass
 - [ ] Checked in browser: as Company Owner add a Chef (no login) and a Storekeeper
       (with login), then log in as that Storekeeper
 - [ ] Checked in browser: as Platform Owner block that company → the Storekeeper is

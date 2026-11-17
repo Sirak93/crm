@@ -35,9 +35,8 @@ export class UserModel {
       email: json.email,
       role: json.role,
       status: json.status,
-      // Names come from the staff record, which the API does not send yet.
-      firstName: null,
-      lastName: null,
+      firstName: json.firstName,
+      lastName: json.lastName,
       lastLoginAt: json.lastLoginAt ? new Date(json.lastLoginAt) : null,
     });
   }

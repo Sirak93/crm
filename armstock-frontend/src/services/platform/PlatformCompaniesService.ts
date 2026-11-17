@@ -1,4 +1,12 @@
-import type { CompanyStatus, IAppResponse, ICompany, ICompanyPayload, IPaginationMeta } from 'armstock-shared';
+import type {
+  CompanyStatus,
+  IAppResponse,
+  ICompany,
+  ICompanyOwnerPayload,
+  ICompanyPayload,
+  ICompanyStaff,
+  IPaginationMeta,
+} from 'armstock-shared';
 import ApiService from '../ApiService';
 
 export const PlatformCompaniesService = {
@@ -21,6 +29,11 @@ export const PlatformCompaniesService = {
 
   async setStatus(uuid: string, status: CompanyStatus): Promise<ICompany> {
     const response = await ApiService.patch<IAppResponse<ICompany>>(`/platform/companies/${uuid}/status`, { status });
+    return response.data.data!;
+  },
+
+  async addOwner(uuid: string, payload: ICompanyOwnerPayload): Promise<ICompanyStaff> {
+    const response = await ApiService.post<IAppResponse<ICompanyStaff>>(`/platform/companies/${uuid}/owner`, payload);
     return response.data.data!;
   },
 };

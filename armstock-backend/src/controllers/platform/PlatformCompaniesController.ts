@@ -1,18 +1,16 @@
 import { Response } from "express";
 import { AuthRequest } from "../../middlewares/AuthMiddleware";
 import { PlatformCompaniesService } from "../../services/platform/PlatformCompaniesService";
-import type {
-    CompanyBody,
-    CompanyStatusBody,
-    PlatformCompaniesQuery,
-} from "../../schemas/platform/PlatformCompaniesSchema";
+import type { CompanyBody } from "../../schemas/CompanySchema";
+import type { PaginatedSearchQuery } from "../../schemas/SharedSchema";
+import type { CompanyOwnerBody, CompanyStatusBody } from "../../schemas/platform/PlatformCompaniesSchema";
 import { AppResponse } from "../../utils/AppResponse";
 
 export class PlatformCompaniesController {
     private service = new PlatformCompaniesService();
 
     list = async (req: AuthRequest, res: Response) => {
-        const { items, meta } = await this.service.list(req.query as unknown as PlatformCompaniesQuery);
+        const { items, meta } = await this.service.list(req.query as unknown as PaginatedSearchQuery);
         return AppResponse.send(res, items, meta);
     };
 
@@ -27,5 +25,9 @@ export class PlatformCompaniesController {
     setStatus = async (req: AuthRequest, res: Response) => {
         const { status } = req.body as CompanyStatusBody;
         return AppResponse.send(res, await this.service.setStatus(req.params.uuid as string, status));
+    };
+
+    addOwner = async (req: AuthRequest, res: Response) => {
+        return AppResponse.send(res, await this.service.addOwner(req.params.uuid as string, req.body as CompanyOwnerBody));
     };
 }

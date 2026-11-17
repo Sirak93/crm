@@ -1,33 +1,19 @@
-import { CompanyStatus, ErrorCodes, type ICompany, type IPaginationMeta } from "armstock-shared";
+import { CompanyStatus, UserRole, type ICompany, type ICompanyStaff, type IPaginationMeta } from "armstock-shared";
 import { AppDataSource } from "../../config/database";
 import { Company } from "../../models/Company";
-import { AppError } from "../../utils/AppError";
 import { AuthCacheService } from "../AuthCacheService";
-import type { CompanyBody, PlatformCompaniesQuery } from "../../schemas/platform/PlatformCompaniesSchema";
+import { CompanyService } from "../CompanyService";
+import { CompanyStaffService } from "../company/CompanyStaffService";
+import { UserService } from "../UserService";
+import type { CompanyBody } from "../../schemas/CompanySchema";
+import type { PaginatedSearchQuery } from "../../schemas/SharedSchema";
+import type { CompanyOwnerBody } from "../../schemas/platform/PlatformCompaniesSchema";
 
 export class PlatformCompaniesService {
     private repo = AppDataSource.getRepository(Company);
+    private companyService = new CompanyService();
 
-    private static toCompany(company: Company): ICompany {
-        return {
-            uuid: company.uuid,
-            name: company.name,
-            taxId: company.taxId,
-            phone: company.phone,
-            email: company.email,
-            address: company.address,
-            status: company.status,
-            createdAt: company.createdAt.toISOString(),
-        };
-    }
-
-    private async findOrFail(uuid: string): Promise<Company> {
-        const company = await this.repo.findOne({ where: { uuid } });
-        if (!company) throw new AppError(ErrorCodes.COMPANY.NOT_FOUND, undefined, undefined, { uuid });
-        return company;
-    }
-
-    async list(query: PlatformCompaniesQuery): Promise<{ items: ICompany[]; meta: IPaginationMeta }> {
+    async list(query: PaginatedSearchQuery): Promise<{ items: ICompany[]; meta: IPaginationMeta }> {
         const { page, pageSize, search } = query;
 
         const qb = this.repo.createQueryBuilder("company");
@@ -40,27 +26,43 @@ export class PlatformCompaniesService {
             .getManyAndCount();
 
         return {
-            items: rows.map(PlatformCompaniesService.toCompany),
+            items: rows.map(CompanyService.toCompany),
             meta: { page, pageSize, total, totalPages: Math.ceil(total / pageSize) },
         };
     }
 
     async create(body: CompanyBody): Promise<ICompany> {
         const company = await this.repo.save(this.repo.create(body));
-        return PlatformCompaniesService.toCompany(company);
+        return CompanyService.toCompany(company);
     }
 
-    async update(uuid: string, body: CompanyBody): Promise<ICompany> {
-        const company = await this.findOrFail(uuid);
-        Object.assign(company, body);
-        return PlatformCompaniesService.toCompany(await this.repo.save(company));
+    update(uuid: string, body: CompanyBody): Promise<ICompany> {
+        return this.companyService.update(uuid, body);
     }
 
     async setStatus(uuid: string, status: CompanyStatus): Promise<ICompany> {
-        const company = await this.findOrFail(uuid);
+        const company = await this.companyService.findOrFail(uuid);
         company.status = status;
         await this.repo.save(company);
         await AuthCacheService.setCompanyStatus(uuid, status);
-        return PlatformCompaniesService.toCompany(company);
+        return CompanyService.toCompany(company);
+    }
+
+    /** Staff record + Company Owner login, saved together. */
+    async addOwner(uuid: string, body: CompanyOwnerBody): Promise<ICompanyStaff> {
+        const company = await this.companyService.findOrFail(uuid);
+        const { email, password, ...staffBody } = body;
+
+        return AppDataSource.transaction(async (manager) => {
+            const staff = await CompanyStaffService.createStaff(manager, company.uuid, staffBody);
+            const login = await UserService.createLogin(manager, {
+                email,
+                password,
+                role: UserRole.COMPANY_OWNER,
+                companyUuid: company.uuid,
+                staffUuid: staff.uuid,
+            });
+            return CompanyStaffService.toStaff(staff, login);
+        });
     }
 }

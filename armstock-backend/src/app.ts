@@ -2,6 +2,7 @@ import express from "express";
 import cors from "cors";
 import { API_PATH } from "armstock-shared";
 import AuthRoutes from "./routes/AuthRoutes";
+import CompanyRoutes from "./routes/CompanyRoutes";
 import HealthRoutes from "./routes/HealthRoutes";
 import PlatformRoutes from "./routes/PlatformRoutes";
 import { ErrorHandler } from "./middlewares/ErrorHandler";
@@ -40,6 +41,7 @@ app.use(express.urlencoded({ extended: true }));
 app.use(ApiLogMiddleware);
 
 app.use(`${API_PATH}/auth`, AuthRoutes);
+app.use(`${API_PATH}/company`, CompanyRoutes);
 app.use(`${API_PATH}/health`, HealthRoutes);
 app.use(`${API_PATH}/platform`, PlatformRoutes);
 

@@ -16,12 +16,15 @@ import { AuthCacheService } from "./AuthCacheService";
 export class AuthService {
     private userRepo = AppDataSource.getRepository(User);
 
+    /** `user.staff` must be loaded. */
     static toAuthUser(user: User): IAuthUser {
         return {
             uuid: user.uuid,
             email: user.email,
             role: user.role,
             status: user.status,
+            firstName: user.staff?.firstName ?? null,
+            lastName: user.staff?.lastName ?? null,
             lastLoginAt: user.lastLoginAt?.toISOString() ?? null,
         };
     }
@@ -33,7 +36,7 @@ export class AuthService {
     }
 
     async login(email: string, password: string): Promise<ILoginResponse> {
-        const user = await this.userRepo.findOne({ where: { email }, relations: { company: true } });
+        const user = await this.userRepo.findOne({ where: { email }, relations: { company: true, staff: true } });
         if (!user) throw new AppError(ErrorCodes.AUTH.INVALID_CREDENTIALS);
 
         const match = await bcrypt.compare(password, user.password);
@@ -86,7 +89,7 @@ export class AuthService {
     }
 
     async getAuthUser(userUuid: string): Promise<IAuthUser> {
-        const user = await this.userRepo.findOne({ where: { uuid: userUuid } });
+        const user = await this.userRepo.findOne({ where: { uuid: userUuid }, relations: { staff: true } });
         if (!user) throw new AppError(ErrorCodes.AUTH.UNAUTHORIZED, undefined, undefined, { reason: "user not found", userUuid });
 
         return AuthService.toAuthUser(user);

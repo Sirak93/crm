@@ -7,5 +7,8 @@ export interface IAuthUser {
     email: string;
     role: UserRole;
     status: UserStatus;
+    /** From the linked staff record; null for the Platform Owner. */
+    firstName: string | null;
+    lastName: string | null;
     lastLoginAt: string | null;
 }
