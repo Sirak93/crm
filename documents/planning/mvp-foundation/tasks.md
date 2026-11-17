@@ -179,7 +179,6 @@ Each is its own top-level menu item.
 - [x] `Unit` table: company, name ("Կիլոգրամ"), short name ("կգ"), allows decimals. Name
       and short name are unique inside the company (ignoring case).
 - [x] New company gets the default units: Հատ (հատ), Կիլոգրամ (կգ), Լիտր (լ), Մետր (մ)
-- [x] Seeder adds the defaults to existing companies that have no units
 - [x] Shared: `CATALOG_MANAGER_ROLES` (Company Owner, Storekeeper)
 - [x] API (`/api/units`, own company only)
   - [x] All company roles can read
