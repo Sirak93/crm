@@ -3,7 +3,7 @@ import cors from "cors";
 import { API_PATH } from "armstock-shared";
 import HealthRoutes from "./routes/HealthRoutes";
 import { ErrorHandler } from "./middlewares/ErrorHandler";
-import { RequestLoggerMiddleware } from "./middlewares/RequestLoggerMiddleware";
+import { ApiLogMiddleware } from "./middlewares/ApiLogMiddleware";
 import { allowedOrigins } from "./utils/allowedOrigins";
 
 const app = express();
@@ -35,7 +35,7 @@ app.use(cors({
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
-app.use(RequestLoggerMiddleware);
+app.use(ApiLogMiddleware);
 
 app.use(`${API_PATH}/health`, HealthRoutes);
 

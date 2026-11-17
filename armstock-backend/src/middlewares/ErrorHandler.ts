@@ -4,14 +4,12 @@ import { ErrorCodes } from "armstock-shared";
 import { AppError } from "../utils/AppError";
 import { AppResponse } from "../utils/AppResponse";
 import { AppLogger } from "../utils/AppLogger";
-import { AppRequestLogger } from "../utils/AppRequestLogger";
 
-export const ErrorHandler = (err: any, req: Request, res: Response, _next: NextFunction) => {
+export const ErrorHandler = (err: any, _req: Request, res: Response, _next: NextFunction) => {
     AppLogger.error("Error handler => ", err);
 
-    AppRequestLogger.logError(err, req).catch((logErr) => {
-        AppLogger.error("Failed to log error to JSON:", logErr);
-    });
+    // Read by ApiLogger when the response finishes, so the api_logs row records what broke.
+    res.locals.error = err;
 
     if (err instanceof AppError) {
         return AppResponse.error(res, err.code, err.message, err.statusCode);

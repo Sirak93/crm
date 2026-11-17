@@ -104,8 +104,10 @@ Name, contact person, phone, email, tax ID, note (all optional except name), act
   only). After MVP: migrations only.
 - **Redis:** caching (units, categories, products). Stock quantities are never cached.
 - **i18n:** set up from the start, English only for now.
-- **Loggers:** copied from armlytic — backend `AppLogger`, `AppRequestLogger`,
-  `ApiLogger`; frontend `AppLogger`.
+- **Loggers:** copied from armlytic — backend `AppLogger` (console) and `ApiLogger`
+  (one row per request in the `api_logs` table, on/off with the `API_DB_LOG_ENABLED`
+  env value — may move to an owner-switchable setting later); frontend `AppLogger`.
+  No file logs.
 
 ## Auth
 

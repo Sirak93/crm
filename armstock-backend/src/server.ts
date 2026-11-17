@@ -4,7 +4,7 @@ dotenv.config();
 
 // Before the other imports: app.ts reads ALLOWED_ORIGINS and RedisConfig reads REDIS_* as they load.
 import { requireEnv } from "./utils/requireEnv";
-requireEnv("PORT", "ALLOWED_ORIGINS", "DB_HOST", "DB_PORT", "DB_USERNAME", "DB_NAME", "REDIS_HOST", "REDIS_PORT");
+requireEnv("PORT", "ALLOWED_ORIGINS", "DB_HOST", "DB_PORT", "DB_USERNAME", "DB_NAME", "REDIS_HOST", "REDIS_PORT", "SLOW_REQUEST_THRESHOLD_MS");
 
 import { AppDataSource } from "./config/database";
 import app from "./app";

@@ -50,6 +50,8 @@ Decisions behind these steps: [decisions.md](decisions.md).
   - [x] Express on port 4200
   - [x] Check required env values at startup, stop with a clear message if one is missing
   - [x] Loggers copied from armlytic
+  - [x] API logs: one row per request in the `api_logs` table, on/off with
+        `API_DB_LOG_ENABLED` (no file logs)
   - [x] Connect to Postgres DB `armstock` (TypeORM, `synchronize: true`)
   - [x] Connect to Redis (keys start with `armstock:`)
   - [x] `GET /api/health` — says if the DB and Redis are OK
