@@ -14,3 +14,9 @@ export const COMPANY_LOGIN_ROLES: readonly UserRole[] = [
     UserRole.STOREKEEPER,
     UserRole.ACCOUNTANT,
 ];
+
+/** Roles that manage the company catalog (units, categories, products). Accountant only views. */
+export const CATALOG_MANAGER_ROLES: readonly UserRole[] = [
+    UserRole.COMPANY_OWNER,
+    UserRole.STOREKEEPER,
+];

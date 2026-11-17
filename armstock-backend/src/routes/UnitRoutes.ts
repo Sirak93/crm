@@ -1,11 +1,22 @@
 import { Router } from "express";
+import { CATALOG_MANAGER_ROLES, COMPANY_LOGIN_ROLES } from "armstock-shared";
 import { AuthMiddleware } from "../middlewares/AuthMiddleware";
+import { RoleMiddleware } from "../middlewares/RoleMiddleware";
+import { validate } from "../middlewares/Validate";
 import { asyncHandler } from "../utils/asyncHandler";
 import { UnitController } from "../controllers/UnitController";
+import { UnitBodySchema } from "../schemas/UnitSchema";
+import { UuidParamsSchema } from "../schemas/SharedSchema";
 
 const router = Router();
 const unitController = new UnitController();
+const canManage = RoleMiddleware([...CATALOG_MANAGER_ROLES]);
 
-router.get("/", AuthMiddleware, asyncHandler(unitController.list));
+router.use(AuthMiddleware);
+
+router.get("/", RoleMiddleware([...COMPANY_LOGIN_ROLES]), asyncHandler(unitController.list));
+router.post("/", canManage, validate(UnitBodySchema), asyncHandler(unitController.create));
+router.put("/:uuid", canManage, validate(UuidParamsSchema, "params"), validate(UnitBodySchema), asyncHandler(unitController.update));
+router.delete("/:uuid", canManage, validate(UuidParamsSchema, "params"), asyncHandler(unitController.delete));
 
 export default router;

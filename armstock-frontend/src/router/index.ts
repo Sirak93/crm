@@ -50,12 +50,6 @@ const routes: RouteRecordRaw[] = [
         meta: { roles: [UserRole.PLATFORM_OWNER] },
       },
       {
-        path: 'units',
-        name: ROUTE_NAME.PLATFORM_UNITS,
-        component: () => import('../views/platform/PlatformUnits.vue'),
-        meta: { roles: [UserRole.PLATFORM_OWNER] },
-      },
-      {
         path: 'database',
         name: ROUTE_NAME.PLATFORM_DATABASE,
         component: () => import('../views/platform/PlatformDatabase.vue'),
@@ -71,6 +65,12 @@ const routes: RouteRecordRaw[] = [
         path: 'home',
         name: ROUTE_NAME.COMPANY_DASHBOARD,
         component: () => import('../views/Dashboard.vue'),
+        meta: { roles: [...COMPANY_LOGIN_ROLES] },
+      },
+      {
+        path: 'units',
+        name: ROUTE_NAME.COMPANY_UNITS,
+        component: () => import('../views/company/CompanyUnits.vue'),
         meta: { roles: [...COMPANY_LOGIN_ROLES] },
       },
       {

@@ -6,17 +6,19 @@ import { Plus, Ruler, Search } from 'lucide-vue-next';
 import PageHeader from '../../components/PageHeader.vue';
 import AppCard from '../../components/AppCard.vue';
 import LoadError from '../../components/LoadError.vue';
-import UnitsTable from '../../components/platform/UnitsTable.vue';
-import UnitDialog from '../../components/platform/UnitDialog.vue';
+import UnitsTable from '../../components/company/UnitsTable.vue';
+import UnitDialog from '../../components/company/UnitDialog.vue';
 import { UnitService } from '../../services/UnitService';
-import { PlatformUnitsService } from '../../services/platform/PlatformUnitsService';
 import { NotificationService } from '../../services/NotificationService';
 import { useApiErrorMessage } from '../../composables/useApiErrorMessage';
 import { formatNumber } from '../../utils/format';
 import { AppLogger } from '../../utils/AppLogger';
+import { useAuthStore } from '../../stores/auth';
 
 const { t } = useI18n();
 const { parseError } = useApiErrorMessage();
+const authStore = useAuthStore();
+const canManage = computed(() => !!authStore.user?.canManageCatalog);
 
 const units = ref<IUnit[]>([]);
 const search = ref('');
@@ -61,19 +63,19 @@ const openEdit = (unit: IUnit) => {
 
 const deleteUnit = async (unit: IUnit) => {
   const confirmed = await NotificationService.confirm(
-    t('platform.units.deleteConfirmTitle', { name: unit.name }),
-    t('platform.units.deleteConfirmText'),
-    t('platform.units.actions.delete'),
+    t('units.deleteConfirmTitle', { name: unit.name }),
+    t('units.deleteConfirmText'),
+    t('units.actions.delete'),
   );
   if (!confirmed) return;
 
   deletingUuid.value = unit.uuid;
   try {
-    await PlatformUnitsService.delete(unit.uuid);
+    await UnitService.delete(unit.uuid);
     units.value = units.value.filter((u) => u.uuid !== unit.uuid);
-    NotificationService.success(t('platform.units.deleted'));
+    NotificationService.success(t('units.deleted'));
   } catch (error) {
-    NotificationService.error(parseError(error, 'platform.units.deleteError'));
+    NotificationService.error(parseError(error, 'units.deleteError'));
   } finally {
     deletingUuid.value = null;
   }
@@ -85,41 +87,41 @@ onMounted(load);
 <template>
   <section class="units-page">
     <PageHeader
-      :title="$t('platform.units.title')"
-      :subtitle="$t('platform.units.subtitle')"
+      :title="$t('units.title')"
+      :subtitle="$t('units.subtitle')"
       :badge="hasLoaded ? formatNumber(units.length) : undefined"
     >
-      <template #actions>
+      <template v-if="canManage" #actions>
         <el-button type="primary" @click="openAdd">
           <Plus :size="16" aria-hidden="true" />
-          <span>{{ $t('platform.units.add') }}</span>
+          <span>{{ $t('units.add') }}</span>
         </el-button>
       </template>
     </PageHeader>
 
     <el-input
       v-model="search"
-      :placeholder="$t('platform.units.searchPlaceholder')"
-      :aria-label="$t('platform.units.searchPlaceholder')"
+      :placeholder="$t('units.searchPlaceholder')"
+      :aria-label="$t('units.searchPlaceholder')"
       clearable
       class="units-search"
     >
       <template #prefix><Search :size="16" aria-hidden="true" /></template>
     </el-input>
 
-    <LoadError v-if="hasError && !isLoading" :message="$t('platform.units.loadError')" @retry="load" />
+    <LoadError v-if="hasError && !isLoading" :message="$t('units.loadError')" @retry="load" />
 
     <AppCard v-else class="table-card">
       <el-skeleton v-if="isLoading && !hasLoaded" :rows="4" animated class="skeleton" />
 
-      <el-empty v-else-if="!filteredUnits.length" :description="$t(search.trim() ? 'platform.units.noResults' : 'platform.units.empty')">
+      <el-empty v-else-if="!filteredUnits.length" :description="$t(search.trim() ? 'units.noResults' : 'units.empty')">
         <template #image><Ruler :size="40" aria-hidden="true" /></template>
       </el-empty>
 
-      <UnitsTable v-else v-loading="isLoading" :units="filteredUnits" :deleting-uuid="deletingUuid" @edit="openEdit" @delete="deleteUnit" />
+      <UnitsTable v-else v-loading="isLoading" :units="filteredUnits" :can-manage="canManage" :deleting-uuid="deletingUuid" @edit="openEdit" @delete="deleteUnit" />
     </AppCard>
 
-    <UnitDialog v-model="isDialogOpen" :unit="editingUnit" @saved="load" />
+    <UnitDialog v-if="canManage" v-model="isDialogOpen" :unit="editingUnit" @saved="load" />
   </section>
 </template>
 

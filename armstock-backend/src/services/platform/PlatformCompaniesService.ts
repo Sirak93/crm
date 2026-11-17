@@ -3,6 +3,7 @@ import { AppDataSource } from "../../config/database";
 import { Company } from "../../models/Company";
 import { AuthCacheService } from "../AuthCacheService";
 import { CompanyService } from "../CompanyService";
+import { UnitService } from "../UnitService";
 import type { CompanyBody } from "../../schemas/CompanySchema";
 import type { PaginatedSearchQuery } from "../../schemas/SharedSchema";
 
@@ -28,8 +29,14 @@ export class PlatformCompaniesService {
         };
     }
 
+    /** The company and its default units, saved together. */
     async create(body: CompanyBody): Promise<ICompany> {
-        const company = await this.repo.save(this.repo.create(body));
+        const company = await AppDataSource.transaction(async (manager) => {
+            const repo = manager.getRepository(Company);
+            const saved = await repo.save(repo.create(body));
+            await UnitService.createDefaults(manager, saved.uuid);
+            return saved;
+        });
         return CompanyService.toCompany(company);
     }
 

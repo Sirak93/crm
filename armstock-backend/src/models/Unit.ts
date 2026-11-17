@@ -4,13 +4,25 @@ import {
     Column,
     CreateDateColumn,
     UpdateDateColumn,
+    Index,
+    ManyToOne,
+    JoinColumn,
 } from "typeorm";
+import { Company } from "./Company";
 
-/** One global list shared by all companies. */
+/** Each company has its own list; new companies get the defaults. */
 @Entity("units")
+@Index("IDX_units_company_uuid", ["companyUuid"])
 export class Unit {
     @PrimaryGeneratedColumn("uuid")
     uuid!: string;
+
+    @Column({ name: "company_uuid", type: "uuid" })
+    companyUuid!: string;
+
+    @ManyToOne(() => Company, { onDelete: "RESTRICT" })
+    @JoinColumn({ name: "company_uuid" })
+    company?: Company;
 
     @Column()
     name!: string;

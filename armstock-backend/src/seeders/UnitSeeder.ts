@@ -1,23 +1,16 @@
 import { AppDataSource } from "../config/database";
+import { Company } from "../models/Company";
 import { Unit } from "../models/Unit";
+import { UnitService } from "../services/UnitService";
 
-const DEFAULT_UNITS = [
-    { name: "Հատ", shortName: "հատ", allowsDecimals: false },
-    { name: "Կիլոգրամ", shortName: "կգ", allowsDecimals: true },
-    { name: "Լիտր", shortName: "լ", allowsDecimals: true },
-    { name: "Մետր", shortName: "մ", allowsDecimals: true },
-];
-
-/** Adds the default units that are missing (matched by short name), so it can run again. */
+/** New companies get the default units on create; this fills in companies that have none. */
 export const seedUnits = async () => {
-    const repo = AppDataSource.getRepository(Unit);
+    const companies = await AppDataSource.getRepository(Company).find({ select: { uuid: true, name: true } });
+    const unitRepo = AppDataSource.getRepository(Unit);
 
-    for (const unit of DEFAULT_UNITS) {
-        if (await repo.exists({ where: { shortName: unit.shortName } })) {
-            console.log(`Unit already exists: ${unit.shortName}`);
-            continue;
-        }
-        await repo.save(repo.create(unit));
-        console.log(`Unit created: ${unit.shortName}`);
+    for (const company of companies) {
+        if (await unitRepo.exists({ where: { companyUuid: company.uuid } })) continue;
+        await AppDataSource.transaction((manager) => UnitService.createDefaults(manager, company.uuid));
+        console.log(`Default units added to: ${company.name}`);
     }
 };

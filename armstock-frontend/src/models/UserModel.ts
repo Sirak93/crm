@@ -1,4 +1,4 @@
-import { UserRole, UserStatus, type IAuthUser } from 'armstock-shared';
+import { CATALOG_MANAGER_ROLES, UserRole, UserStatus, type IAuthUser } from 'armstock-shared';
 
 interface IUserModelData {
   uuid: string;
@@ -55,6 +55,11 @@ export class UserModel {
       return `${this.firstName?.[0] ?? ''}${this.lastName?.[0] ?? ''}`.toUpperCase();
     }
     return this.email.charAt(0).toUpperCase();
+  }
+
+  /** Units, categories, products: Company Owner and Storekeeper manage, Accountant only views. */
+  get canManageCatalog(): boolean {
+    return CATALOG_MANAGER_ROLES.includes(this.role);
   }
 
   get isPlatformOwner(): boolean {

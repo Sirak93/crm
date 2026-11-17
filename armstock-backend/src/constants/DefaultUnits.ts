@@ -1,0 +1,7 @@
+/** Copied into every new company. */
+export const DEFAULT_UNITS = [
+    { name: "Հատ", shortName: "հատ", allowsDecimals: false },
+    { name: "Կիլոգրամ", shortName: "կգ", allowsDecimals: true },
+    { name: "Լիտր", shortName: "լ", allowsDecimals: true },
+    { name: "Մետր", shortName: "մ", allowsDecimals: true },
+];

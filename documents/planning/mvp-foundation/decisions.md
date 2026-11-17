@@ -55,8 +55,11 @@ from the route middleware.
 
 ## Units
 
-- One global list (piece, kg, liter, meter…), seeded at start, managed later by the
-  Platform Owner.
+- Each company has its own list. A new company gets the defaults copied in:
+  Հատ (հատ), Կիլոգրամ (կգ), Լիտր (լ), Մետր (մ).
+- Company Owner and Storekeeper manage units; Accountant only views (same as categories
+  and products — `CATALOG_MANAGER_ROLES`).
+- Name and short name are unique inside the company (ignoring case).
 - Each unit has an "allows decimals" flag (kg = yes, piece = no).
 - Each product has one unit. All stock, prices, and movements use that unit. No unit
   conversion in MVP.

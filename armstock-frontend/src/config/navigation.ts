@@ -28,13 +28,6 @@ export const NAV_ITEMS: INavItem[] = [
     roles: [UserRole.PLATFORM_OWNER],
   },
   {
-    id: 'platform-units',
-    labelKey: 'nav.units',
-    icon: Ruler,
-    routeName: ROUTE_NAME.PLATFORM_UNITS,
-    roles: [UserRole.PLATFORM_OWNER],
-  },
-  {
     id: 'platform-database',
     labelKey: 'nav.database',
     icon: Database,
@@ -53,6 +46,13 @@ export const NAV_ITEMS: INavItem[] = [
     labelKey: 'nav.dashboard',
     icon: LayoutDashboard,
     routeName: ROUTE_NAME.COMPANY_DASHBOARD,
+    roles: [...COMPANY_LOGIN_ROLES],
+  },
+  {
+    id: 'company-units',
+    labelKey: 'nav.units',
+    icon: Ruler,
+    routeName: ROUTE_NAME.COMPANY_UNITS,
     roles: [...COMPANY_LOGIN_ROLES],
   },
   {

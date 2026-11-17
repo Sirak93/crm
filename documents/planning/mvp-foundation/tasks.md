@@ -176,19 +176,22 @@ Each is its own top-level menu item.
 
 ## Step 6 — Units
 
-- [x] `Unit` table: name ("Kilogram"), short name ("kg"), allows decimals. Name and short
-      name are unique (ignoring case).
-- [x] Seeder adds (in Armenian): Հատ (հատ), Կիլոգրամ (կգ), Լիտր (լ), Մետր (մ) — skips ones that exist
-- [x] API
-  - [x] Everyone logged in can read the list (`GET /api/units`)
-  - [x] Only Platform Owner can add, edit, delete (`/api/platform/units`)
+- [x] `Unit` table: company, name ("Կիլոգրամ"), short name ("կգ"), allows decimals. Name
+      and short name are unique inside the company (ignoring case).
+- [x] New company gets the default units: Հատ (հատ), Կիլոգրամ (կգ), Լիտր (լ), Մետր (մ)
+- [x] Seeder adds the defaults to existing companies that have no units
+- [x] Shared: `CATALOG_MANAGER_ROLES` (Company Owner, Storekeeper)
+- [x] API (`/api/units`, own company only)
+  - [x] All company roles can read
+  - [x] Company Owner and Storekeeper add, edit, delete
   - [x] Delete — always allowed for now; the "no product uses it" check comes in Step 8
-- [x] Frontend: Units page for Platform Owner
+- [x] Frontend: Units page (menu "Units") for company roles
   - [x] Table with search
-  - [x] Add/edit dialog
-  - [x] Delete with confirm
+  - [x] Add/edit dialog and delete with confirm — Company Owner and Storekeeper only
+  - [x] Accountant sees the list without actions
 - [x] Lint and build pass
-- [ ] Checked in browser: see the units list, add a unit, edit one, delete one
+- [ ] Checked in browser: as Company Owner add, edit, and delete a unit; a new company
+      starts with the 4 default units; as Accountant the list has no actions
 
 ## Step 7 — Categories
 

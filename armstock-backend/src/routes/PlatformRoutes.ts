@@ -8,8 +8,6 @@ import { PlatformDatabaseController } from "../controllers/platform/PlatformData
 import { PlatformLogsController } from "../controllers/platform/PlatformLogsController";
 import { PlatformLogsQuerySchema } from "../schemas/platform/PlatformLogsSchema";
 import { PlatformCompaniesController } from "../controllers/platform/PlatformCompaniesController";
-import { PlatformUnitsController } from "../controllers/platform/PlatformUnitsController";
-import { UnitBodySchema } from "../schemas/UnitSchema";
 import { CompanyBodySchema } from "../schemas/CompanySchema";
 import { PaginatedSearchQuerySchema, UuidParamsSchema } from "../schemas/SharedSchema";
 import { CompanyStatusBodySchema, CompanyUserParamsSchema } from "../schemas/platform/PlatformCompaniesSchema";
@@ -23,7 +21,6 @@ const router = Router();
 const databaseController = new PlatformDatabaseController();
 const logsController = new PlatformLogsController();
 const companiesController = new PlatformCompaniesController();
-const unitsController = new PlatformUnitsController();
 
 router.use(AuthMiddleware, RoleMiddleware([UserRole.PLATFORM_OWNER]));
 
@@ -67,10 +64,6 @@ router.patch(
     validate(CompanyUserStatusBodySchema),
     asyncHandler(companiesController.setUserStatus),
 );
-
-router.post("/units", validate(UnitBodySchema), asyncHandler(unitsController.create));
-router.put("/units/:uuid", validate(UuidParamsSchema, "params"), validate(UnitBodySchema), asyncHandler(unitsController.update));
-router.delete("/units/:uuid", validate(UuidParamsSchema, "params"), asyncHandler(unitsController.delete));
 
 router.get("/database/storage", asyncHandler(databaseController.getStorage));
 

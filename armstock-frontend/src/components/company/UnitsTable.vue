@@ -5,6 +5,8 @@ import RowActionsMenu from '../RowActionsMenu.vue';
 
 defineProps<{
   units: IUnit[];
+  /** False for read-only roles - no actions column. */
+  canManage: boolean;
   /** uuid of the unit being deleted. */
   deletingUuid: string | null;
 }>();
@@ -25,33 +27,33 @@ const onAction = (unit: IUnit, action: Action) => {
 
 <template>
   <el-table :data="units" class="app-table app-table--nowrap">
-    <el-table-column prop="name" :label="$t('platform.units.table.name')" min-width="200" show-overflow-tooltip>
+    <el-table-column prop="name" :label="$t('units.table.name')" min-width="200" show-overflow-tooltip>
       <template #default="{ row }"><span class="cell-text cell-text--strong">{{ row.name }}</span></template>
     </el-table-column>
-    <el-table-column prop="shortName" :label="$t('platform.units.table.shortName')" min-width="120">
+    <el-table-column prop="shortName" :label="$t('units.table.shortName')" min-width="120">
       <template #default="{ row }"><span class="cell-text">{{ row.shortName }}</span></template>
     </el-table-column>
-    <el-table-column :label="$t('platform.units.table.allowsDecimals')" min-width="140">
+    <el-table-column :label="$t('units.table.allowsDecimals')" min-width="140">
       <template #default="{ row }">
         <el-tag size="small" :type="row.allowsDecimals ? 'success' : 'info'" round>
           {{ $t(row.allowsDecimals ? 'common.yes' : 'common.no') }}
         </el-tag>
       </template>
     </el-table-column>
-    <el-table-column min-width="70" align="center">
+    <el-table-column v-if="canManage" min-width="70" align="center">
       <template #default="{ row }">
         <RowActionsMenu
-          :label="$t('platform.units.actionsFor', { name: row.name })"
+          :label="$t('units.actionsFor', { name: row.name })"
           :disabled="deletingUuid === row.uuid"
           @command="(action) => onAction(row as IUnit, action as Action)"
         >
           <el-dropdown-item :command="ACTION.EDIT">
             <Pencil :size="16" aria-hidden="true" />
-            <span>{{ $t('platform.units.actions.edit') }}</span>
+            <span>{{ $t('units.actions.edit') }}</span>
           </el-dropdown-item>
           <el-dropdown-item :command="ACTION.DELETE" class="dropdown-item--danger">
             <Trash2 :size="16" aria-hidden="true" />
-            <span>{{ $t('platform.units.actions.delete') }}</span>
+            <span>{{ $t('units.actions.delete') }}</span>
           </el-dropdown-item>
         </RowActionsMenu>
       </template>
