@@ -37,6 +37,12 @@ const routes: RouteRecordRaw[] = [
         meta: { roles: [UserRole.PLATFORM_OWNER] },
       },
       {
+        path: 'companies',
+        name: ROUTE_NAME.PLATFORM_COMPANIES,
+        component: () => import('../views/platform/PlatformCompanies.vue'),
+        meta: { roles: [UserRole.PLATFORM_OWNER] },
+      },
+      {
         path: 'database',
         name: ROUTE_NAME.PLATFORM_DATABASE,
         component: () => import('../views/platform/PlatformDatabase.vue'),

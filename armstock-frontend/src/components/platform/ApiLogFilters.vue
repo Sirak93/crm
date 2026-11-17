@@ -1,15 +1,13 @@
 <script setup lang="ts">
 import { reactive, watch } from 'vue';
 import { Search } from 'lucide-vue-next';
-import { DATE_PICKER_FORMAT, HTTP_METHODS } from '../../constants/constants';
+import { DATE_PICKER_FORMAT, HTTP_METHODS, SEARCH_DEBOUNCE_MS } from '../../constants/constants';
 import type { IApiLogFilters } from '../../interfaces/IApiLogFilters';
 
 const emit = defineEmits<{ change: [filters: IApiLogFilters] }>();
 
 const STATUS = { SUCCESS: 'success', FAILED: 'failed' } as const;
 type Status = typeof STATUS[keyof typeof STATUS];
-
-const TEXT_DEBOUNCE_MS = 400;
 
 const form = reactive({
   method: '' as string,
@@ -36,7 +34,7 @@ const emitChange = () => emit('change', toFilters());
 let debounceTimer: ReturnType<typeof setTimeout> | undefined;
 watch(() => [form.path, form.ip], () => {
   clearTimeout(debounceTimer);
-  debounceTimer = setTimeout(emitChange, TEXT_DEBOUNCE_MS);
+  debounceTimer = setTimeout(emitChange, SEARCH_DEBOUNCE_MS);
 });
 
 watch(() => [form.method, form.status, form.slowOnly, form.dateRange], emitChange);

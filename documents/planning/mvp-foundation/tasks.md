@@ -122,20 +122,23 @@ Each is its own top-level menu item.
 
 ## Step 4 — Companies
 
-- [ ] To confirm: which company details (phone, address, tax ID?)
-- [ ] To confirm: does turning off a company block its users from logging in?
-- [ ] `Company` table: name, active, chosen details
-- [ ] Users get a company link (empty for Platform Owner)
-- [ ] API (Platform Owner only)
-  - [ ] List with search and paging
-  - [ ] Create
-  - [ ] Edit
-  - [ ] Turn on/off
-- [ ] Frontend: Companies page
-  - [ ] Table with search
-  - [ ] Add/edit dialog
-  - [ ] Active switch
-- [ ] Lint and build pass
+- [x] To confirm: which company details → tax ID, phone, email, address (all optional),
+      plus an empty `logo` column (no upload yet)
+- [x] To confirm: turning off a company blocks its users from logging in → yes, also
+      signs out users who are already logged in
+- [x] `Company` table: name, tax ID, phone, email, address, logo, active
+- [x] Users get a company link (empty for Platform Owner)
+- [x] API (Platform Owner only)
+  - [x] List with search and paging
+  - [x] Create
+  - [x] Edit
+  - [x] Turn on/off
+- [x] `api_logs` rows get the company; Logs page shows its name
+- [x] Frontend: Companies page
+  - [x] Table with search
+  - [x] Add/edit dialog
+  - [x] Active switch
+- [x] Lint and build pass
 - [ ] Checked in browser: create, edit, find, and turn off companies
 
 ## Step 5 — Staff + users

@@ -31,6 +31,17 @@ export const ErrorCodes = {
             STATUS: 423,
         },
     },
+    COMPANY: {
+        NOT_FOUND: {
+            CODE: "COMPANY_NOT_FOUND",
+            STATUS: 404,
+        },
+        // Same status as USER.INACTIVE: the frontend ends the session on it.
+        INACTIVE: {
+            CODE: "COMPANY_INACTIVE",
+            STATUS: 423,
+        },
+    },
     RATE_LIMIT: {
         TOO_MANY_REQUESTS: {
             CODE: "RATE_LIMIT_TOO_MANY_REQUESTS",

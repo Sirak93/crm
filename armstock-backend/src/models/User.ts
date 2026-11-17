@@ -5,11 +5,16 @@ import {
     CreateDateColumn,
     UpdateDateColumn,
     Unique,
+    Index,
+    ManyToOne,
+    JoinColumn,
 } from "typeorm";
 import { UserRole } from "armstock-shared";
+import { Company } from "./Company";
 
 @Entity("users")
 @Unique("UQ_users_email", ["email"])
+@Index("IDX_users_company_uuid", ["companyUuid"])
 export class User {
     @PrimaryGeneratedColumn("uuid")
     uuid!: string;
@@ -26,6 +31,14 @@ export class User {
 
     @Column({ name: "is_active", default: true })
     isActive!: boolean;
+
+    /** Null for the Platform Owner. */
+    @Column({ name: "company_uuid", type: "uuid", nullable: true })
+    companyUuid!: string | null;
+
+    @ManyToOne(() => Company, { nullable: true, onDelete: "RESTRICT" })
+    @JoinColumn({ name: "company_uuid" })
+    company?: Company | null;
 
     /** SHA-256 of the current refresh token; null after logout. */
     @Column({ name: "refresh_token", type: "varchar", nullable: true })

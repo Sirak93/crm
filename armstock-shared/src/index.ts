@@ -10,6 +10,8 @@ export type * from "./interfaces/IApiLogUser";
 export type * from "./interfaces/IAppErrorResponse";
 export type * from "./interfaces/IAppResponse";
 export type * from "./interfaces/IAuthUser";
+export type * from "./interfaces/ICompany";
+export type * from "./interfaces/ICompanyPayload";
 export type * from "./interfaces/IDatabaseStorage";
 export type * from "./interfaces/IHealthStatus";
 export type * from "./interfaces/ILoginResponse";

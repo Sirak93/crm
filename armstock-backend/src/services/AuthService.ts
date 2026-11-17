@@ -26,14 +26,20 @@ export class AuthService {
         };
     }
 
+    /** `user.company` must be loaded. */
+    private static assertCanSignIn(user: User): void {
+        if (!user.isActive) throw new AppError(ErrorCodes.USER.INACTIVE);
+        if (user.company && !user.company.isActive) throw new AppError(ErrorCodes.COMPANY.INACTIVE);
+    }
+
     async login(email: string, password: string): Promise<ILoginResponse> {
-        const user = await this.userRepo.findOne({ where: { email } });
+        const user = await this.userRepo.findOne({ where: { email }, relations: { company: true } });
         if (!user) throw new AppError(ErrorCodes.AUTH.INVALID_CREDENTIALS);
 
         const match = await bcrypt.compare(password, user.password);
         if (!match) throw new AppError(ErrorCodes.AUTH.INVALID_CREDENTIALS);
 
-        if (!user.isActive) throw new AppError(ErrorCodes.USER.INACTIVE);
+        AuthService.assertCanSignIn(user);
 
         const payload = { userUUID: user.uuid, role: user.role };
         const token = generateToken(payload);
@@ -56,12 +62,12 @@ export class AuthService {
             throw new AppError(ErrorCodes.AUTH.UNAUTHORIZED, undefined, undefined, tokenFailureDetails(providedRefreshToken, err));
         }
 
-        const user = await this.userRepo.findOne({ where: { uuid: userUuid } });
+        const user = await this.userRepo.findOne({ where: { uuid: userUuid }, relations: { company: true } });
         if (!user) {
             throw new AppError(ErrorCodes.AUTH.UNAUTHORIZED, undefined, undefined, { reason: "user not found", userUuid });
         }
 
-        if (!user.isActive) throw new AppError(ErrorCodes.USER.INACTIVE);
+        AuthService.assertCanSignIn(user);
 
         const details = { userUuid: user.uuid, role: UserRole[user.role] };
         if (!user.refreshToken) {
@@ -87,7 +93,7 @@ export class AuthService {
     }
 
     async logout(userUuid: string): Promise<void> {
-        const user = await this.userRepo.findOne({ where: { uuid: userUuid } });
+        const user = await this.userRepo.findOne({ where: { uuid: userUuid }, relations: { company: true } });
         if (!user) return;
 
         user.refreshToken = null;

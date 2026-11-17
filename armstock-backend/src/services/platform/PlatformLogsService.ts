@@ -1,8 +1,9 @@
 import { In } from "typeorm";
-import type { IApiLog, IApiLogUser, IPaginationMeta } from "armstock-shared";
+import type { IApiLog, IApiLogCompany, IApiLogUser, IPaginationMeta } from "armstock-shared";
 import { AppDataSource } from "../../config/database";
 import { ApiLog } from "../../models/ApiLog";
 import { User } from "../../models/User";
+import { Company } from "../../models/Company";
 import type { PlatformLogsQuery } from "../../schemas/platform/PlatformLogsSchema";
 
 export class PlatformLogsService {
@@ -27,7 +28,7 @@ export class PlatformLogsService {
             .getManyAndCount();
 
         return {
-            items: await this.withUsers(rows),
+            items: await this.withNames(rows),
             meta: { page, pageSize, total, totalPages: Math.ceil(total / pageSize) },
         };
     }
@@ -37,15 +38,25 @@ export class PlatformLogsService {
     }
 
     /**
-     * Resolves the few users on one page with a bounded `uuid IN (...)` lookup instead of a
-     * join on `api_logs` - a join on a paginated query forces slow DISTINCT-id paging.
+     * Resolves the few users and companies on one page with bounded `uuid IN (...)` lookups
+     * instead of joins on `api_logs` - a join on a paginated query forces slow DISTINCT-id paging.
      */
-    private async withUsers(rows: ApiLog[]): Promise<IApiLog[]> {
-        const userUuids = [...new Set(rows.map((row) => row.userUuid).filter((uuid): uuid is string => !!uuid))];
-        const users = userUuids.length
-            ? await AppDataSource.getRepository(User).find({ where: { uuid: In(userUuids) }, select: { uuid: true, email: true } })
-            : [];
+    private async withNames(rows: ApiLog[]): Promise<IApiLog[]> {
+        const uniqueUuids = (values: (string | null | undefined)[]) =>
+            [...new Set(values.filter((uuid): uuid is string => !!uuid))];
+        const userUuids = uniqueUuids(rows.map((row) => row.userUuid));
+        const companyUuids = uniqueUuids(rows.map((row) => row.companyUuid));
+
+        const [users, companies] = await Promise.all([
+            userUuids.length
+                ? AppDataSource.getRepository(User).find({ where: { uuid: In(userUuids) }, select: { uuid: true, email: true } })
+                : [],
+            companyUuids.length
+                ? AppDataSource.getRepository(Company).find({ where: { uuid: In(companyUuids) }, select: { uuid: true, name: true } })
+                : [],
+        ]);
         const userMap = new Map<string, IApiLogUser>(users.map((u) => [u.uuid, { uuid: u.uuid, email: u.email }]));
+        const companyMap = new Map<string, IApiLogCompany>(companies.map((c) => [c.uuid, { uuid: c.uuid, name: c.name }]));
 
         return rows.map((log) => ({
             uuid: log.uuid,
@@ -57,8 +68,7 @@ export class PlatformLogsService {
             slow: log.slow,
             success: log.success,
             user: log.userUuid ? userMap.get(log.userUuid) ?? null : null,
-            // Companies do not exist yet; resolved the same way once they do.
-            company: null,
+            company: log.companyUuid ? companyMap.get(log.companyUuid) ?? null : null,
             ip: log.ip ?? null,
             payload: log.payload ?? null,
         }));

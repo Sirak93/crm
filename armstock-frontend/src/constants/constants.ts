@@ -16,6 +16,7 @@ export const ROUTE_NAME = {
   LOGIN: 'login',
   SYSTEM_STATUS: 'system-status',
   PLATFORM_DASHBOARD: 'platform-dashboard',
+  PLATFORM_COMPANIES: 'platform-companies',
   PLATFORM_DATABASE: 'platform-database',
   PLATFORM_LOGS: 'platform-logs',
 } as const;
@@ -23,6 +24,9 @@ export const ROUTE_NAME = {
 export const HTTP_METHODS = ['GET', 'POST', 'PUT', 'PATCH', 'DELETE'] as const;
 
 export const DEFAULT_PAGE_SIZE = 20;
+
+/** Wait after the last keystroke before a search request. */
+export const SEARCH_DEBOUNCE_MS = 400;
 
 /** Element Plus date picker display format - matches formatDateTime. */
 export const DATE_PICKER_FORMAT = 'DD/MM/YYYY';

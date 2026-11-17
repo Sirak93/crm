@@ -47,7 +47,7 @@ export class ApiLogger {
                 slow: durationMs >= Number(process.env.SLOW_REQUEST_THRESHOLD_MS),
                 success,
                 userUuid: (req as AuthRequest).user?.userUUID ?? null,
-                companyUuid: null,
+                companyUuid: (req as AuthRequest).user?.companyUUID ?? null,
                 ip: req.ip ?? null,
                 payload: success ? undefined : {
                     query: req.query,
