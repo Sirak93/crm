@@ -23,8 +23,8 @@ Decisions behind these steps: [decisions.md](decisions.md).
 - [x] Step 3 — Platform tools: Database + Logs
 - [x] Step 4 — Companies
 - [x] Step 5 — Users
-- [ ] Step 6 — Units
-- [ ] Step 7 — Product categories
+- [x] Step 6 — Units
+- [x] Step 7 — Product categories
 - [ ] Step 8 — Products
 - [ ] Step 9 — Suppliers
 - [ ] Step 10 — Stock-in documents
@@ -189,7 +189,7 @@ Each is its own top-level menu item.
   - [x] Add/edit dialog and delete with confirm — Company Owner and Storekeeper only
   - [x] Accountant sees the list without actions
 - [x] Lint and build pass
-- [ ] Checked in browser: as Company Owner add, edit, and delete a unit; a new company
+- [x] Checked in browser: as Company Owner add, edit, and delete a unit; a new company
       starts with the 4 default units; as Accountant the list has no actions
 
 ## Step 7 — Product categories
@@ -207,7 +207,7 @@ Each is its own top-level menu item.
   - [x] Add/edit dialog and delete with confirm — Company Owner and Storekeeper only
   - [x] Accountant sees the list without actions
 - [x] Lint and build pass
-- [ ] Checked in browser: add, edit, and delete categories; a new company starts with
+- [x] Checked in browser: add, edit, and delete categories; a new company starts with
       the default categories; as Accountant the list has no actions
 
 ## Step 8 — Products
