@@ -7,6 +7,10 @@ export default {
     save: 'Save',
     close: 'Close',
   },
+  status: {
+    active: 'Active',
+    blocked: 'Blocked',
+  },
   nav: {
     menu: 'Menu',
     openMenu: 'Open menu',
@@ -60,10 +64,6 @@ export default {
         edit: 'Edit',
         block: 'Block',
         activate: 'Activate',
-      },
-      status: {
-        active: 'Active',
-        blocked: 'Blocked',
       },
       table: {
         name: 'Name',

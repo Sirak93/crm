@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { CompanyStatus, type ICompany } from 'armstock-shared';
 import { Ban, CircleCheck, Ellipsis, Pencil } from 'lucide-vue-next';
+import { COMPANY_STATUS_TAG } from '../../constants/statusTags';
 
 defineProps<{
   companies: ICompany[];
@@ -12,11 +13,6 @@ const emit = defineEmits<{
   edit: [company: ICompany];
   setStatus: [company: ICompany, status: CompanyStatus];
 }>();
-
-const STATUS_TAG: Record<CompanyStatus, { labelKey: string; type: 'success' | 'danger' }> = {
-  [CompanyStatus.ACTIVE]: { labelKey: 'platform.companies.status.active', type: 'success' },
-  [CompanyStatus.BLOCKED]: { labelKey: 'platform.companies.status.blocked', type: 'danger' },
-};
 
 const ACTION = { EDIT: 'edit', BLOCK: 'block', ACTIVATE: 'activate' } as const;
 type Action = typeof ACTION[keyof typeof ACTION];
@@ -46,8 +42,8 @@ const onAction = (company: ICompany, action: Action) => {
     </el-table-column>
     <el-table-column :label="$t('platform.companies.table.status')" min-width="110">
       <template #default="{ row }">
-        <el-tag size="small" :type="STATUS_TAG[row.status as CompanyStatus].type" round>
-          {{ $t(STATUS_TAG[row.status as CompanyStatus].labelKey) }}
+        <el-tag size="small" :type="COMPANY_STATUS_TAG[row.status as CompanyStatus].type" round>
+          {{ $t(COMPANY_STATUS_TAG[row.status as CompanyStatus].labelKey) }}
         </el-tag>
       </template>
     </el-table-column>
