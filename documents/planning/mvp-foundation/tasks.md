@@ -21,7 +21,7 @@ Decisions behind these steps: [decisions.md](decisions.md).
 - [x] Step 1 — Skeleton
 - [x] Step 2 — Login
 - [x] Step 3 — Platform tools: Database + Logs
-- [ ] Step 4 — Companies
+- [x] Step 4 — Companies
 - [ ] Step 5 — Staff + users
 - [ ] Step 6 — Units
 - [ ] Step 7 — Categories
@@ -139,7 +139,8 @@ Each is its own top-level menu item.
   - [x] Add/edit dialog
   - [x] Active switch
 - [x] Lint and build pass
-- [ ] Checked in browser: create, edit, find, and turn off companies
+- [x] Checked in browser: create, edit, find, and turn off companies (blocking users is
+      checked in Step 5, once companies have users)
 
 ## Step 5 — Staff + users
 
@@ -160,6 +161,8 @@ Each is its own top-level menu item.
 - [ ] Lint and build pass
 - [ ] Checked in browser: as Company Owner add a Chef (no login) and a Storekeeper
       (with login), then log in as that Storekeeper
+- [ ] Checked in browser: as Platform Owner turn off that company → the Storekeeper is
+      logged out and cannot log in; turn it on → they can log in again
 
 ## Step 6 — Units
 
@@ -301,3 +304,12 @@ Each is its own top-level menu item.
 - [ ] Fix anything that does not match the roles table in [decisions.md](decisions.md)
 - [ ] Lint and build pass
 - [ ] Checked in browser: each role sees only its own menus and actions
+
+---
+
+## Later (after MVP)
+
+Ideas agreed for later. Not part of any step above.
+
+- [ ] Delete a company. To decide: delete only a company with no users yet, or also
+      everything it owns (users, staff, products, stock documents).
