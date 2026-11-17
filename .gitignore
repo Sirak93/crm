@@ -1,0 +1,16 @@
+node_modules/
+
+# Secrets (names go in .env.example)
+.env
+.env.*
+!.env.example
+
+# Build output
+dist/
+build/
+
+.DS_Store
+.DS_Store?
+.idea/
+.vscode/
+*.log
