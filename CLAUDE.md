@@ -47,8 +47,8 @@ task wraps up, not after each micro-adjustment.
 ## Security & System Integrity
 
 - **Never** log, print, or commit secrets, API keys, tokens, or credentials.
-- **Never** read or parse real `.env` files. Use each app's `.env.example` to learn
-  variable names.
+- **Real `.env` files in this repo may be read.** Before creating or changing one, ask
+  the user first — every time. Never print or quote their secret values (see Redaction).
 - **Env sync:** any new environment variable MUST be added to that app's `.env.example`
   as a placeholder in the same change.
 - **No hardcoded fallback for env values.** Required values are checked at startup
@@ -95,7 +95,8 @@ Never generate, suggest, or execute:
 
 ### Ignored Paths
 
-Do not read, scan, or commit — credential leak risk and context waste:
+Do not read, scan, or commit — credential leak risk and context waste
+(exception: this repo's `.env` files may be read — see Security; still never commit them):
 
 ```
 .env
@@ -164,7 +165,8 @@ export enum UserRole {
 ### Backend
 
 - Validate every request payload with a Zod schema.
-- Schema changes ship as migrations — never rely on auto-sync.
+- **During MVP:** TypeORM `synchronize: true` — schema changes are entity changes only,
+  no migrations. **After MVP:** switch to migrations only; never rely on auto-sync.
 - Layering: `routes/` → `controllers/` → `services/`; keep business logic out of routes.
 - **Log through the logger, not `console`.** CLI scripts and seeders may print to the console.
 - **Error details for diagnosis go into logs, never into the message sent to the client.**
