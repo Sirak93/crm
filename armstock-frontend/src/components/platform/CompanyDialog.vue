@@ -3,6 +3,8 @@ import { computed, reactive, ref, watch } from 'vue';
 import { useI18n } from 'vue-i18n';
 import type { FormInstance, FormRules } from 'element-plus';
 import type { ICompany, ICompanyPayload } from 'armstock-shared';
+import { Building2, FileText, Mail, MapPin, Phone } from 'lucide-vue-next';
+import AppDialog from '../AppDialog.vue';
 import { PlatformCompaniesService } from '../../services/platform/PlatformCompaniesService';
 import { NotificationService } from '../../services/NotificationService';
 import { useApiErrorMessage } from '../../composables/useApiErrorMessage';
@@ -73,13 +75,14 @@ const save = async () => {
 </script>
 
 <template>
-  <el-dialog
+  <AppDialog
     v-model="open"
     :title="$t(isEdit ? 'platform.companies.editTitle' : 'platform.companies.addTitle')"
-    width="min(560px, calc(100vw - 32px))"
-    :close-on-click-modal="!isSaving"
-    destroy-on-close
+    :subtitle="company ? company.name : $t('platform.companies.addSubtitle')"
+    :locked="isSaving"
   >
+    <template #icon><Building2 :size="20" /></template>
+
     <el-form
       ref="formRef"
       :model="form"
@@ -89,24 +92,34 @@ const save = async () => {
       @submit.prevent="save"
     >
       <el-form-item :label="$t('platform.companies.form.name')" prop="name">
-        <el-input v-model="form.name" maxlength="255" />
+        <el-input v-model="form.name" maxlength="255">
+          <template #prefix><Building2 :size="16" aria-hidden="true" /></template>
+        </el-input>
       </el-form-item>
 
       <div class="form-row">
         <el-form-item :label="$t('platform.companies.form.taxId')" prop="taxId">
-          <el-input v-model="form.taxId" maxlength="50" />
+          <el-input v-model="form.taxId" maxlength="50">
+            <template #prefix><FileText :size="16" aria-hidden="true" /></template>
+          </el-input>
         </el-form-item>
         <el-form-item :label="$t('platform.companies.form.phone')" prop="phone">
-          <el-input v-model="form.phone" type="tel" maxlength="50" />
+          <el-input v-model="form.phone" type="tel" maxlength="50">
+            <template #prefix><Phone :size="16" aria-hidden="true" /></template>
+          </el-input>
         </el-form-item>
       </div>
 
       <el-form-item :label="$t('platform.companies.form.email')" prop="email">
-        <el-input v-model="form.email" type="email" maxlength="255" />
+        <el-input v-model="form.email" type="email" maxlength="255">
+          <template #prefix><Mail :size="16" aria-hidden="true" /></template>
+        </el-input>
       </el-form-item>
 
       <el-form-item :label="$t('platform.companies.form.address')" prop="address">
-        <el-input v-model="form.address" maxlength="500" />
+        <el-input v-model="form.address" maxlength="500">
+          <template #prefix><MapPin :size="16" aria-hidden="true" /></template>
+        </el-input>
       </el-form-item>
 
       <!-- Lets Enter submit the form. -->
@@ -117,7 +130,7 @@ const save = async () => {
       <el-button :disabled="isSaving" @click="open = false">{{ $t('common.cancel') }}</el-button>
       <el-button type="primary" :loading="isSaving" @click="save">{{ $t('common.save') }}</el-button>
     </template>
-  </el-dialog>
+  </AppDialog>
 </template>
 
 <style scoped>

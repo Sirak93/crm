@@ -5,6 +5,7 @@ export default {
     retry: 'Try again',
     refresh: 'Refresh',
     save: 'Save',
+    close: 'Close',
   },
   nav: {
     menu: 'Menu',
@@ -42,6 +43,7 @@ export default {
       add: 'Add company',
       addTitle: 'Add company',
       editTitle: 'Edit company',
+      addSubtitle: 'Only the name is required.',
       editFor: 'Edit {name}',
       searchPlaceholder: 'Search by name...',
       empty: 'No companies yet.',
