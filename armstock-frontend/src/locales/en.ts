@@ -1,4 +1,35 @@
 export default {
+  common: {
+    logout: 'Log out',
+  },
+  nav: {
+    menu: 'Menu',
+    openMenu: 'Open menu',
+    dashboard: 'Dashboard',
+  },
+  auth: {
+    brandingTitle: 'Your stock, under control',
+    brandingSubtitle: 'Products, suppliers, and every movement in and out of your store — in one place.',
+    brandingPoint1: 'Know what is in stock right now',
+    brandingPoint2: 'See who received what, and when',
+    brandingPoint3: 'Made for your whole team',
+    welcomeBack: 'Welcome back',
+    enterCredentials: 'Sign in to your account',
+    email: 'Email',
+    emailPlaceholder: "you{'@'}company.com",
+    emailRequired: 'Enter your email',
+    password: 'Password',
+    passwordPlaceholder: 'Your password',
+    passwordRequired: 'Enter your password',
+    signIn: 'Sign in',
+    loginFailed: 'Could not sign in. Please try again.',
+  },
+  platform: {
+    dashboard: {
+      title: 'Dashboard',
+      empty: 'Nothing here yet.',
+    },
+  },
   health: {
     title: 'System status',
     database: 'Database',
@@ -7,5 +38,12 @@ export default {
     down: 'Down',
     loadError: 'Could not reach the server.',
     retry: 'Try again',
+  },
+  errors: {
+    AUTH_INVALID_CREDENTIALS: 'Wrong email or password.',
+    AUTH_UNAUTHORIZED: 'Your session has ended. Please sign in again.',
+    AUTH_FORBIDDEN: 'You do not have access to this.',
+    USER_INACTIVE: 'Your account is turned off. Contact your manager.',
+    RATE_LIMIT_TOO_MANY_REQUESTS: 'Too many attempts. Please wait a few minutes and try again.',
   },
 };

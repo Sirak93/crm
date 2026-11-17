@@ -3,6 +3,7 @@ import { AppLogger } from "./AppLogger";
 import { AppDataSource } from "../config/database";
 import { ApiLog } from "../models/ApiLog";
 import { redactSecrets } from "./redactSecrets";
+import { AuthRequest } from "../middlewares/AuthMiddleware";
 
 /** `ErrorHandler` stashes the caught error on `res.locals.error` before responding. */
 function extractError(res: Response): { message: string; code?: string; details?: unknown } | undefined {
@@ -40,7 +41,7 @@ export class ApiLogger {
                 durationMs: Math.round(durationMs),
                 slow: durationMs >= Number(process.env.SLOW_REQUEST_THRESHOLD_MS),
                 success,
-                userUuid: null,
+                userUuid: (req as AuthRequest).user?.userUUID ?? null,
                 companyUuid: null,
                 ip: req.ip ?? null,
                 payload: success ? undefined : {

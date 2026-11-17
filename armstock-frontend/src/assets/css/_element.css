@@ -1,0 +1,78 @@
+/* Element Plus overrides - brand look, copied from armlytic with colors as tokens. */
+
+.el-button {
+    border-radius: var(--radius) !important;
+    font-weight: 600 !important;
+    font-family: inherit !important;
+    height: auto !important;
+    padding: 8px 16px !important;
+    transition: var(--transition) !important;
+}
+
+.el-button--primary {
+    background: linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%) !important;
+    border: none !important;
+    box-shadow: var(--shadow-primary) !important;
+    color: var(--text-inverse) !important;
+}
+
+.el-button--primary:hover {
+    background: linear-gradient(135deg, var(--primary-dark) 0%, var(--primary-dark) 100%) !important;
+    color: var(--text-inverse) !important;
+}
+
+.el-form-item__label {
+    font-weight: 600 !important;
+    color: var(--text-main) !important;
+}
+
+.el-input__wrapper,
+.el-select__wrapper,
+.el-textarea__inner {
+    min-height: 38px !important;
+    padding: 6px 12px !important;
+    border-radius: var(--radius) !important;
+    border: 1px solid var(--border-dark) !important;
+    box-shadow: none !important;
+    background-color: var(--bg-card) !important;
+    font-family: inherit !important;
+    color: var(--text-main) !important;
+    transition: var(--transition) !important;
+}
+
+.el-input__wrapper:hover,
+.el-select__wrapper:hover,
+.el-textarea__inner:hover {
+    border-color: var(--primary) !important;
+}
+
+.el-input__wrapper.is-focus,
+.el-select__wrapper.is-focus,
+.el-textarea__inner:focus {
+    border-color: var(--primary) !important;
+    box-shadow: 0 0 0 4px var(--primary-light) !important;
+}
+
+.el-form-item.is-error .el-input__wrapper {
+    border-color: var(--danger) !important;
+}
+
+.el-input__inner {
+    color: var(--text-main) !important;
+    font-family: inherit !important;
+}
+
+.el-dropdown-menu {
+    padding: 4px !important;
+}
+
+.el-dropdown-menu__item {
+    margin: 2px 4px;
+    border-radius: 8px !important;
+}
+
+.el-popper.is-light {
+    border: 1px solid var(--border-dark) !important;
+    border-radius: var(--radius) !important;
+    box-shadow: var(--shadow-md) !important;
+}

@@ -18,7 +18,7 @@ Decisions behind these steps: [decisions.md](decisions.md).
 
 ## Progress
 
-- [ ] Step 1 — Skeleton
+- [x] Step 1 — Skeleton
 - [ ] Step 2 — Login
 - [ ] Step 3 — Platform tools: Database + Logs
 - [ ] Step 4 — Companies
@@ -64,33 +64,34 @@ Decisions behind these steps: [decisions.md](decisions.md).
   - [x] Logger and API service (axios) copied from armlytic
   - [x] Start page with the Armstock logo that shows the health check result
 - [x] Lint and build pass
-- [ ] Checked in browser: app opens on 4201 with the logo and "DB OK / Redis OK"
+- [x] Checked in browser: app opens on 4201 with the logo and "DB OK / Redis OK"
 
 ## Step 2 — Login
 
-- [ ] Shared: `UserRole` enum — Platform Owner, Company Owner, Storekeeper, Accountant
-- [ ] `User` table
-  - [ ] email, password (hashed), role, active
-  - [ ] company (empty for Platform Owner)
-  - [ ] staff link (optional, filled in step 5)
-  - [ ] refresh token (hashed)
-- [ ] Seeder creates the Platform Owner from env values (email, password)
-- [ ] API
-  - [ ] Login
-  - [ ] Refresh token
-  - [ ] Logout
-  - [ ] "Who am I"
-  - [ ] Turned-off user cannot log in
-- [ ] Middleware
-  - [ ] "Must be logged in"
-  - [ ] "Must have one of these roles"
-- [ ] Frontend
-  - [ ] Login page
-  - [ ] Tokens in cookies, auto refresh — same as armlytic
-  - [ ] Main layout: sidebar menu by role, header with user name and logout
-  - [ ] Pages blocked by role (wrong role → back to own start page)
-  - [ ] Platform Owner start page: empty dashboard
-- [ ] Lint and build pass
+- [x] Shared: `UserRole` enum — Platform Owner, Company Owner, Storekeeper, Accountant
+- [x] `User` table
+  - [x] email, password (hashed), role, active
+  - [x] refresh token (hashed), last login
+  - Company and staff links are added in their own steps (4 and 5)
+- [x] Seeder creates the Platform Owner from env values (email, password) — `npm run seed -w armstock-backend`
+- [x] API
+  - [x] Login (with a per-IP rate limit)
+  - [x] Refresh token
+  - [x] Logout
+  - [x] "Who am I"
+  - [x] Turned-off user cannot log in
+- [x] Middleware
+  - [x] "Must be logged in" (Redis auth snapshot, falls back to DB)
+  - [x] "Must have one of these roles"
+- [x] `api_logs` rows get the user uuid
+- [x] Frontend
+  - [x] Login page (in its own layout)
+  - [x] Tokens in cookies, auto refresh — same as armlytic
+  - [x] `UserModel` (names null for now, `initials` / `displayName` fall back to the email)
+  - [x] Main layout: sidebar menu by role, header with user avatar and logout
+  - [x] Pages blocked by role (wrong role → back to own start page)
+  - [x] Platform Owner start page: empty dashboard
+- [x] Lint and build pass
 - [ ] Checked in browser: log in as Platform Owner, see the dashboard, log out
 
 ## Step 3 — Platform tools: Database + Logs
@@ -120,6 +121,7 @@ Each is its own top-level menu item.
 - [ ] To confirm: which company details (phone, address, tax ID?)
 - [ ] To confirm: does turning off a company block its users from logging in?
 - [ ] `Company` table: name, active, chosen details
+- [ ] Users get a company link (empty for Platform Owner)
 - [ ] API (Platform Owner only)
   - [ ] List with search and paging
   - [ ] Create
@@ -137,7 +139,7 @@ Each is its own top-level menu item.
 - [ ] To confirm: the creator sets the password by hand (no emails in MVP)?
 - [ ] To confirm: does turning off a staff member also turn off their login?
 - [ ] `CompanyStaff` table: company, full name, position, active
-- [ ] Link a user to one staff record
+- [ ] Link a user to one staff record (API sends staff names to `UserModel`)
 - [ ] Platform Owner: on a company, add its Company Owner (staff + login together)
 - [ ] Company Owner — Staff page
   - [ ] List
