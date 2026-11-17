@@ -36,6 +36,18 @@ const routes: RouteRecordRaw[] = [
         component: () => import('../views/platform/PlatformDashboard.vue'),
         meta: { roles: [UserRole.PLATFORM_OWNER] },
       },
+      {
+        path: 'database',
+        name: ROUTE_NAME.PLATFORM_DATABASE,
+        component: () => import('../views/platform/PlatformDatabase.vue'),
+        meta: { roles: [UserRole.PLATFORM_OWNER] },
+      },
+      {
+        path: 'logs',
+        name: ROUTE_NAME.PLATFORM_LOGS,
+        component: () => import('../views/platform/PlatformLogs.vue'),
+        meta: { roles: [UserRole.PLATFORM_OWNER] },
+      },
     ],
   },
   {

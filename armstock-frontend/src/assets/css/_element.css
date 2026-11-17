@@ -21,6 +21,43 @@
     color: var(--text-inverse) !important;
 }
 
+/* Icon + text inside a button */
+.el-button > span {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.375rem;
+}
+
+.el-button--danger {
+    background: linear-gradient(135deg, var(--danger) 0%, var(--danger-dark) 100%) !important;
+    border: none !important;
+    color: var(--text-inverse) !important;
+}
+
+.el-button--danger.is-disabled {
+    opacity: 0.5;
+}
+
+.el-table.app-table {
+    --el-table-border-color: var(--border);
+    --el-table-header-bg-color: var(--bg-app);
+    --el-table-row-hover-bg-color: var(--bg-muted);
+    width: 100%;
+}
+
+.app-table th.el-table__cell {
+    padding: 12px 0 !important;
+    font-size: 11px !important;
+    font-weight: 700 !important;
+    letter-spacing: 0.05em !important;
+    text-transform: uppercase !important;
+    color: var(--text-muted) !important;
+}
+
+.app-table td.el-table__cell {
+    padding: 12px 0 !important;
+}
+
 .el-form-item__label {
     font-weight: 600 !important;
     color: var(--text-main) !important;

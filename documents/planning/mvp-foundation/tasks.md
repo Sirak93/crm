@@ -99,20 +99,24 @@ Decisions behind these steps: [decisions.md](decisions.md).
 Copied from armlytic (`/owner/database`, `/owner/logs/database`). Platform Owner only.
 Each is its own top-level menu item.
 
-- [ ] Database page
-  - [ ] API `GET /api/platform/database/storage`: database size, and per table — size,
+- [x] Database page
+  - [x] API `GET /api/platform/database/storage`: database size, and per table — size,
         rows, index size
-  - [ ] Route `/database` (name `platform-database`), menu item "Database"
-  - [ ] Page: totals on top, tables list with search
-- [ ] Logs page
-  - [ ] API `GET /api/platform/logs`: `api_logs` rows with paging and filters
-  - [ ] API `DELETE /api/platform/logs`: clear all rows
-  - [ ] Route `/logs` (name `platform-logs`), menu item "Logs"
-  - [ ] Page: table with filters, row details for failed requests, "clear all" with
+  - [x] Route `/database` (name `platform-database`), menu item "Database"
+  - [x] Page: totals on top, tables list with search
+- [x] Logs page
+  - [x] API `GET /api/platform/logs`: `api_logs` rows with paging and filters
+  - [x] API `DELETE /api/platform/logs`: clear all rows
+  - [x] Route `/logs` (name `platform-logs`), menu item "Logs"
+  - [x] Page: table with filters, row details for failed requests, "clear all" with
         confirm
-  - [ ] Viewing the logs does not add new log rows
-- [ ] `api_logs` rows get the user and company now that login exists
-- [ ] Lint and build pass
+  - [x] Viewing the logs does not add new log rows
+  - [x] Confirm dialogs use SweetAlert2 (like armlytic)
+- [x] `api_logs` rows get the user (company comes with Step 4)
+- [x] Pages match armlytic: 5 stat cards with hints, expandable table rows, size bar +
+      TOAST column; logs with User (email for now), Company, and Details columns
+- [x] Platform Owner pages use compact padding (like armlytic)
+- [x] Lint and build pass
 - [ ] Checked in browser: as Platform Owner open Database and Logs; Logs shows the
       requests just made
 

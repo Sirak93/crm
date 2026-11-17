@@ -1,4 +1,5 @@
 import { Request, Response } from "express";
+import { API_PATH } from "armstock-shared";
 import { AppLogger } from "./AppLogger";
 import { AppDataSource } from "../config/database";
 import { ApiLog } from "../models/ApiLog";
@@ -29,6 +30,10 @@ export class ApiLogger {
     static async log(req: Request, res: Response, durationMs: number): Promise<void> {
         if (!this.isEnabled) return;
 
+        const requestPath = req.originalUrl.split("?")[0]!;
+        // Browsing the logs must not add rows to what is being browsed (page totals would shift).
+        if (requestPath.startsWith(`${API_PATH}/platform/logs`)) return;
+
         const method = req.method;
         const statusCode = res.statusCode;
         const success = statusCode < 400;
@@ -36,7 +41,7 @@ export class ApiLogger {
         try {
             await AppDataSource.getRepository(ApiLog).insert({
                 method,
-                path: req.originalUrl.split("?")[0],
+                path: requestPath,
                 statusCode,
                 durationMs: Math.round(durationMs),
                 slow: durationMs >= Number(process.env.SLOW_REQUEST_THRESHOLD_MS),

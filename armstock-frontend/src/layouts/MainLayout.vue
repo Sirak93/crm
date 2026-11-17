@@ -38,7 +38,7 @@ const closeSidebar = () => {
     <div class="main-container">
       <AppHeader @toggle-sidebar="isSidebarOpen = !isSidebarOpen" />
 
-      <main class="app-main">
+      <main class="app-main" :class="{ 'app-main--compact': authStore.user?.isPlatformOwner }">
         <router-view />
       </main>
     </div>
@@ -107,6 +107,17 @@ const closeSidebar = () => {
   flex-grow: 1;
   margin-top: var(--header-height);
   padding: clamp(0.5rem, 2vw, 1.5rem);
+}
+
+/* Platform Owner pages are data-heavy: tighter padding, more room for tables. */
+.app-main--compact {
+  padding: 0.5rem;
+}
+
+@media (min-width: 576px) {
+  .app-main--compact {
+    padding: 1rem;
+  }
 }
 
 @media (max-width: 1024px) {

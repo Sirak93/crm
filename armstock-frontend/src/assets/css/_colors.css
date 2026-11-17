@@ -27,6 +27,7 @@
     --border-strong: #cbd5e1;
     --bg-muted: #f1f5f9;
     --text-inverse: #ffffff;
+    --chart-toast: #0ea5e9;
 
     /* Element Plus variable overwrites (light-N = primary mixed N0% with white) */
     --el-color-primary: var(--primary);

@@ -101,8 +101,9 @@ Name, contact person, phone, email, tax ID, note (all optional except name), act
 ## Stack
 
 - **Monorepo** with npm workspaces, everything in TypeScript.
-- **Frontend:** Vue 3 SPA (Vite), Pinia, vue-router, vue-i18n, Element Plus only (no
-  Bootstrap, no extra popup/toast libraries). One frontend for all roles.
+- **Frontend:** Vue 3 SPA (Vite), Pinia, vue-router, vue-i18n, Element Plus (no
+  Bootstrap), iziToast for toasts and SweetAlert2 for confirm dialogs (like armlytic),
+  lucide icons. One frontend for all roles.
 - **Backend:** Node + Express, Zod validation.
 - **Database:** PostgreSQL + TypeORM. During MVP `synchronize: true` (entity changes
   only). After MVP: migrations only.

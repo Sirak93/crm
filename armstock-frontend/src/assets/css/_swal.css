@@ -1,0 +1,77 @@
+/* SweetAlert2 confirm dialogs - brand look. */
+
+.swal2-container {
+    /* Above Element Plus overlays, which stack higher each time one opens. */
+    z-index: 20000 !important;
+}
+
+.swal2-popup.app-swal-popup {
+    width: 24em;
+    max-width: 90%;
+    padding: 1.5rem;
+    border-radius: var(--radius);
+    box-shadow: var(--shadow-lg);
+    font-family: var(--font-family);
+}
+
+.app-swal-title {
+    padding: 0 !important;
+    font-size: var(--text-xl) !important;
+    font-weight: 800 !important;
+    color: var(--text-main) !important;
+}
+
+.app-swal-text {
+    margin-top: 0.5rem !important;
+    padding: 0 !important;
+    font-size: var(--text-base) !important;
+    color: var(--text-muted) !important;
+}
+
+.swal2-icon.app-swal-icon {
+    width: 3.5em;
+    height: 3.5em;
+    margin: 0.25em auto 1em;
+    border-width: 2px;
+}
+
+.swal2-icon.app-swal-icon .swal2-icon-content {
+    font-size: 2em;
+}
+
+.app-swal-actions {
+    gap: 0.5rem;
+    margin-top: 1.25rem !important;
+}
+
+.app-swal-btn {
+    min-height: 38px;
+    padding: 0.5rem 1.25rem;
+    border: none;
+    border-radius: var(--radius);
+    font-family: inherit;
+    font-size: var(--text-sm);
+    font-weight: 700;
+    cursor: pointer;
+    transition: var(--transition);
+}
+
+.app-swal-btn:focus-visible {
+    outline: 2px solid var(--primary);
+    outline-offset: 2px;
+}
+
+.app-swal-btn--danger {
+    background: linear-gradient(135deg, var(--danger) 0%, var(--danger-dark) 100%);
+    box-shadow: var(--shadow-danger);
+    color: var(--text-inverse);
+}
+
+.app-swal-btn--cancel {
+    background-color: var(--bg-muted);
+    color: var(--text-main);
+}
+
+.app-swal-btn--cancel:hover {
+    background-color: var(--border-dark);
+}
