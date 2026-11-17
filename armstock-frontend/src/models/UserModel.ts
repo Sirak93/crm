@@ -1,10 +1,10 @@
-import { UserRole, type IAuthUser } from 'armstock-shared';
+import { UserRole, UserStatus, type IAuthUser } from 'armstock-shared';
 
 interface IUserModelData {
   uuid: string;
   email: string;
   role: UserRole;
-  isActive: boolean;
+  status: UserStatus;
   firstName: string | null;
   lastName: string | null;
   lastLoginAt: Date | null;
@@ -14,7 +14,7 @@ export class UserModel {
   uuid: string;
   email: string;
   role: UserRole;
-  isActive: boolean;
+  status: UserStatus;
   firstName: string | null;
   lastName: string | null;
   lastLoginAt: Date | null;
@@ -23,7 +23,7 @@ export class UserModel {
     this.uuid = data.uuid;
     this.email = data.email;
     this.role = data.role;
-    this.isActive = data.isActive;
+    this.status = data.status;
     this.firstName = data.firstName;
     this.lastName = data.lastName;
     this.lastLoginAt = data.lastLoginAt;
@@ -34,7 +34,7 @@ export class UserModel {
       uuid: json.uuid,
       email: json.email,
       role: json.role,
-      isActive: json.isActive,
+      status: json.status,
       // Names come from the staff record, which the API does not send yet.
       firstName: null,
       lastName: null,

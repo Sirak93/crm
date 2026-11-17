@@ -44,9 +44,9 @@ class ApiService {
         const originalRequest = error.config;
         const isRefreshRequest = originalRequest.url?.includes('/auth/refresh');
 
-        // User turned off: hard logout, no refresh retry. Only the first of several
+        // User or company blocked: hard logout, no refresh retry. Only the first of several
         // parallel ones reaches its page, so the user sees one message.
-        if (error.response?.status === ErrorCodes.USER.INACTIVE.STATUS) {
+        if (error.response?.status === ErrorCodes.USER.BLOCKED.STATUS) {
           const alreadyEnded = originalRequest.headers.Authorization && !Cookies.get(AUTH_COOKIE.TOKEN);
           await this.endSession();
           return Promise.reject(alreadyEnded ? new CanceledError('Session ended') : error);
@@ -109,7 +109,7 @@ class ApiService {
     } catch (refreshError) {
       this.logger.error('Refresh token failed:', refreshError);
       const status = isAxiosError(refreshError) ? refreshError.response?.status : undefined;
-      if (status !== ErrorCodes.AUTH.UNAUTHORIZED.STATUS && status !== ErrorCodes.USER.INACTIVE.STATUS) {
+      if (status !== ErrorCodes.AUTH.UNAUTHORIZED.STATUS && status !== ErrorCodes.USER.BLOCKED.STATUS) {
         throw refreshError;
       }
       this.showSessionEnded(refreshError);

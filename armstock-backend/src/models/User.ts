@@ -9,7 +9,7 @@ import {
     ManyToOne,
     JoinColumn,
 } from "typeorm";
-import { UserRole } from "armstock-shared";
+import { UserRole, UserStatus } from "armstock-shared";
 import { Company } from "./Company";
 
 @Entity("users")
@@ -29,8 +29,8 @@ export class User {
     @Column({ type: "int" })
     role!: UserRole;
 
-    @Column({ name: "is_active", default: true })
-    isActive!: boolean;
+    @Column({ type: "int", default: UserStatus.ACTIVE })
+    status!: UserStatus;
 
     /** Null for the Platform Owner. */
     @Column({ name: "company_uuid", type: "uuid", nullable: true })

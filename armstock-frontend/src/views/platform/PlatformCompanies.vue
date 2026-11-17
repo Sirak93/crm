@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { onMounted, ref, watch } from 'vue';
 import { useI18n } from 'vue-i18n';
-import type { ICompany, IPaginationMeta } from 'armstock-shared';
+import { CompanyStatus, type ICompany, type IPaginationMeta } from 'armstock-shared';
 import { Building2, Plus, Search } from 'lucide-vue-next';
 import PageHeader from '../../components/PageHeader.vue';
 import AppCard from '../../components/AppCard.vue';
@@ -24,7 +24,7 @@ const search = ref('');
 const isLoading = ref(true);
 const hasLoaded = ref(false);
 const hasError = ref(false);
-const togglingUuid = ref<string | null>(null);
+const updatingUuid = ref<string | null>(null);
 
 const isDialogOpen = ref(false);
 const editingCompany = ref<ICompany | null>(null);
@@ -70,25 +70,26 @@ const onSaved = (saved: ICompany) => {
   }
 };
 
-const toggleActive = async (company: ICompany, isActive: boolean) => {
-  if (!isActive) {
+const setStatus = async (company: ICompany, status: CompanyStatus) => {
+  const isBlock = status === CompanyStatus.BLOCKED;
+  if (isBlock) {
     const confirmed = await NotificationService.confirm(
-      t('platform.companies.turnOffConfirmTitle', { name: company.name }),
-      t('platform.companies.turnOffConfirmText'),
-      t('platform.companies.turnOff'),
+      t('platform.companies.blockConfirmTitle', { name: company.name }),
+      t('platform.companies.blockConfirmText'),
+      t('platform.companies.actions.block'),
     );
     if (!confirmed) return;
   }
 
-  togglingUuid.value = company.uuid;
+  updatingUuid.value = company.uuid;
   try {
-    const updated = await PlatformCompaniesService.setActive(company.uuid, isActive);
+    const updated = await PlatformCompaniesService.setStatus(company.uuid, status);
     companies.value = companies.value.map((c) => (c.uuid === updated.uuid ? updated : c));
-    NotificationService.success(t(isActive ? 'platform.companies.turnedOn' : 'platform.companies.turnedOff'));
+    NotificationService.success(t(isBlock ? 'platform.companies.blocked' : 'platform.companies.activated'));
   } catch (error) {
     NotificationService.error(parseError(error, 'platform.companies.saveError'));
   } finally {
-    togglingUuid.value = null;
+    updatingUuid.value = null;
   }
 };
 
@@ -136,9 +137,9 @@ onMounted(() => load(1));
         v-else
         v-loading="isLoading"
         :companies="companies"
-        :toggling-uuid="togglingUuid"
+        :updating-uuid="updatingUuid"
         @edit="openEdit"
-        @toggle-active="toggleActive"
+        @set-status="setStatus"
       />
     </AppCard>
 

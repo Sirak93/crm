@@ -9,9 +9,9 @@ import { PlatformLogsController } from "../controllers/platform/PlatformLogsCont
 import { PlatformLogsQuerySchema } from "../schemas/platform/PlatformLogsSchema";
 import { PlatformCompaniesController } from "../controllers/platform/PlatformCompaniesController";
 import {
-    CompanyActiveBodySchema,
     CompanyBodySchema,
     CompanyParamsSchema,
+    CompanyStatusBodySchema,
     PlatformCompaniesQuerySchema,
 } from "../schemas/platform/PlatformCompaniesSchema";
 
@@ -31,10 +31,10 @@ router.put(
     asyncHandler(companiesController.update),
 );
 router.patch(
-    "/companies/:uuid/active",
+    "/companies/:uuid/status",
     validate(CompanyParamsSchema, "params"),
-    validate(CompanyActiveBodySchema),
-    asyncHandler(companiesController.setActive),
+    validate(CompanyStatusBodySchema),
+    asyncHandler(companiesController.setStatus),
 );
 
 router.get("/database/storage", asyncHandler(databaseController.getStorage));

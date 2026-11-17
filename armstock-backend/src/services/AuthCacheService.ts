@@ -1,3 +1,4 @@
+import { CompanyStatus } from "armstock-shared";
 import { AppDataSource } from "../config/database";
 import { User } from "../models/User";
 import { RedisService } from "./RedisService";
@@ -18,9 +19,9 @@ export class AuthCacheService {
     private static toSnapshot(user: User): IAuthSnapshot {
         return {
             role: user.role,
-            isActive: user.isActive,
+            status: user.status,
             companyUuid: user.companyUuid,
-            companyActive: user.company?.isActive ?? true,
+            companyStatus: user.company?.status ?? null,
         };
     }
 
@@ -51,10 +52,10 @@ export class AuthCacheService {
     }
 
     /**
-     * Applies a company on/off to its users' cached snapshots at once. Updated in place, not
+     * Applies a company status change to its users' cached snapshots at once. Updated in place, not
      * deleted, so a logout's `revokedBefore` is kept.
      */
-    static async setCompanyActive(companyUuid: string, companyActive: boolean): Promise<void> {
+    static async setCompanyStatus(companyUuid: string, companyStatus: CompanyStatus): Promise<void> {
         // While Redis is down, reads fall back to the DB anyway (and ioredis would queue these calls).
         if (!RedisService.isReady) return;
 
@@ -65,7 +66,7 @@ export class AuthCacheService {
                 const key = RedisKeys.auth.userSnapshot.key(user.uuid);
                 const snapshot = await RedisService.get<IAuthSnapshot>(key);
                 if (snapshot) {
-                    await RedisService.set(key, { ...snapshot, companyActive } satisfies IAuthSnapshot, RedisKeys.auth.userSnapshot.ttl);
+                    await RedisService.set(key, { ...snapshot, companyStatus } satisfies IAuthSnapshot, RedisKeys.auth.userSnapshot.ttl);
                 }
             }));
         } catch (error) {

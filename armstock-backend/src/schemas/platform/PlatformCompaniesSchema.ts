@@ -1,4 +1,5 @@
 import { z } from "zod";
+import { CompanyStatus } from "armstock-shared";
 
 /** Trimmed; an empty value is stored as null. */
 const optionalText = (max: number) => z.string().trim().max(max).nullish().transform((v) => v || null);
@@ -21,10 +22,10 @@ export const CompanyBodySchema = z.object({
     address: optionalText(500),
 });
 
-export const CompanyActiveBodySchema = z.object({
-    isActive: z.boolean(),
+export const CompanyStatusBodySchema = z.object({
+    status: z.enum(CompanyStatus),
 });
 
 export type PlatformCompaniesQuery = z.infer<typeof PlatformCompaniesQuerySchema>;
 export type CompanyBody = z.infer<typeof CompanyBodySchema>;
-export type CompanyActiveBody = z.infer<typeof CompanyActiveBodySchema>;
+export type CompanyStatusBody = z.infer<typeof CompanyStatusBodySchema>;

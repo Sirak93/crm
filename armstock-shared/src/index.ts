@@ -2,7 +2,9 @@ export * from "./constants/AppConstants";
 export * from "./constants/BrandConstants";
 export * from "./constants/ErrorCodes";
 
+export * from "./enums/CompanyStatus";
 export * from "./enums/UserRole";
+export * from "./enums/UserStatus";
 
 export type * from "./interfaces/IApiLog";
 export type * from "./interfaces/IApiLogCompany";

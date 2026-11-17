@@ -2,8 +2,8 @@ import { Response } from "express";
 import { AuthRequest } from "../../middlewares/AuthMiddleware";
 import { PlatformCompaniesService } from "../../services/platform/PlatformCompaniesService";
 import type {
-    CompanyActiveBody,
     CompanyBody,
+    CompanyStatusBody,
     PlatformCompaniesQuery,
 } from "../../schemas/platform/PlatformCompaniesSchema";
 import { AppResponse } from "../../utils/AppResponse";
@@ -24,8 +24,8 @@ export class PlatformCompaniesController {
         return AppResponse.send(res, await this.service.update(req.params.uuid as string, req.body as CompanyBody));
     };
 
-    setActive = async (req: AuthRequest, res: Response) => {
-        const { isActive } = req.body as CompanyActiveBody;
-        return AppResponse.send(res, await this.service.setActive(req.params.uuid as string, isActive));
+    setStatus = async (req: AuthRequest, res: Response) => {
+        const { status } = req.body as CompanyStatusBody;
+        return AppResponse.send(res, await this.service.setStatus(req.params.uuid as string, status));
     };
 }

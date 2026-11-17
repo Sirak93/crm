@@ -1,12 +1,12 @@
-import { UserRole } from "armstock-shared";
+import { CompanyStatus, UserRole, UserStatus } from "armstock-shared";
 
 /** The per-user auth state AuthMiddleware needs, cached in Redis so a request doesn't hit the DB. */
 export interface IAuthSnapshot {
     role: UserRole;
-    isActive: boolean;
+    status: UserStatus;
     companyUuid: string | null;
-    /** True when the user has no company (Platform Owner). */
-    companyActive: boolean;
+    /** Null when the user has no company (Platform Owner). */
+    companyStatus: CompanyStatus | null;
     /** Epoch ms - tokens issued before this are rejected (logout). */
     revokedBefore?: number;
 }

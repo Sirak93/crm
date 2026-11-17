@@ -5,6 +5,7 @@ import {
     CreateDateColumn,
     UpdateDateColumn,
 } from "typeorm";
+import { CompanyStatus } from "armstock-shared";
 
 @Entity("companies")
 export class Company {
@@ -30,8 +31,8 @@ export class Company {
     @Column({ type: "varchar", nullable: true })
     logo!: string | null;
 
-    @Column({ name: "is_active", default: true })
-    isActive!: boolean;
+    @Column({ type: "int", default: CompanyStatus.ACTIVE })
+    status!: CompanyStatus;
 
     @CreateDateColumn({ name: "created_at" })
     createdAt!: Date;

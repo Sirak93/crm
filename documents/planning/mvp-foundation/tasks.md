@@ -126,7 +126,7 @@ Each is its own top-level menu item.
       plus an empty `logo` column (no upload yet)
 - [x] To confirm: turning off a company blocks its users from logging in → yes, also
       signs out users who are already logged in
-- [x] `Company` table: name, tax ID, phone, email, address, logo, active
+- [x] `Company` table: name, tax ID, phone, email, address, logo, status
 - [x] Users get a company link (empty for Platform Owner)
 - [x] API (Platform Owner only)
   - [x] List with search and paging
@@ -141,28 +141,35 @@ Each is its own top-level menu item.
 - [x] Lint and build pass
 - [x] Checked in browser: create, edit, find, and turn off companies (blocking users is
       checked in Step 5, once companies have users)
+- [x] Rework: statuses instead of on/off
+  - [x] Shared: `CompanyStatus` and `UserStatus` enums (Active, Blocked)
+  - [x] `companies.status` and `users.status` replace `is_active`
+  - [x] API: `PATCH /api/platform/companies/:uuid/status`
+  - [x] Companies table: Status column and a "⋯" menu (Edit, Block / Activate)
+  - [x] Lint and build pass
+  - [ ] Checked in browser: Status column, block (with confirm) and activate from the menu
 
 ## Step 5 — Staff + users
 
-- [ ] To confirm: the creator sets the password by hand (no emails in MVP)?
-- [ ] To confirm: does turning off a staff member also turn off their login?
-- [ ] `CompanyStaff` table: company, full name, position, active
+- [x] To confirm: the creator sets the password by hand (no emails in MVP)? → yes
+- [x] To confirm: does turning off a staff member also turn off their login? → staff has
+      no status for now; only the login (user) can be blocked
+- [ ] `CompanyStaff` table: company, full name, position
 - [ ] Link a user to one staff record (API sends staff names to `UserModel`)
 - [ ] Platform Owner: on a company, add its Company Owner (staff + login together)
 - [ ] Company Owner — Staff page
   - [ ] List
   - [ ] Add / edit
-  - [ ] Turn on/off
 - [ ] Company Owner — logins
   - [ ] "Give login" on a staff member: email, password, role
   - [ ] Change role
-  - [ ] Turn login off
+  - [ ] Block / activate login
 - [ ] Company Owner — edit own company details
 - [ ] Lint and build pass
 - [ ] Checked in browser: as Company Owner add a Chef (no login) and a Storekeeper
       (with login), then log in as that Storekeeper
-- [ ] Checked in browser: as Platform Owner turn off that company → the Storekeeper is
-      logged out and cannot log in; turn it on → they can log in again
+- [ ] Checked in browser: as Platform Owner block that company → the Storekeeper is
+      logged out and cannot log in; activate it → they can log in again
 
 ## Step 6 — Units
 
@@ -268,7 +275,7 @@ Each is its own top-level menu item.
   - [ ] `StockOut` (header): company, reason, date, receiver (staff), note, created by
   - [ ] `StockOutLine`: document, product, quantity. No price.
 - [ ] Rules
-  - [ ] Issued → receiver required (active staff only); Other → note required
+  - [ ] Issued → receiver required; Other → note required
   - [ ] Same line rules as stock-in (quantity above 0, decimals by unit)
   - [ ] Blocked if not enough stock — the error names the product
   - [ ] Only the creator can edit or delete

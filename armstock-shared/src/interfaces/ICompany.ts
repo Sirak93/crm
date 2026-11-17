@@ -1,3 +1,5 @@
+import type { CompanyStatus } from "../enums/CompanyStatus";
+
 export interface ICompany {
     uuid: string;
     name: string;
@@ -5,6 +7,6 @@ export interface ICompany {
     phone: string | null;
     email: string | null;
     address: string | null;
-    isActive: boolean;
+    status: CompanyStatus;
     createdAt: string;
 }

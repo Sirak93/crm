@@ -1,17 +1,30 @@
 <script setup lang="ts">
-import type { ICompany } from 'armstock-shared';
-import { Pencil } from 'lucide-vue-next';
+import { CompanyStatus, type ICompany } from 'armstock-shared';
+import { Ban, CircleCheck, Ellipsis, Pencil } from 'lucide-vue-next';
 
 defineProps<{
   companies: ICompany[];
-  /** uuid of the company whose switch is saving. */
-  togglingUuid: string | null;
+  /** uuid of the company whose status is saving. */
+  updatingUuid: string | null;
 }>();
 
-defineEmits<{
+const emit = defineEmits<{
   edit: [company: ICompany];
-  toggleActive: [company: ICompany, isActive: boolean];
+  setStatus: [company: ICompany, status: CompanyStatus];
 }>();
+
+const STATUS_TAG: Record<CompanyStatus, { labelKey: string; type: 'success' | 'danger' }> = {
+  [CompanyStatus.ACTIVE]: { labelKey: 'platform.companies.status.active', type: 'success' },
+  [CompanyStatus.BLOCKED]: { labelKey: 'platform.companies.status.blocked', type: 'danger' },
+};
+
+const ACTION = { EDIT: 'edit', BLOCK: 'block', ACTIVATE: 'activate' } as const;
+type Action = typeof ACTION[keyof typeof ACTION];
+
+const onAction = (company: ICompany, action: Action) => {
+  if (action === ACTION.EDIT) emit('edit', company);
+  else emit('setStatus', company, action === ACTION.BLOCK ? CompanyStatus.BLOCKED : CompanyStatus.ACTIVE);
+};
 </script>
 
 <template>
@@ -31,26 +44,51 @@ defineEmits<{
     <el-table-column prop="address" :label="$t('platform.companies.table.address')" min-width="220" show-overflow-tooltip>
       <template #default="{ row }"><span :class="row.address ? 'main' : 'muted'">{{ row.address || '—' }}</span></template>
     </el-table-column>
-    <el-table-column :label="$t('platform.companies.table.active')" min-width="100" align="center">
+    <el-table-column :label="$t('platform.companies.table.status')" min-width="110">
       <template #default="{ row }">
-        <el-switch
-          :model-value="row.isActive"
-          :loading="togglingUuid === row.uuid"
-          :aria-label="$t('platform.companies.table.activeFor', { name: row.name })"
-          @change="(value: string | number | boolean) => $emit('toggleActive', row as ICompany, Boolean(value))"
-        />
+        <el-tag size="small" :type="STATUS_TAG[row.status as CompanyStatus].type" round>
+          {{ $t(STATUS_TAG[row.status as CompanyStatus].labelKey) }}
+        </el-tag>
       </template>
     </el-table-column>
     <el-table-column min-width="70" align="center">
       <template #default="{ row }">
-        <button
-          type="button"
-          class="icon-btn"
-          :aria-label="$t('platform.companies.editFor', { name: row.name })"
-          @click="$emit('edit', row as ICompany)"
+        <el-dropdown
+          trigger="click"
+          placement="bottom-end"
+          :disabled="updatingUuid === row.uuid"
+          @command="(action: Action) => onAction(row as ICompany, action)"
         >
-          <Pencil :size="16" aria-hidden="true" />
-        </button>
+          <button
+            type="button"
+            class="icon-btn"
+            :disabled="updatingUuid === row.uuid"
+            :aria-label="$t('platform.companies.actionsFor', { name: row.name })"
+          >
+            <Ellipsis :size="18" aria-hidden="true" />
+          </button>
+
+          <template #dropdown>
+            <el-dropdown-menu>
+              <el-dropdown-item :command="ACTION.EDIT" class="action-item">
+                <Pencil :size="16" aria-hidden="true" />
+                <span>{{ $t('platform.companies.actions.edit') }}</span>
+              </el-dropdown-item>
+              <el-dropdown-item
+                v-if="row.status === CompanyStatus.ACTIVE"
+                :command="ACTION.BLOCK"
+                class="action-item action-item--danger"
+              >
+                <Ban :size="16" aria-hidden="true" />
+                <span>{{ $t('platform.companies.actions.block') }}</span>
+              </el-dropdown-item>
+              <el-dropdown-item v-else :command="ACTION.ACTIVATE" class="action-item">
+                <CircleCheck :size="16" aria-hidden="true" />
+                <span>{{ $t('platform.companies.actions.activate') }}</span>
+              </el-dropdown-item>
+            </el-dropdown-menu>
+          </template>
+        </el-dropdown>
       </template>
     </el-table-column>
   </el-table>
@@ -87,19 +125,33 @@ defineEmits<{
   justify-content: center;
   padding: 6px;
   border: none;
-  border-radius: 6px;
+  border-radius: 8px;
   background: transparent;
-  color: var(--primary);
+  color: var(--text-muted);
   cursor: pointer;
   transition: var(--transition);
 }
 
-.icon-btn:hover {
-  background-color: var(--primary-light);
+.icon-btn:hover:not(:disabled) {
+  background-color: var(--bg-muted);
+  color: var(--text-main);
 }
 
 .icon-btn:focus-visible {
   outline: 2px solid var(--primary);
   outline-offset: 2px;
+}
+
+.icon-btn:disabled {
+  opacity: 0.5;
+  cursor: wait;
+}
+
+.action-item {
+  gap: 0.5rem;
+}
+
+.action-item--danger {
+  color: var(--danger);
 }
 </style>

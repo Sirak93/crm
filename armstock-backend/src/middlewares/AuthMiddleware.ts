@@ -1,5 +1,5 @@
 import { Request, Response, NextFunction } from "express";
-import { ErrorCodes, UserRole } from "armstock-shared";
+import { CompanyStatus, ErrorCodes, UserRole, UserStatus } from "armstock-shared";
 import { tokenFailureDetails, verifyToken } from "../utils/JWT";
 import { AppError } from "../utils/AppError";
 import { AuthCacheService } from "../services/AuthCacheService";
@@ -34,17 +34,16 @@ export const AuthMiddleware = async (req: AuthRequest, _res: Response, next: Nex
             throw new AppError(ErrorCodes.AUTH.UNAUTHORIZED, undefined, undefined, { reason: "token issued before logout", ...tokenUser });
         }
 
-        if (!snapshot.isActive) {
-            throw new AppError(ErrorCodes.USER.INACTIVE);
+        if (snapshot.status !== UserStatus.ACTIVE) {
+            throw new AppError(ErrorCodes.USER.BLOCKED);
         }
 
-        // `=== false`: snapshots cached before companies existed have no such field.
-        if (snapshot.companyActive === false) {
-            throw new AppError(ErrorCodes.COMPANY.INACTIVE);
+        if (snapshot.companyStatus !== null && snapshot.companyStatus !== CompanyStatus.ACTIVE) {
+            throw new AppError(ErrorCodes.COMPANY.BLOCKED);
         }
 
         // Role from the snapshot, not the token: a role change applies to open sessions at once.
-        req.user = { userUUID: decoded.userUUID, role: snapshot.role, companyUUID: snapshot.companyUuid ?? null };
+        req.user = { userUUID: decoded.userUUID, role: snapshot.role, companyUUID: snapshot.companyUuid };
         next();
     } catch (err) {
         next(err);

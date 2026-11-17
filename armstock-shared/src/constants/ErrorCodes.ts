@@ -26,8 +26,8 @@ export const ErrorCodes = {
         },
     },
     USER: {
-        INACTIVE: {
-            CODE: "USER_INACTIVE",
+        BLOCKED: {
+            CODE: "USER_BLOCKED",
             STATUS: 423,
         },
     },
@@ -36,9 +36,9 @@ export const ErrorCodes = {
             CODE: "COMPANY_NOT_FOUND",
             STATUS: 404,
         },
-        // Same status as USER.INACTIVE: the frontend ends the session on it.
-        INACTIVE: {
-            CODE: "COMPANY_INACTIVE",
+        // Same status as USER.BLOCKED: the frontend ends the session on it.
+        BLOCKED: {
+            CODE: "COMPANY_BLOCKED",
             STATUS: 423,
         },
     },

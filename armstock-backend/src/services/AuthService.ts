@@ -1,5 +1,5 @@
 import bcrypt from "bcrypt";
-import { ErrorCodes, UserRole, type IAuthUser, type ILoginResponse, type IRefreshResponse } from "armstock-shared";
+import { CompanyStatus, ErrorCodes, UserRole, UserStatus, type IAuthUser, type ILoginResponse, type IRefreshResponse } from "armstock-shared";
 import { AppDataSource } from "../config/database";
 import { User } from "../models/User";
 import { AppError } from "../utils/AppError";
@@ -21,15 +21,15 @@ export class AuthService {
             uuid: user.uuid,
             email: user.email,
             role: user.role,
-            isActive: user.isActive,
+            status: user.status,
             lastLoginAt: user.lastLoginAt?.toISOString() ?? null,
         };
     }
 
     /** `user.company` must be loaded. */
     private static assertCanSignIn(user: User): void {
-        if (!user.isActive) throw new AppError(ErrorCodes.USER.INACTIVE);
-        if (user.company && !user.company.isActive) throw new AppError(ErrorCodes.COMPANY.INACTIVE);
+        if (user.status !== UserStatus.ACTIVE) throw new AppError(ErrorCodes.USER.BLOCKED);
+        if (user.company && user.company.status !== CompanyStatus.ACTIVE) throw new AppError(ErrorCodes.COMPANY.BLOCKED);
     }
 
     async login(email: string, password: string): Promise<ILoginResponse> {

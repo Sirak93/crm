@@ -14,6 +14,11 @@ company's data is kept apart.
 - One company has many users. A user belongs to one company only (no many-to-many in MVP).
 - The Platform Owner has no company.
 - No public sign-up. The Platform Owner creates companies and manages their users.
+- Companies and users have a status, not a yes/no flag — each its own enum
+  (`CompanyStatus`, `UserStatus`), for now `ACTIVE` and `BLOCKED`.
+  - Blocked company → none of its users can log in.
+  - Blocked user → that user cannot log in.
+- No company delete in MVP (see "Later" in tasks.md).
 
 ## Roles
 
@@ -34,7 +39,9 @@ from the route middleware.
 ## People: CompanyStaff and User
 
 - **CompanyStaff** — every person in the company (Chef, Cook, Accountant, Storekeeper…):
-  name, position, active yes/no.
+  name, position. No status for now.
+- **User** has a status (see above). Whoever creates a login types its password by hand
+  (no emails in MVP).
 - **User** — login data only (email, password, role), with an optional link to a
   CompanyStaff record.
 - A Chef is a staff record with no user (cannot log in). An Accountant is a staff record

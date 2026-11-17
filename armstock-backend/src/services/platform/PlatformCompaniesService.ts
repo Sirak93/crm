@@ -1,4 +1,4 @@
-import { ErrorCodes, type ICompany, type IPaginationMeta } from "armstock-shared";
+import { CompanyStatus, ErrorCodes, type ICompany, type IPaginationMeta } from "armstock-shared";
 import { AppDataSource } from "../../config/database";
 import { Company } from "../../models/Company";
 import { AppError } from "../../utils/AppError";
@@ -16,7 +16,7 @@ export class PlatformCompaniesService {
             phone: company.phone,
             email: company.email,
             address: company.address,
-            isActive: company.isActive,
+            status: company.status,
             createdAt: company.createdAt.toISOString(),
         };
     }
@@ -56,11 +56,11 @@ export class PlatformCompaniesService {
         return PlatformCompaniesService.toCompany(await this.repo.save(company));
     }
 
-    async setActive(uuid: string, isActive: boolean): Promise<ICompany> {
+    async setStatus(uuid: string, status: CompanyStatus): Promise<ICompany> {
         const company = await this.findOrFail(uuid);
-        company.isActive = isActive;
+        company.status = status;
         await this.repo.save(company);
-        await AuthCacheService.setCompanyActive(uuid, isActive);
+        await AuthCacheService.setCompanyStatus(uuid, status);
         return PlatformCompaniesService.toCompany(company);
     }
 }

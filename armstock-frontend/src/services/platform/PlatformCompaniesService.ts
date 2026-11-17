@@ -1,4 +1,4 @@
-import type { IAppResponse, ICompany, ICompanyPayload, IPaginationMeta } from 'armstock-shared';
+import type { CompanyStatus, IAppResponse, ICompany, ICompanyPayload, IPaginationMeta } from 'armstock-shared';
 import ApiService from '../ApiService';
 
 export const PlatformCompaniesService = {
@@ -19,8 +19,8 @@ export const PlatformCompaniesService = {
     return response.data.data!;
   },
 
-  async setActive(uuid: string, isActive: boolean): Promise<ICompany> {
-    const response = await ApiService.patch<IAppResponse<ICompany>>(`/platform/companies/${uuid}/active`, { isActive });
+  async setStatus(uuid: string, status: CompanyStatus): Promise<ICompany> {
+    const response = await ApiService.patch<IAppResponse<ICompany>>(`/platform/companies/${uuid}/status`, { status });
     return response.data.data!;
   },
 };
