@@ -1,7 +1,9 @@
+import type { EntityManager } from "typeorm";
 import { ErrorCodes, type IProductCategory } from "armstock-shared";
 import { AppDataSource } from "../config/database";
 import { ProductCategory } from "../models/ProductCategory";
 import { AppError } from "../utils/AppError";
+import { DEFAULT_PRODUCT_CATEGORIES } from "../constants/DefaultProductCategories";
 import type { ProductCategoryBody } from "../schemas/ProductCategorySchema";
 
 export class ProductCategoryService {
@@ -9,6 +11,12 @@ export class ProductCategoryService {
 
     private static toCategory(category: ProductCategory): IProductCategory {
         return { uuid: category.uuid, name: category.name };
+    }
+
+    /** Runs inside the caller's transaction (company create). */
+    static async createDefaults(manager: EntityManager, companyUuid: string): Promise<void> {
+        const repo = manager.getRepository(ProductCategory);
+        await repo.save(DEFAULT_PRODUCT_CATEGORIES.map((name) => repo.create({ name, companyUuid })));
     }
 
     private async findOrFail(companyUuid: string, uuid: string): Promise<ProductCategory> {

@@ -196,6 +196,8 @@ Each is its own top-level menu item.
 
 - [x] `ProductCategory` table (`product_categories`): company, name (unique inside the
       company, ignoring case)
+- [x] New company gets the default categories: Բանջարեղեն, Միրգ, Միս, Ձուկ, Կաթնամթերք,
+      Հացամթերք, Չոր մթերք, Ըմպելիք, Համեմունք, Տնտեսական ապրանք, Այլ
 - [x] API (`/api/product-categories`, own company only)
   - [x] All company roles can read
   - [x] Company Owner and Storekeeper add, edit, delete
@@ -205,8 +207,8 @@ Each is its own top-level menu item.
   - [x] Add/edit dialog and delete with confirm — Company Owner and Storekeeper only
   - [x] Accountant sees the list without actions
 - [x] Lint and build pass
-- [ ] Checked in browser: add, edit, and delete categories; as Accountant the list has
-      no actions
+- [ ] Checked in browser: add, edit, and delete categories; a new company starts with
+      the default categories; as Accountant the list has no actions
 
 ## Step 8 — Products
 

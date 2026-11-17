@@ -71,7 +71,9 @@ from the route middleware.
 
 - Product: name, unit, code/SKU (optional, unique within the company), category, active
   yes/no.
-- Categories: a simple flat list per company, no sub-categories.
+- Categories (`product_categories`): a simple flat list per company, no sub-categories.
+  A new company gets the defaults copied in (singular names): Բանջարեղեն, Միրգ, Միս,
+  Ձուկ, Կաթնամթերք, Հացամթերք, Չոր մթերք, Ըմպելիք, Համեմունք, Տնտեսական ապրանք, Այլ.
 - No price field on the product. Its current price is the price from its last stock-in.
 
 ## Stock
