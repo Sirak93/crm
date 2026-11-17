@@ -178,7 +178,7 @@ Each is its own top-level menu item.
 
 - [x] `Unit` table: name ("Kilogram"), short name ("kg"), allows decimals. Name and short
       name are unique (ignoring case).
-- [x] Seeder adds: piece, kg, liter, meter (skips ones that exist)
+- [x] Seeder adds (in Armenian): Հատ (հատ), Կիլոգրամ (կգ), Լիտր (լ), Մետր (մ) — skips ones that exist
 - [x] API
   - [x] Everyone logged in can read the list (`GET /api/units`)
   - [x] Only Platform Owner can add, edit, delete (`/api/platform/units`)

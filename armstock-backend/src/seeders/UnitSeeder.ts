@@ -2,10 +2,10 @@ import { AppDataSource } from "../config/database";
 import { Unit } from "../models/Unit";
 
 const DEFAULT_UNITS = [
-    { name: "Piece", shortName: "pcs", allowsDecimals: false },
-    { name: "Kilogram", shortName: "kg", allowsDecimals: true },
-    { name: "Liter", shortName: "l", allowsDecimals: true },
-    { name: "Meter", shortName: "m", allowsDecimals: true },
+    { name: "Հատ", shortName: "հատ", allowsDecimals: false },
+    { name: "Կիլոգրամ", shortName: "կգ", allowsDecimals: true },
+    { name: "Լիտր", shortName: "լ", allowsDecimals: true },
+    { name: "Մետր", shortName: "մ", allowsDecimals: true },
 ];
 
 /** Adds the default units that are missing (matched by short name), so it can run again. */
