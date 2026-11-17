@@ -1,0 +1,44 @@
+:root {
+    --primary: #06b6d4;
+    --primary-light: #ecfeff;
+    --primary-dark: #0891b2;
+    --success: #10b981;
+    --success-light: #ecfdf5;
+    --success-dark: #047857;
+    --danger: #ef4444;
+    --danger-light: #fef2f2;
+    --danger-dark: #b91c1c;
+    --danger-border: rgba(239, 68, 68, 0.2);
+    --warning: #f59e0b;
+    --warning-light: #fffbeb;
+    --warning-dark: #b45309;
+    --info: #64748b;
+    --info-light: #f0f9ff;
+    --bg-app: #f8fafc;
+    --bg-pattern: radial-gradient(#06b6d4 0.5px, transparent 0.5px);
+    --bg-pattern-size: 24px 24px;
+    --bg-card: #ffffff;
+    --text-main: #0f172a;
+    --text-muted: #64748b;
+    --text-light: #94a3b8;
+    --text-dark: #1e293b;
+    --border: #f1f5f9;
+    --border-dark: #e2e8f0;
+    --border-strong: #cbd5e1;
+    --bg-muted: #f1f5f9;
+    --text-inverse: #ffffff;
+
+    /* Element Plus variable overwrites (light-N = primary mixed N0% with white) */
+    --el-color-primary: var(--primary);
+    --el-color-primary-light-3: #51cce1;
+    --el-color-primary-light-5: #82dae9;
+    --el-color-primary-light-7: #b4e9f2;
+    --el-color-primary-light-8: #cdf0f6;
+    --el-color-primary-light-9: var(--primary-light);
+    --el-color-primary-dark-2: var(--primary-dark);
+
+    --el-color-success: var(--success);
+    --el-color-warning: var(--warning);
+    --el-color-danger: var(--danger);
+    --el-color-info: var(--info);
+}

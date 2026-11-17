@@ -36,28 +36,28 @@ Decisions behind these steps: [decisions.md](decisions.md).
 
 ## Step 1 — Skeleton
 
-- [ ] List new packages and get approval before install
-- [ ] Root `package.json`
-  - [ ] npm workspaces: `armstock-assets`, `-shared`, `-backend`, `-frontend`
-  - [ ] `dev` script that starts everything together
-- [ ] `armstock-shared`
-  - [ ] TS package used by both apps
-  - [ ] Brand constants
-- [ ] `armstock-backend`
-  - [ ] Express on port 4200
-  - [ ] Check required env values at startup, stop with a clear message if one is missing
-  - [ ] Loggers copied from armlytic
-  - [ ] Connect to Postgres DB `armstock` (TypeORM, `synchronize: true`)
-  - [ ] Connect to Redis (keys start with `armstock:`)
-  - [ ] `GET /api/health` — says if the DB and Redis are OK
-  - [ ] `.env.example` with all variable names
-- [ ] `armstock-frontend`
-  - [ ] Vue 3 + Vite on port 4201
-  - [ ] Element Plus, Pinia, vue-router, vue-i18n (English)
-  - [ ] Brand CSS (colors, variables, fonts) copied from armlytic
-  - [ ] Logger and API service (axios) copied from armlytic
-  - [ ] Start page with the Armstock logo that shows the health check result
-- [ ] Lint and build pass
+- [x] List new packages and get approval before install
+- [x] Root `package.json`
+  - [x] npm workspaces: `armstock-assets`, `-shared`, `-backend`, `-frontend`
+  - [x] `dev` script that starts everything together
+- [x] `armstock-shared`
+  - [x] TS package used by both apps
+  - [x] Brand constants
+- [x] `armstock-backend`
+  - [x] Express on port 4200
+  - [x] Check required env values at startup, stop with a clear message if one is missing
+  - [x] Loggers copied from armlytic
+  - [x] Connect to Postgres DB `armstock` (TypeORM, `synchronize: true`)
+  - [x] Connect to Redis (keys start with `armstock:`)
+  - [x] `GET /api/health` — says if the DB and Redis are OK
+  - [x] `.env.example` with all variable names
+- [x] `armstock-frontend`
+  - [x] Vue 3 + Vite on port 4201
+  - [x] Element Plus, Pinia, vue-router, vue-i18n (English)
+  - [x] Brand CSS (colors, variables, fonts) copied from armlytic
+  - [x] Logger and API service (axios) copied from armlytic
+  - [x] Start page with the Armstock logo that shows the health check result
+- [x] Lint and build pass
 - [ ] Checked in browser: app opens on 4201 with the logo and "DB OK / Redis OK"
 
 ## Step 2 — Login

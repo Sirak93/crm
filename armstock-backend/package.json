@@ -1,0 +1,31 @@
+{
+  "name": "armstock-backend",
+  "version": "1.0.0",
+  "private": true,
+  "scripts": {
+    "dev": "npm run build:shared && ts-node-dev --respawn --transpile-only src/server.ts",
+    "build:shared": "npm run build -w armstock-shared",
+    "build": "npm run build:shared && tsc",
+    "start": "node dist/server.js",
+    "lint": "tsc --noEmit"
+  },
+  "dependencies": {
+    "armstock-shared": "*",
+    "cors": "^2.8.6",
+    "dotenv": "^17.4.1",
+    "express": "^5.2.1",
+    "ioredis": "^5.11.1",
+    "pg": "^8.20.0",
+    "reflect-metadata": "^0.2.2",
+    "typeorm": "^0.3.28",
+    "zod": "^4.3.6"
+  },
+  "devDependencies": {
+    "@types/cors": "^2.8.19",
+    "@types/express": "^5.0.6",
+    "@types/node": "^25.5.2",
+    "ts-node": "^10.9.2",
+    "ts-node-dev": "^2.0.0",
+    "typescript": "^6.0.2"
+  }
+}

@@ -1,0 +1,57 @@
+@import "./assets/css/_colors.css";
+@import "./assets/css/_typography.css";
+@import "./assets/css/_variables.css";
+
+* {
+    box-sizing: border-box;
+}
+
+body {
+    background-color: var(--bg-app);
+    background-image: var(--bg-pattern);
+    background-size: var(--bg-pattern-size);
+    background-attachment: fixed;
+    color: var(--text-main);
+    margin: 0;
+}
+
+svg {
+    display: inline-block;
+    vertical-align: middle;
+}
+
+/* App Loading Overlay */
+#app-loading-overlay {
+    position: fixed;
+    inset: 0;
+    background-color: var(--bg-app);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 9999;
+    transition: opacity 0.4s ease, visibility 0.4s;
+}
+
+body:not(.loading) #app-loading-overlay {
+    opacity: 0;
+    visibility: hidden;
+}
+
+body.loading {
+    overflow: hidden;
+}
+
+.app-loading-box {
+    fill: var(--primary);
+    transform-box: fill-box;
+    animation: app-loading-lift 3s infinite ease-in-out;
+}
+
+@keyframes app-loading-lift {
+    0%, 100% { transform: translateY(0); opacity: 0.8; }
+    50% { transform: translateY(-1.5px); opacity: 1; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .app-loading-box { animation: none; }
+}
