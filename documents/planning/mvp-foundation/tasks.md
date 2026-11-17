@@ -19,8 +19,8 @@ Decisions behind these steps: [decisions.md](decisions.md).
 ## Progress
 
 - [x] Step 1 — Skeleton
-- [ ] Step 2 — Login
-- [ ] Step 3 — Platform tools: Database + Logs
+- [x] Step 2 — Login
+- [x] Step 3 — Platform tools: Database + Logs
 - [ ] Step 4 — Companies
 - [ ] Step 5 — Staff + users
 - [ ] Step 6 — Units
@@ -92,7 +92,7 @@ Decisions behind these steps: [decisions.md](decisions.md).
   - [x] Pages blocked by role (wrong role → back to own start page)
   - [x] Platform Owner start page: empty dashboard
 - [x] Lint and build pass
-- [ ] Checked in browser: log in as Platform Owner, see the dashboard, log out
+- [x] Checked in browser: log in as Platform Owner, see the dashboard, log out
 
 ## Step 3 — Platform tools: Database + Logs
 
@@ -117,7 +117,7 @@ Each is its own top-level menu item.
       TOAST column; logs with User (email for now), Company, and Details columns
 - [x] Platform Owner pages use compact padding (like armlytic)
 - [x] Lint and build pass
-- [ ] Checked in browser: as Platform Owner open Database and Logs; Logs shows the
+- [x] Checked in browser: as Platform Owner open Database and Logs; Logs shows the
       requests just made
 
 ## Step 4 — Companies

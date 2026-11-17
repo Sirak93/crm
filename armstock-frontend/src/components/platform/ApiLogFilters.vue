@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { reactive, watch } from 'vue';
 import { Search } from 'lucide-vue-next';
-import { HTTP_METHODS } from '../../constants/constants';
+import { DATE_PICKER_FORMAT, HTTP_METHODS } from '../../constants/constants';
 import type { IApiLogFilters } from '../../interfaces/IApiLogFilters';
 
 const emit = defineEmits<{ change: [filters: IApiLogFilters] }>();
@@ -67,6 +67,7 @@ watch(() => [form.method, form.status, form.slowOnly, form.dateRange], emitChang
       v-model="form.dateRange"
       type="daterange"
       value-format="YYYY-MM-DD"
+      :format="DATE_PICKER_FORMAT"
       :range-separator="$t('platform.logs.filters.to')"
       :start-placeholder="$t('platform.logs.filters.startDate')"
       :end-placeholder="$t('platform.logs.filters.endDate')"

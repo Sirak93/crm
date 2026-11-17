@@ -101,11 +101,21 @@
 
 .el-dropdown-menu {
     padding: 4px !important;
+    /* Its own background would otherwise cover the popper's rounded corners. */
+    border-radius: var(--radius) !important;
 }
 
 .el-dropdown-menu__item {
     margin: 2px 4px;
     border-radius: 8px !important;
+}
+
+.el-select-dropdown__list {
+    padding: 4px !important;
+}
+
+.el-select-dropdown__item {
+    border-radius: 8px;
 }
 
 .el-popper.is-light {

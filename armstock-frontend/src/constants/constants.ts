@@ -24,4 +24,7 @@ export const HTTP_METHODS = ['GET', 'POST', 'PUT', 'PATCH', 'DELETE'] as const;
 
 export const DEFAULT_PAGE_SIZE = 20;
 
+/** Element Plus date picker display format - matches formatDateTime. */
+export const DATE_PICKER_FORMAT = 'DD/MM/YYYY';
+
 export type RouteName = typeof ROUTE_NAME[keyof typeof ROUTE_NAME];
