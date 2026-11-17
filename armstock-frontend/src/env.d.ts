@@ -1,3 +1,4 @@
+/// <reference types="element-plus/global" />
 import 'vue-router';
 import type { UserRole } from 'armstock-shared';
 

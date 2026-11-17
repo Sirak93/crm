@@ -14,7 +14,7 @@ interface IPayload {
 }
 
 const payloadOf = (row: IApiLog) => (row.payload ?? {}) as IPayload;
-const hasQuery = (row: IApiLog) => Object.keys(payloadOf(row).query ?? {}).length > 0;
+const hasQuery = (row: IApiLog) => Object.keys(payloadOf(row as IApiLog).query ?? {}).length > 0;
 const toJson = (value: unknown) => JSON.stringify(value, null, 2);
 </script>
 
@@ -67,17 +67,17 @@ const toJson = (value: unknown) => JSON.stringify(value, null, 2);
           </template>
 
           <div class="details">
-            <div v-if="payloadOf(row).error">
+            <div v-if="payloadOf(row as IApiLog).error">
               <div class="details__label details__label--danger">{{ $t('platform.logs.details.error') }}</div>
-              <pre class="details__pre details__pre--danger">{{ toJson(payloadOf(row).error) }}</pre>
+              <pre class="details__pre details__pre--danger">{{ toJson(payloadOf(row as IApiLog).error) }}</pre>
             </div>
-            <div v-if="hasQuery(row)">
+            <div v-if="hasQuery(row as IApiLog)">
               <div class="details__label">{{ $t('platform.logs.details.query') }}</div>
-              <pre class="details__pre">{{ toJson(payloadOf(row).query) }}</pre>
+              <pre class="details__pre">{{ toJson(payloadOf(row as IApiLog).query) }}</pre>
             </div>
-            <div v-if="payloadOf(row).body">
+            <div v-if="payloadOf(row as IApiLog).body">
               <div class="details__label">{{ $t('platform.logs.details.payload') }}</div>
-              <pre class="details__pre">{{ toJson(payloadOf(row).body) }}</pre>
+              <pre class="details__pre">{{ toJson(payloadOf(row as IApiLog).body) }}</pre>
             </div>
           </div>
         </el-popover>

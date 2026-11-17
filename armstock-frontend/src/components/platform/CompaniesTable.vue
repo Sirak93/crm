@@ -37,7 +37,7 @@ defineEmits<{
           :model-value="row.isActive"
           :loading="togglingUuid === row.uuid"
           :aria-label="$t('platform.companies.table.activeFor', { name: row.name })"
-          @change="(value: string | number | boolean) => $emit('toggleActive', row, Boolean(value))"
+          @change="(value: string | number | boolean) => $emit('toggleActive', row as ICompany, Boolean(value))"
         />
       </template>
     </el-table-column>
@@ -47,7 +47,7 @@ defineEmits<{
           type="button"
           class="icon-btn"
           :aria-label="$t('platform.companies.editFor', { name: row.name })"
-          @click="$emit('edit', row)"
+          @click="$emit('edit', row as ICompany)"
         >
           <Pencil :size="16" aria-hidden="true" />
         </button>

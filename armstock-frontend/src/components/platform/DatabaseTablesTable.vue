@@ -103,9 +103,9 @@ const indexRatioTagType = (ratio: number) => (ratio > 1 ? 'warning' : 'info');
           <span class="muted small">{{ row.percentOfDatabase }}%</span>
         </div>
         <div class="composition-bar" :title="$t('platform.database.table.compositionHint')">
-          <div class="segment segment--data" :style="{ width: `${composition(row).data}%` }"></div>
-          <div class="segment segment--index" :style="{ width: `${composition(row).index}%` }"></div>
-          <div class="segment segment--toast" :style="{ width: `${composition(row).toast}%` }"></div>
+          <div class="segment segment--data" :style="{ width: `${composition(row as ITableStorage).data}%` }"></div>
+          <div class="segment segment--index" :style="{ width: `${composition(row as ITableStorage).index}%` }"></div>
+          <div class="segment segment--toast" :style="{ width: `${composition(row as ITableStorage).toast}%` }"></div>
         </div>
       </template>
     </el-table-column>
