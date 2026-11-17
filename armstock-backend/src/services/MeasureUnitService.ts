@@ -2,6 +2,7 @@ import type { EntityManager } from "typeorm";
 import { ErrorCodes, type IMeasureUnit } from "armstock-shared";
 import { AppDataSource } from "../config/database";
 import { MeasureUnit } from "../models/MeasureUnit";
+import { Product } from "../models/Product";
 import { AppError } from "../utils/AppError";
 import { DEFAULT_MEASURE_UNITS } from "../constants/DefaultMeasureUnits";
 import type { MeasureUnitBody } from "../schemas/MeasureUnitSchema";
@@ -9,7 +10,7 @@ import type { MeasureUnitBody } from "../schemas/MeasureUnitSchema";
 export class MeasureUnitService {
     private repo = AppDataSource.getRepository(MeasureUnit);
 
-    private static toUnit(unit: MeasureUnit): IMeasureUnit {
+    static toUnit(unit: MeasureUnit): IMeasureUnit {
         return {
             uuid: unit.uuid,
             name: unit.name,
@@ -24,7 +25,7 @@ export class MeasureUnitService {
         await repo.save(DEFAULT_MEASURE_UNITS.map((unit) => repo.create({ ...unit, companyUuid })));
     }
 
-    private async findOrFail(companyUuid: string, uuid: string): Promise<MeasureUnit> {
+    async findOrFail(companyUuid: string, uuid: string): Promise<MeasureUnit> {
         const unit = await this.repo.findOne({ where: { uuid, companyUuid } });
         if (!unit) throw new AppError(ErrorCodes.MEASURE_UNIT.NOT_FOUND, undefined, undefined, { uuid, companyUuid });
         return unit;
@@ -57,6 +58,10 @@ export class MeasureUnitService {
     }
 
     async delete(companyUuid: string, uuid: string): Promise<void> {
-        await this.repo.remove(await this.findOrFail(companyUuid, uuid));
+        const unit = await this.findOrFail(companyUuid, uuid);
+        if (await AppDataSource.getRepository(Product).exists({ where: { measureUnitUuid: uuid } })) {
+            throw new AppError(ErrorCodes.MEASURE_UNIT.IN_USE);
+        }
+        await this.repo.remove(unit);
     }
 }

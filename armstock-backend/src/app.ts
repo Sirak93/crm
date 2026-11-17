@@ -6,6 +6,7 @@ import CompanyRoutes from "./routes/CompanyRoutes";
 import HealthRoutes from "./routes/HealthRoutes";
 import PlatformRoutes from "./routes/PlatformRoutes";
 import ProductCategoryRoutes from "./routes/ProductCategoryRoutes";
+import ProductRoutes from "./routes/ProductRoutes";
 import MeasureUnitRoutes from "./routes/MeasureUnitRoutes";
 import { ErrorHandler } from "./middlewares/ErrorHandler";
 import { ApiLogMiddleware } from "./middlewares/ApiLogMiddleware";
@@ -47,6 +48,7 @@ app.use(`${API_PATH}/company`, CompanyRoutes);
 app.use(`${API_PATH}/health`, HealthRoutes);
 app.use(`${API_PATH}/platform`, PlatformRoutes);
 app.use(`${API_PATH}/product-categories`, ProductCategoryRoutes);
+app.use(`${API_PATH}/products`, ProductRoutes);
 app.use(`${API_PATH}/measure-units`, MeasureUnitRoutes);
 
 // Must be last.

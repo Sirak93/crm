@@ -212,20 +212,24 @@ Each is its own top-level menu item.
 
 ## Step 8 — Products
 
-- [ ] To confirm: block changing the unit once the product has stock?
-- [ ] `Product` table: company, name, unit, category, code (optional, unique inside the
-      company), active. No price field.
-- [ ] Unit delete blocked if a product uses the unit (moved from Step 6)
-- [ ] Product category delete blocked if a product uses it (moved from Step 7)
-- [ ] API
-  - [ ] Company Owner and Storekeeper manage
-  - [ ] Accountant only sees
-  - [ ] List: search by name or code, filter by category and active, paging
-- [ ] Frontend: Products page
-  - [ ] Table with filters
-  - [ ] Add/edit dialog
-- [ ] Lint and build pass
-- [ ] Checked in browser: add products with units and categories, find them with filters
+- [x] To confirm: block changing the unit once the product has stock? → the unit can never
+      be changed after create; a different packing is a different product
+- [x] To confirm: active yes/no → `ProductStatus` (Active, Archived)
+- [x] `Product` table: company, name, measure unit, category, code (optional, unique inside
+      the company, ignoring case), status. No price field.
+- [x] Unit delete blocked if a product uses the unit (moved from Step 6)
+- [x] Product category delete blocked if a product uses it (moved from Step 7)
+- [x] API (`/api/products`, own company only)
+  - [x] Company Owner and Storekeeper add, edit, archive/restore
+  - [x] Accountant only sees
+  - [x] List: search by name or code, filter by category and status, paging
+- [x] Frontend: Products page (menu "Products")
+  - [x] Table with filters (starts on Active)
+  - [x] Add/edit dialog — unit locked on edit
+  - [x] Archive / Restore in the "⋯" menu
+- [x] Lint and build pass
+- [ ] Checked in browser: add products with units and categories, find them with filters,
+      archive one; deleting a used unit or category shows an error
 
 ## Step 9 — Suppliers
 

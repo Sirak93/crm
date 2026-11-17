@@ -5,6 +5,7 @@ export * from "./constants/ErrorCodes";
 export * from "./constants/RoleConstants";
 
 export * from "./enums/CompanyStatus";
+export * from "./enums/ProductStatus";
 export * from "./enums/UserRole";
 export * from "./enums/UserStatus";
 
@@ -24,8 +25,11 @@ export type * from "./interfaces/ILoginResponse";
 export type * from "./interfaces/IMeasureUnit";
 export type * from "./interfaces/IMeasureUnitPayload";
 export type * from "./interfaces/IPaginationMeta";
+export type * from "./interfaces/IProduct";
 export type * from "./interfaces/IProductCategory";
 export type * from "./interfaces/IProductCategoryPayload";
+export type * from "./interfaces/IProductCreatePayload";
+export type * from "./interfaces/IProductPayload";
 export type * from "./interfaces/IRefreshResponse";
 export type * from "./interfaces/ITableStorage";
 export type * from "./interfaces/IUnusedIndex";

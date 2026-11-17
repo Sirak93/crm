@@ -69,8 +69,12 @@ from the route middleware.
 
 ## Products and categories
 
-- Product: name, unit, code/SKU (optional, unique within the company), category, active
-  yes/no.
+- Product: name, unit, code/SKU (optional, unique within the company), category, status
+  (`ProductStatus`: Active, Archived — archived = hidden from new documents, kept in
+  history).
+- The unit is fixed after the product is created (stock and prices are counted in it). A
+  different packing (e.g. tomatoes in boxes) is a different product. Everything else can
+  be edited.
 - Categories (`product_categories`): a simple flat list per company, no sub-categories.
   A new company gets the defaults copied in (singular names): Բանջարեղեն, Միրգ, Միս,
   Ձուկ, Կաթնամթերք, Հացամթերք, Չոր մթերք, Ըմպելիք, Համեմունք, Տնտեսական ապրանք, Այլ.

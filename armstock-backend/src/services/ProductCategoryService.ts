@@ -2,6 +2,7 @@ import type { EntityManager } from "typeorm";
 import { ErrorCodes, type IProductCategory } from "armstock-shared";
 import { AppDataSource } from "../config/database";
 import { ProductCategory } from "../models/ProductCategory";
+import { Product } from "../models/Product";
 import { AppError } from "../utils/AppError";
 import { DEFAULT_PRODUCT_CATEGORIES } from "../constants/DefaultProductCategories";
 import type { ProductCategoryBody } from "../schemas/ProductCategorySchema";
@@ -9,7 +10,7 @@ import type { ProductCategoryBody } from "../schemas/ProductCategorySchema";
 export class ProductCategoryService {
     private repo = AppDataSource.getRepository(ProductCategory);
 
-    private static toCategory(category: ProductCategory): IProductCategory {
+    static toCategory(category: ProductCategory): IProductCategory {
         return { uuid: category.uuid, name: category.name };
     }
 
@@ -19,7 +20,7 @@ export class ProductCategoryService {
         await repo.save(DEFAULT_PRODUCT_CATEGORIES.map((name) => repo.create({ name, companyUuid })));
     }
 
-    private async findOrFail(companyUuid: string, uuid: string): Promise<ProductCategory> {
+    async findOrFail(companyUuid: string, uuid: string): Promise<ProductCategory> {
         const category = await this.repo.findOne({ where: { uuid, companyUuid } });
         if (!category) throw new AppError(ErrorCodes.PRODUCT_CATEGORY.NOT_FOUND, undefined, undefined, { uuid, companyUuid });
         return category;
@@ -52,6 +53,10 @@ export class ProductCategoryService {
     }
 
     async delete(companyUuid: string, uuid: string): Promise<void> {
-        await this.repo.remove(await this.findOrFail(companyUuid, uuid));
+        const category = await this.findOrFail(companyUuid, uuid);
+        if (await AppDataSource.getRepository(Product).exists({ where: { categoryUuid: uuid } })) {
+            throw new AppError(ErrorCodes.PRODUCT_CATEGORY.IN_USE);
+        }
+        await this.repo.remove(category);
     }
 }

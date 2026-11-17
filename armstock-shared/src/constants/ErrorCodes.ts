@@ -67,6 +67,10 @@ export const ErrorCodes = {
             CODE: "MEASURE_UNIT_NAME_TAKEN",
             STATUS: 409,
         },
+        IN_USE: {
+            CODE: "MEASURE_UNIT_IN_USE",
+            STATUS: 409,
+        },
     },
     PRODUCT_CATEGORY: {
         NOT_FOUND: {
@@ -75,6 +79,20 @@ export const ErrorCodes = {
         },
         NAME_TAKEN: {
             CODE: "PRODUCT_CATEGORY_NAME_TAKEN",
+            STATUS: 409,
+        },
+        IN_USE: {
+            CODE: "PRODUCT_CATEGORY_IN_USE",
+            STATUS: 409,
+        },
+    },
+    PRODUCT: {
+        NOT_FOUND: {
+            CODE: "PRODUCT_NOT_FOUND",
+            STATUS: 404,
+        },
+        CODE_TAKEN: {
+            CODE: "PRODUCT_CODE_TAKEN",
             STATUS: 409,
         },
     },
