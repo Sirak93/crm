@@ -24,6 +24,8 @@ export type * from "./interfaces/ILoginResponse";
 export type * from "./interfaces/IMeasureUnit";
 export type * from "./interfaces/IMeasureUnitPayload";
 export type * from "./interfaces/IPaginationMeta";
+export type * from "./interfaces/IProductCategory";
+export type * from "./interfaces/IProductCategoryPayload";
 export type * from "./interfaces/IRefreshResponse";
 export type * from "./interfaces/ITableStorage";
 export type * from "./interfaces/IUnusedIndex";

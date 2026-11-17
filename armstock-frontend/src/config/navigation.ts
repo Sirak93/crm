@@ -1,5 +1,5 @@
 import type { Component } from 'vue';
-import { Building, Building2, Database, LayoutDashboard, Ruler, ScrollText, Users } from 'lucide-vue-next';
+import { Building, Building2, Database, LayoutDashboard, Ruler, ScrollText, Tags, Users } from 'lucide-vue-next';
 import { COMPANY_LOGIN_ROLES, UserRole } from 'armstock-shared';
 import { ROUTE_NAME, type RouteName } from '../constants/constants';
 
@@ -53,6 +53,13 @@ export const NAV_ITEMS: INavItem[] = [
     labelKey: 'nav.measureUnits',
     icon: Ruler,
     routeName: ROUTE_NAME.COMPANY_MEASURE_UNITS,
+    roles: [...COMPANY_LOGIN_ROLES],
+  },
+  {
+    id: 'company-product-categories',
+    labelKey: 'nav.productCategories',
+    icon: Tags,
+    routeName: ROUTE_NAME.COMPANY_PRODUCT_CATEGORIES,
     roles: [...COMPANY_LOGIN_ROLES],
   },
   {

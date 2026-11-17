@@ -74,6 +74,12 @@ const routes: RouteRecordRaw[] = [
         meta: { roles: [...COMPANY_LOGIN_ROLES] },
       },
       {
+        path: 'product-categories',
+        name: ROUTE_NAME.COMPANY_PRODUCT_CATEGORIES,
+        component: () => import('../views/company/CompanyProductCategories.vue'),
+        meta: { roles: [...COMPANY_LOGIN_ROLES] },
+      },
+      {
         path: 'users',
         name: ROUTE_NAME.COMPANY_USERS,
         component: () => import('../views/company/CompanyUsers.vue'),

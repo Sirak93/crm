@@ -68,6 +68,16 @@ export const ErrorCodes = {
             STATUS: 409,
         },
     },
+    PRODUCT_CATEGORY: {
+        NOT_FOUND: {
+            CODE: "PRODUCT_CATEGORY_NOT_FOUND",
+            STATUS: 404,
+        },
+        NAME_TAKEN: {
+            CODE: "PRODUCT_CATEGORY_NAME_TAKEN",
+            STATUS: 409,
+        },
+    },
     RATE_LIMIT: {
         TOO_MANY_REQUESTS: {
             CODE: "RATE_LIMIT_TOO_MANY_REQUESTS",

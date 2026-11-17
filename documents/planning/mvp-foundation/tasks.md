@@ -194,17 +194,19 @@ Each is its own top-level menu item.
 
 ## Step 7 — Product categories
 
-- [ ] `Category` table: company, name (unique inside the company)
-- [ ] API
-  - [ ] Company Owner and Storekeeper manage
-  - [ ] Accountant only sees
-  - [ ] Delete only if no product uses it
-- [ ] Frontend: Categories page
-  - [ ] Table
-  - [ ] Add/edit dialog
-  - [ ] Delete
-- [ ] Lint and build pass
-- [ ] Checked in browser: add, edit, and delete categories
+- [x] `ProductCategory` table (`product_categories`): company, name (unique inside the
+      company, ignoring case)
+- [x] API (`/api/product-categories`, own company only)
+  - [x] All company roles can read
+  - [x] Company Owner and Storekeeper add, edit, delete
+  - [x] Delete — always allowed for now; the "no product uses it" check comes in Step 8
+- [x] Frontend: Product categories page (menu "Product categories")
+  - [x] Table with search
+  - [x] Add/edit dialog and delete with confirm — Company Owner and Storekeeper only
+  - [x] Accountant sees the list without actions
+- [x] Lint and build pass
+- [ ] Checked in browser: add, edit, and delete categories; as Accountant the list has
+      no actions
 
 ## Step 8 — Products
 
@@ -212,6 +214,7 @@ Each is its own top-level menu item.
 - [ ] `Product` table: company, name, unit, category, code (optional, unique inside the
       company), active. No price field.
 - [ ] Unit delete blocked if a product uses the unit (moved from Step 6)
+- [ ] Product category delete blocked if a product uses it (moved from Step 7)
 - [ ] API
   - [ ] Company Owner and Storekeeper manage
   - [ ] Accountant only sees
