@@ -25,7 +25,7 @@ Decisions behind these steps: [decisions.md](decisions.md).
 - [x] Step 5 — Users
 - [x] Step 6 — Units
 - [x] Step 7 — Product categories
-- [ ] Step 8 — Products
+- [x] Step 8 — Products
 - [ ] Step 9 — Suppliers
 - [ ] Step 10 — Stock-in documents
 - [ ] Step 11 — Stock view
@@ -228,21 +228,25 @@ Each is its own top-level menu item.
   - [x] Add/edit dialog — unit locked on edit
   - [x] Archive / Restore in the "⋯" menu
 - [x] Lint and build pass
-- [ ] Checked in browser: add products with units and categories, find them with filters,
+- [x] Checked in browser: add products with units and categories, find them with filters,
       archive one; deleting a used unit or category shows an error
 
 ## Step 9 — Suppliers
 
+- [x] To confirm
+  - [x] Keep tax ID (ՀՎՀՀ), optional
+  - [x] Status instead of active yes/no: `SupplierStatus` Active (10), Archived (20);
+        no delete, list starts on Active
 - [ ] `Supplier` table: company, name, contact person, phone, email, tax ID, note,
-      active. Only name is required.
+      status. Only name is required.
 - [ ] API
   - [ ] Company Owner, Accountant, and Storekeeper manage
-  - [ ] List: search by name, filter by active, paging
+  - [ ] List: search by name, filter by status, paging
 - [ ] Frontend: Suppliers page
   - [ ] Table with filters
   - [ ] Add/edit dialog
 - [ ] Lint and build pass
-- [ ] Checked in browser: add, edit, find, and turn off suppliers
+- [ ] Checked in browser: add, edit, find, and archive suppliers
 
 ## Step 10 — Stock-in documents
 

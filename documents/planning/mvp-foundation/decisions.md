@@ -120,7 +120,9 @@ Reasons are fixed enums in code (shown as a dropdown in the form).
 
 ## Suppliers
 
-Name, contact person, phone, email, tax ID, note (all optional except name), active yes/no.
+Name, contact person, phone, email, tax ID (ՀՎՀՀ), note (all optional except name), and a
+status (`SupplierStatus`: Active, Archived — archived = hidden from new documents, kept in
+old ones). A supplier can't be deleted. The list starts on Active.
 
 ## Stack
 
