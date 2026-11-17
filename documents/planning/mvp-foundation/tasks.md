@@ -20,17 +20,18 @@ Decisions behind these steps: [decisions.md](decisions.md).
 
 - [ ] Step 1 — Skeleton
 - [ ] Step 2 — Login
-- [ ] Step 3 — Companies
-- [ ] Step 4 — Staff + users
-- [ ] Step 5 — Units
-- [ ] Step 6 — Categories
-- [ ] Step 7 — Products
-- [ ] Step 8 — Suppliers
-- [ ] Step 9 — Stock-in documents
-- [ ] Step 10 — Stock view
-- [ ] Step 11 — Stock-out documents
-- [ ] Step 12 — Redis cache
-- [ ] Step 13 — Role check pass
+- [ ] Step 3 — Platform tools: Database + Logs
+- [ ] Step 4 — Companies
+- [ ] Step 5 — Staff + users
+- [ ] Step 6 — Units
+- [ ] Step 7 — Categories
+- [ ] Step 8 — Products
+- [ ] Step 9 — Suppliers
+- [ ] Step 10 — Stock-in documents
+- [ ] Step 11 — Stock view
+- [ ] Step 12 — Stock-out documents
+- [ ] Step 13 — Redis cache
+- [ ] Step 14 — Role check pass
 
 ---
 
@@ -71,7 +72,7 @@ Decisions behind these steps: [decisions.md](decisions.md).
 - [ ] `User` table
   - [ ] email, password (hashed), role, active
   - [ ] company (empty for Platform Owner)
-  - [ ] staff link (optional, filled in step 4)
+  - [ ] staff link (optional, filled in step 5)
   - [ ] refresh token (hashed)
 - [ ] Seeder creates the Platform Owner from env values (email, password)
 - [ ] API
@@ -92,7 +93,29 @@ Decisions behind these steps: [decisions.md](decisions.md).
 - [ ] Lint and build pass
 - [ ] Checked in browser: log in as Platform Owner, see the dashboard, log out
 
-## Step 3 — Companies
+## Step 3 — Platform tools: Database + Logs
+
+Copied from armlytic (`/owner/database`, `/owner/logs/database`). Platform Owner only.
+Each is its own top-level menu item.
+
+- [ ] Database page
+  - [ ] API `GET /api/platform/database/storage`: database size, and per table — size,
+        rows, index size
+  - [ ] Route `/database` (name `platform-database`), menu item "Database"
+  - [ ] Page: totals on top, tables list with search
+- [ ] Logs page
+  - [ ] API `GET /api/platform/logs`: `api_logs` rows with paging and filters
+  - [ ] API `DELETE /api/platform/logs`: clear all rows
+  - [ ] Route `/logs` (name `platform-logs`), menu item "Logs"
+  - [ ] Page: table with filters, row details for failed requests, "clear all" with
+        confirm
+  - [ ] Viewing the logs does not add new log rows
+- [ ] `api_logs` rows get the user and company now that login exists
+- [ ] Lint and build pass
+- [ ] Checked in browser: as Platform Owner open Database and Logs; Logs shows the
+      requests just made
+
+## Step 4 — Companies
 
 - [ ] To confirm: which company details (phone, address, tax ID?)
 - [ ] To confirm: does turning off a company block its users from logging in?
@@ -109,7 +132,7 @@ Decisions behind these steps: [decisions.md](decisions.md).
 - [ ] Lint and build pass
 - [ ] Checked in browser: create, edit, find, and turn off companies
 
-## Step 4 — Staff + users
+## Step 5 — Staff + users
 
 - [ ] To confirm: the creator sets the password by hand (no emails in MVP)?
 - [ ] To confirm: does turning off a staff member also turn off their login?
@@ -129,7 +152,7 @@ Decisions behind these steps: [decisions.md](decisions.md).
 - [ ] Checked in browser: as Company Owner add a Chef (no login) and a Storekeeper
       (with login), then log in as that Storekeeper
 
-## Step 5 — Units
+## Step 6 — Units
 
 - [ ] `Unit` table: name ("Kilogram"), short name ("kg"), allows decimals
 - [ ] Seeder adds: piece, kg, liter, meter
@@ -143,7 +166,7 @@ Decisions behind these steps: [decisions.md](decisions.md).
 - [ ] Lint and build pass
 - [ ] Checked in browser: see the units list, add a unit, edit one
 
-## Step 6 — Categories
+## Step 7 — Categories
 
 - [ ] `Category` table: company, name (unique inside the company)
 - [ ] API
@@ -157,7 +180,7 @@ Decisions behind these steps: [decisions.md](decisions.md).
 - [ ] Lint and build pass
 - [ ] Checked in browser: add, edit, and delete categories
 
-## Step 7 — Products
+## Step 8 — Products
 
 - [ ] To confirm: block changing the unit once the product has stock?
 - [ ] `Product` table: company, name, unit, category, code (optional, unique inside the
@@ -172,7 +195,7 @@ Decisions behind these steps: [decisions.md](decisions.md).
 - [ ] Lint and build pass
 - [ ] Checked in browser: add products with units and categories, find them with filters
 
-## Step 8 — Suppliers
+## Step 9 — Suppliers
 
 - [ ] `Supplier` table: company, name, contact person, phone, email, tax ID, note,
       active. Only name is required.
@@ -185,7 +208,7 @@ Decisions behind these steps: [decisions.md](decisions.md).
 - [ ] Lint and build pass
 - [ ] Checked in browser: add, edit, find, and turn off suppliers
 
-## Step 9 — Stock-in documents
+## Step 10 — Stock-in documents
 
 - [ ] To confirm: how stock is counted — summed from documents each time, or kept in a
       stock table updated on every save
@@ -212,7 +235,7 @@ Decisions behind these steps: [decisions.md](decisions.md).
 - [ ] Checked in browser: add a purchase with several products, open it, edit it,
       delete it
 
-## Step 10 — Stock view
+## Step 11 — Stock view
 
 - [ ] API
   - [ ] Per product: quantity, unit, last stock-in price, value (quantity × price)
@@ -224,9 +247,9 @@ Decisions behind these steps: [decisions.md](decisions.md).
   - [ ] Table with search and category filter
   - [ ] "Only in stock" switch
 - [ ] Lint and build pass
-- [ ] Checked in browser: stock page shows what was added in step 9, with values
+- [ ] Checked in browser: stock page shows what was added in step 10, with values
 
-## Step 11 — Stock-out documents
+## Step 12 — Stock-out documents
 
 - [ ] Shared: `StockOutReason` enum — Issued, Spoiled, Other
 - [ ] Tables
@@ -245,7 +268,7 @@ Decisions behind these steps: [decisions.md](decisions.md).
 - [ ] Checked in browser: issue goods to the Chef, write off spoiled goods, stock goes
       down; issuing too much shows an error
 
-## Step 12 — Redis cache
+## Step 13 — Redis cache
 
 - [ ] Shared Redis helper copied from armlytic
 - [ ] Cache units
@@ -258,7 +281,7 @@ Decisions behind these steps: [decisions.md](decisions.md).
 - [ ] Checked in browser: lists work the same, logs show cache hits, changes show up
       at once
 
-## Step 13 — Role check pass
+## Step 14 — Role check pass
 
 - [ ] Seeder adds a demo company with one user per role (emails and passwords from env)
 - [ ] Check every page and API for each role

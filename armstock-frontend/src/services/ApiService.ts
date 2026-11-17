@@ -1,7 +1,6 @@
 import axios, { type AxiosInstance, type AxiosRequestConfig, type AxiosResponse } from 'axios';
 import { API_PATH } from 'armstock-shared';
 
-/** One axios instance for the backend API. Auth (tokens, refresh) is added in step 2. */
 class ApiService {
   private axiosInstance: AxiosInstance;
 

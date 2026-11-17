@@ -40,7 +40,6 @@ export class ApiLogger {
                 durationMs: Math.round(durationMs),
                 slow: durationMs >= Number(process.env.SLOW_REQUEST_THRESHOLD_MS),
                 success,
-                // User and company are filled once auth exists (step 2).
                 userUuid: null,
                 companyUuid: null,
                 ip: req.ip ?? null,

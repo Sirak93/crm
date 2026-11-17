@@ -1,6 +1,5 @@
 import { redisClient } from "../config/RedisConfig";
 
-/** Shared Redis access point. Cache helpers are added in step 12. */
 export class RedisService {
     static async initialize(): Promise<void> {
         if (redisClient.status === "ready") return;

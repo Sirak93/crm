@@ -19,10 +19,14 @@ company's data is kept apart.
 
 | Role | Can do |
 | --- | --- |
-| Platform Owner | Create companies, manage each company's users. Dashboard otherwise empty for now. |
+| Platform Owner | Create companies, manage each company's users, see Database and Logs pages. Dashboard otherwise empty for now. |
 | Company Owner | Everything Storekeeper and Accountant can do, plus manage the company's users and edit company info. |
 | Storekeeper | Add/edit products and categories, create stock-in and stock-out documents, view stock, add/edit suppliers. |
 | Accountant | View stock and movements (read-only), see prices and total stock value, manage suppliers. |
+
+Naming: Platform Owner code, route names, and API paths use `platform` (e.g.
+`platform-logs`, `/api/platform/logs`), never `owner` — so it is not confused with the
+Company Owner. Page paths stay short (`/database`, `/logs`).
 
 Storekeeper can manage suppliers for now. Removing that later is just removing the role
 from the route middleware.
