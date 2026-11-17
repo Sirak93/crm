@@ -40,6 +40,9 @@ Decisions behind these steps: [decisions.md](decisions.md).
 - [x] Root `package.json`
   - [x] npm workspaces: `armstock-assets`, `-shared`, `-backend`, `-frontend`
   - [x] `dev` script that starts everything together
+  - [x] `dev:backend` and `dev:frontend` scripts
+- [x] Run scripts (Node 22 via nvm, install if missing): `run.sh` (all),
+      `dev-backend.sh`, `dev-frontend.sh`
 - [x] `armstock-shared`
   - [x] TS package used by both apps
   - [x] Brand constants

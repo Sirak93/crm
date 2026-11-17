@@ -9,7 +9,9 @@
   ],
   "scripts": {
     "dev": "npm run build -w armstock-shared && concurrently -n \"SHARED,BACKEND,FRONTEND\" -c \"yellow,cyan,magenta\" \"npm run dev -w armstock-shared\" \"npm run dev -w armstock-backend\" \"npm run dev -w armstock-frontend\"",
-    "lint": "npm run build -w armstock-shared && npm run lint -w armstock-backend && npm run lint -w armstock-frontend",
+    "dev:backend": "npm run build -w armstock-shared && concurrently -n \"SHARED,BACKEND\" -c \"yellow,cyan\" \"npm run dev -w armstock-shared\" \"npm run dev -w armstock-backend\"",
+    "dev:frontend": "npm run dev -w armstock-frontend",
+    "lint":"npm run build -w armstock-shared && npm run lint -w armstock-backend && npm run lint -w armstock-frontend",
     "build": "npm run build -w armstock-shared && npm run build -w armstock-backend && npm run build -w armstock-frontend"
   },
   "devDependencies": {
