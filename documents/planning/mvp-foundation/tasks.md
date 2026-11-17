@@ -22,7 +22,7 @@ Decisions behind these steps: [decisions.md](decisions.md).
 - [x] Step 2 — Login
 - [x] Step 3 — Platform tools: Database + Logs
 - [x] Step 4 — Companies
-- [ ] Step 5 — Staff + users
+- [x] Step 5 — Users
 - [ ] Step 6 — Units
 - [ ] Step 7 — Categories
 - [ ] Step 8 — Products
@@ -167,26 +167,28 @@ Each is its own top-level menu item.
       company "⋯" menu): list with search and paging, Add/Edit dialog, Block/Activate
 - [x] Company Owner — edit own company details
 - [x] Lint and build pass
-- [ ] Checked in browser: as Platform Owner add a Company Owner to a company; as that
+- [x] Checked in browser: as Platform Owner add a Company Owner to a company; as that
       owner add a Chef (Staff) and a Storekeeper, then log in as that Storekeeper
-- [ ] Checked in browser: change the Storekeeper to Staff → they cannot log in; back to
+- [x] Checked in browser: change the Storekeeper to Staff → they cannot log in; back to
       Storekeeper with a new password → they can
-- [ ] Checked in browser: as Platform Owner block that company → the Storekeeper is
+- [x] Checked in browser: as Platform Owner block that company → the Storekeeper is
       logged out and cannot log in; activate it → they can log in again
 
 ## Step 6 — Units
 
-- [ ] `Unit` table: name ("Kilogram"), short name ("kg"), allows decimals
-- [ ] Seeder adds: piece, kg, liter, meter
-- [ ] API
-  - [ ] Everyone logged in can read the list
-  - [ ] Only Platform Owner can add or edit
-  - [ ] Delete only if no product uses the unit
-- [ ] Frontend: Units page for Platform Owner
-  - [ ] Table
-  - [ ] Add/edit dialog
-- [ ] Lint and build pass
-- [ ] Checked in browser: see the units list, add a unit, edit one
+- [x] `Unit` table: name ("Kilogram"), short name ("kg"), allows decimals. Name and short
+      name are unique (ignoring case).
+- [x] Seeder adds: piece, kg, liter, meter (skips ones that exist)
+- [x] API
+  - [x] Everyone logged in can read the list (`GET /api/units`)
+  - [x] Only Platform Owner can add, edit, delete (`/api/platform/units`)
+  - [x] Delete — always allowed for now; the "no product uses it" check comes in Step 8
+- [x] Frontend: Units page for Platform Owner
+  - [x] Table with search
+  - [x] Add/edit dialog
+  - [x] Delete with confirm
+- [x] Lint and build pass
+- [ ] Checked in browser: see the units list, add a unit, edit one, delete one
 
 ## Step 7 — Categories
 
@@ -207,6 +209,7 @@ Each is its own top-level menu item.
 - [ ] To confirm: block changing the unit once the product has stock?
 - [ ] `Product` table: company, name, unit, category, code (optional, unique inside the
       company), active. No price field.
+- [ ] Unit delete blocked if a product uses the unit (moved from Step 6)
 - [ ] API
   - [ ] Company Owner and Storekeeper manage
   - [ ] Accountant only sees

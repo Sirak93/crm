@@ -4,11 +4,13 @@ dotenv.config();
 
 import { AppDataSource } from "../config/database";
 import { seedPlatformOwner } from "./PlatformOwnerSeeder";
+import { seedUnits } from "./UnitSeeder";
 
 AppDataSource.initialize()
     .then(async () => {
         console.log("DB connected, seeding...");
         await seedPlatformOwner();
+        await seedUnits();
         console.log("Seeding complete");
         process.exit(0);
     })
