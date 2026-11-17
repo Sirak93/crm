@@ -66,19 +66,19 @@ const onAction = (company: ICompany, action: Action) => {
 
           <template #dropdown>
             <el-dropdown-menu>
-              <el-dropdown-item :command="ACTION.EDIT" class="action-item">
+              <el-dropdown-item :command="ACTION.EDIT">
                 <Pencil :size="16" aria-hidden="true" />
                 <span>{{ $t('platform.companies.actions.edit') }}</span>
               </el-dropdown-item>
               <el-dropdown-item
                 v-if="row.status === CompanyStatus.ACTIVE"
                 :command="ACTION.BLOCK"
-                class="action-item action-item--danger"
+                class="dropdown-item--danger"
               >
                 <Ban :size="16" aria-hidden="true" />
                 <span>{{ $t('platform.companies.actions.block') }}</span>
               </el-dropdown-item>
-              <el-dropdown-item v-else :command="ACTION.ACTIVATE" class="action-item">
+              <el-dropdown-item v-else :command="ACTION.ACTIVATE">
                 <CircleCheck :size="16" aria-hidden="true" />
                 <span>{{ $t('platform.companies.actions.activate') }}</span>
               </el-dropdown-item>
@@ -141,13 +141,5 @@ const onAction = (company: ICompany, action: Action) => {
 .icon-btn:disabled {
   opacity: 0.5;
   cursor: wait;
-}
-
-.action-item {
-  gap: 0.5rem;
-}
-
-.action-item--danger {
-  color: var(--danger);
 }
 </style>

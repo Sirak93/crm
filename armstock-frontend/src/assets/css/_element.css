@@ -106,8 +106,20 @@
 }
 
 .el-dropdown-menu__item {
-    margin: 2px 4px;
+    gap: 0.5rem;
+    margin: 2px 0;
+    padding: 6px 10px !important;
     border-radius: 8px !important;
+}
+
+.el-dropdown-menu__item.dropdown-item--danger {
+    color: var(--danger);
+}
+
+.el-dropdown-menu__item.dropdown-item--danger:not(.is-disabled):focus,
+.el-dropdown-menu__item.dropdown-item--danger:not(.is-disabled):hover {
+    background-color: var(--danger-light);
+    color: var(--danger);
 }
 
 .el-select-dropdown__list {
