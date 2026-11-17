@@ -34,6 +34,11 @@ export const AuthMiddleware = async (req: AuthRequest, _res: Response, next: Nex
             throw new AppError(ErrorCodes.AUTH.UNAUTHORIZED, undefined, undefined, { reason: "token issued before logout", ...tokenUser });
         }
 
+        // A user switched to STAFF keeps an unexpired token for a while - it must not work.
+        if (snapshot.role === UserRole.STAFF) {
+            throw new AppError(ErrorCodes.AUTH.UNAUTHORIZED, undefined, undefined, { reason: "STAFF cannot log in", ...tokenUser });
+        }
+
         if (snapshot.status !== UserStatus.ACTIVE) {
             throw new AppError(ErrorCodes.USER.BLOCKED);
         }

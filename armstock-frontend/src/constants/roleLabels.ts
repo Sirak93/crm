@@ -5,4 +5,5 @@ export const ROLE_LABEL_KEY: Record<UserRole, string> = {
   [UserRole.COMPANY_OWNER]: 'roles.companyOwner',
   [UserRole.STOREKEEPER]: 'roles.storekeeper',
   [UserRole.ACCOUNTANT]: 'roles.accountant',
+  [UserRole.STAFF]: 'roles.staff',
 };

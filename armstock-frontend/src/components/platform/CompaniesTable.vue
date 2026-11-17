@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { CompanyStatus, type ICompany } from 'armstock-shared';
-import { Ban, CircleCheck, Pencil, UserPlus } from 'lucide-vue-next';
+import { Ban, CircleCheck, Pencil, Users } from 'lucide-vue-next';
 import RowActionsMenu from '../RowActionsMenu.vue';
 import { COMPANY_STATUS_TAG } from '../../constants/statusTags';
 
@@ -12,16 +12,16 @@ defineProps<{
 
 const emit = defineEmits<{
   edit: [company: ICompany];
-  addOwner: [company: ICompany];
+  users: [company: ICompany];
   setStatus: [company: ICompany, status: CompanyStatus];
 }>();
 
-const ACTION = { EDIT: 'edit', ADD_OWNER: 'addOwner', BLOCK: 'block', ACTIVATE: 'activate' } as const;
+const ACTION = { EDIT: 'edit', USERS: 'users', BLOCK: 'block', ACTIVATE: 'activate' } as const;
 type Action = typeof ACTION[keyof typeof ACTION];
 
 const onAction = (company: ICompany, action: Action) => {
   if (action === ACTION.EDIT) emit('edit', company);
-  else if (action === ACTION.ADD_OWNER) emit('addOwner', company);
+  else if (action === ACTION.USERS) emit('users', company);
   else emit('setStatus', company, action === ACTION.BLOCK ? CompanyStatus.BLOCKED : CompanyStatus.ACTIVE);
 };
 </script>
@@ -61,9 +61,9 @@ const onAction = (company: ICompany, action: Action) => {
             <Pencil :size="16" aria-hidden="true" />
             <span>{{ $t('platform.companies.actions.edit') }}</span>
           </el-dropdown-item>
-          <el-dropdown-item :command="ACTION.ADD_OWNER">
-            <UserPlus :size="16" aria-hidden="true" />
-            <span>{{ $t('platform.companies.actions.addOwner') }}</span>
+          <el-dropdown-item :command="ACTION.USERS">
+            <Users :size="16" aria-hidden="true" />
+            <span>{{ $t('platform.companies.actions.users') }}</span>
           </el-dropdown-item>
           <el-dropdown-item
             v-if="row.status === CompanyStatus.ACTIVE"

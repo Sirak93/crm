@@ -1,5 +1,5 @@
 import { createRouter, createWebHistory, type RouteRecordRaw } from 'vue-router';
-import { COMPANY_ROLES, UserRole } from 'armstock-shared';
+import { COMPANY_LOGIN_ROLES, UserRole } from 'armstock-shared';
 import { ROUTE_NAME } from '../constants/constants';
 import { useAuthStore } from '../stores/auth';
 import { AppLogger } from '../utils/AppLogger';
@@ -43,6 +43,13 @@ const routes: RouteRecordRaw[] = [
         meta: { roles: [UserRole.PLATFORM_OWNER] },
       },
       {
+        path: 'companies/:uuid/users',
+        name: ROUTE_NAME.PLATFORM_COMPANY_USERS,
+        component: () => import('../views/platform/PlatformCompanyUsers.vue'),
+        props: true,
+        meta: { roles: [UserRole.PLATFORM_OWNER] },
+      },
+      {
         path: 'database',
         name: ROUTE_NAME.PLATFORM_DATABASE,
         component: () => import('../views/platform/PlatformDatabase.vue'),
@@ -58,12 +65,12 @@ const routes: RouteRecordRaw[] = [
         path: 'home',
         name: ROUTE_NAME.COMPANY_DASHBOARD,
         component: () => import('../views/Dashboard.vue'),
-        meta: { roles: [...COMPANY_ROLES] },
+        meta: { roles: [...COMPANY_LOGIN_ROLES] },
       },
       {
-        path: 'staff',
-        name: ROUTE_NAME.COMPANY_STAFF,
-        component: () => import('../views/company/CompanyStaff.vue'),
+        path: 'users',
+        name: ROUTE_NAME.COMPANY_USERS,
+        component: () => import('../views/company/CompanyUsers.vue'),
         meta: { roles: [UserRole.COMPANY_OWNER] },
       },
       {

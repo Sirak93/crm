@@ -1,6 +1,6 @@
 import type { Component } from 'vue';
 import { Building, Building2, Database, LayoutDashboard, ScrollText, Users } from 'lucide-vue-next';
-import { COMPANY_ROLES, UserRole } from 'armstock-shared';
+import { COMPANY_LOGIN_ROLES, UserRole } from 'armstock-shared';
 import { ROUTE_NAME, type RouteName } from '../constants/constants';
 
 export interface INavItem {
@@ -46,13 +46,13 @@ export const NAV_ITEMS: INavItem[] = [
     labelKey: 'nav.dashboard',
     icon: LayoutDashboard,
     routeName: ROUTE_NAME.COMPANY_DASHBOARD,
-    roles: [...COMPANY_ROLES],
+    roles: [...COMPANY_LOGIN_ROLES],
   },
   {
-    id: 'company-staff',
-    labelKey: 'nav.staff',
+    id: 'company-users',
+    labelKey: 'nav.users',
     icon: Users,
-    routeName: ROUTE_NAME.COMPANY_STAFF,
+    routeName: ROUTE_NAME.COMPANY_USERS,
     roles: [UserRole.COMPANY_OWNER],
   },
   {

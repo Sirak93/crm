@@ -10,7 +10,12 @@ import { PlatformLogsQuerySchema } from "../schemas/platform/PlatformLogsSchema"
 import { PlatformCompaniesController } from "../controllers/platform/PlatformCompaniesController";
 import { CompanyBodySchema } from "../schemas/CompanySchema";
 import { PaginatedSearchQuerySchema, UuidParamsSchema } from "../schemas/SharedSchema";
-import { CompanyOwnerBodySchema, CompanyStatusBodySchema } from "../schemas/platform/PlatformCompaniesSchema";
+import { CompanyStatusBodySchema, CompanyUserParamsSchema } from "../schemas/platform/PlatformCompaniesSchema";
+import {
+    CompanyUserCreateSchema,
+    CompanyUserStatusBodySchema,
+    CompanyUserUpdateSchema,
+} from "../schemas/CompanyUserSchema";
 
 const router = Router();
 const databaseController = new PlatformDatabaseController();
@@ -33,11 +38,31 @@ router.patch(
     validate(CompanyStatusBodySchema),
     asyncHandler(companiesController.setStatus),
 );
-router.post(
-    "/companies/:uuid/owner",
+router.get("/companies/:uuid", validate(UuidParamsSchema, "params"), asyncHandler(companiesController.get));
+
+router.get(
+    "/companies/:uuid/users",
     validate(UuidParamsSchema, "params"),
-    validate(CompanyOwnerBodySchema),
-    asyncHandler(companiesController.addOwner),
+    validate(PaginatedSearchQuerySchema, "query"),
+    asyncHandler(companiesController.listUsers),
+);
+router.post(
+    "/companies/:uuid/users",
+    validate(UuidParamsSchema, "params"),
+    validate(CompanyUserCreateSchema),
+    asyncHandler(companiesController.createUser),
+);
+router.put(
+    "/companies/:uuid/users/:userUuid",
+    validate(CompanyUserParamsSchema, "params"),
+    validate(CompanyUserUpdateSchema),
+    asyncHandler(companiesController.updateUser),
+);
+router.patch(
+    "/companies/:uuid/users/:userUuid/status",
+    validate(CompanyUserParamsSchema, "params"),
+    validate(CompanyUserStatusBodySchema),
+    asyncHandler(companiesController.setUserStatus),
 );
 
 router.get("/database/storage", asyncHandler(databaseController.getStorage));

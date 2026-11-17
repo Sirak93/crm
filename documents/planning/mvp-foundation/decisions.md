@@ -28,6 +28,7 @@ company's data is kept apart.
 | Company Owner | Everything Storekeeper and Accountant can do, plus manage the company's users and edit company info. |
 | Storekeeper | Add/edit products and categories, create stock-in and stock-out documents, view stock, add/edit suppliers. |
 | Accountant | View stock and movements (read-only), see prices and total stock value, manage suppliers. |
+| Staff | No access — cannot log in (e.g. a Chef). Goods can be issued to them. |
 
 Naming: Platform Owner code, route names, and API paths use `platform` (e.g.
 `platform-logs`, `/api/platform/logs`), never `owner` — so it is not confused with the
@@ -36,17 +37,21 @@ Company Owner. Page paths stay short (`/database`, `/logs`).
 Storekeeper can manage suppliers for now. Removing that later is just removing the role
 from the route middleware.
 
-## People: CompanyStaff and User
+## People: one Users table
 
-- **CompanyStaff** — every person in the company (Chef, Cook, Accountant, Storekeeper…):
-  name, position. No status for now.
-- **User** has a status (see above). Whoever creates a login types its password by hand
-  (no emails in MVP).
-- **User** — login data only (email, password, role), with an optional link to a
-  CompanyStaff record.
-- A Chef is a staff record with no user (cannot log in). An Accountant is a staff record
-  plus a user.
-- Goods are issued to a CompanyStaff record.
+- Every person in a company is a **User**: first name, last name, position (optional
+  text), role, status, email, password.
+- Role **Staff** = no access (Chef, Cook…): no password, email optional, cannot log in.
+- Login roles (Company Owner, Storekeeper, Accountant) need an email and a password. The
+  person who adds the user types the password by hand (no emails in MVP).
+- Changing a user to Staff clears the password (the email is kept). Changing Staff to a
+  login role needs a new password; between login roles the password is kept unless a new
+  one is typed.
+- Nobody can change their own role or status.
+- Users are added from the users list only: the Company Owner on the "Users" page, the
+  Platform Owner on a company's users page. Each has its own endpoints; both call one
+  shared service.
+- Goods are issued to a User (any role, including Staff).
 
 ## Units
 
@@ -88,7 +93,7 @@ quantity. No price.
 
 | Reason | Rule |
 | --- | --- |
-| Issued | Receiver (CompanyStaff) required |
+| Issued | Receiver (a company user) required |
 | Spoiled | No receiver |
 | Other | No receiver, note required |
 

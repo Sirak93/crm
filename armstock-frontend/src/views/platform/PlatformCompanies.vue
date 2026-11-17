@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { onMounted, ref, watch } from 'vue';
 import { useI18n } from 'vue-i18n';
+import { useRouter } from 'vue-router';
 import { CompanyStatus, type ICompany, type IPaginationMeta } from 'armstock-shared';
 import { Building2, Plus, Search } from 'lucide-vue-next';
 import PageHeader from '../../components/PageHeader.vue';
@@ -8,15 +9,15 @@ import AppCard from '../../components/AppCard.vue';
 import LoadError from '../../components/LoadError.vue';
 import CompaniesTable from '../../components/platform/CompaniesTable.vue';
 import CompanyDialog from '../../components/platform/CompanyDialog.vue';
-import CompanyOwnerDialog from '../../components/platform/CompanyOwnerDialog.vue';
 import { PlatformCompaniesService } from '../../services/platform/PlatformCompaniesService';
 import { NotificationService } from '../../services/NotificationService';
 import { useApiErrorMessage } from '../../composables/useApiErrorMessage';
-import { DEFAULT_PAGE_SIZE, SEARCH_DEBOUNCE_MS } from '../../constants/constants';
+import { DEFAULT_PAGE_SIZE, ROUTE_NAME, SEARCH_DEBOUNCE_MS } from '../../constants/constants';
 import { formatNumber } from '../../utils/format';
 import { AppLogger } from '../../utils/AppLogger';
 
 const { t } = useI18n();
+const router = useRouter();
 const { parseError } = useApiErrorMessage();
 
 const companies = ref<ICompany[]>([]);
@@ -29,8 +30,6 @@ const updatingUuid = ref<string | null>(null);
 
 const isDialogOpen = ref(false);
 const editingCompany = ref<ICompany | null>(null);
-const isOwnerDialogOpen = ref(false);
-const ownerCompany = ref<ICompany | null>(null);
 
 const load = async (page = meta.value.page) => {
   isLoading.value = true;
@@ -64,9 +63,8 @@ const openEdit = (company: ICompany) => {
   isDialogOpen.value = true;
 };
 
-const openAddOwner = (company: ICompany) => {
-  ownerCompany.value = company;
-  isOwnerDialogOpen.value = true;
+const openUsers = (company: ICompany) => {
+  router.push({ name: ROUTE_NAME.PLATFORM_COMPANY_USERS, params: { uuid: company.uuid } });
 };
 
 const onSaved = (saved: ICompany) => {
@@ -147,7 +145,7 @@ onMounted(() => load(1));
         :companies="companies"
         :updating-uuid="updatingUuid"
         @edit="openEdit"
-        @add-owner="openAddOwner"
+        @users="openUsers"
         @set-status="setStatus"
       />
     </AppCard>
@@ -164,7 +162,6 @@ onMounted(() => load(1));
     />
 
     <CompanyDialog v-model="isDialogOpen" :company="editingCompany" @saved="onSaved" />
-    <CompanyOwnerDialog v-model="isOwnerDialogOpen" :company="ownerCompany" />
   </section>
 </template>
 

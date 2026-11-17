@@ -41,7 +41,7 @@ const toJson = (value: unknown) => JSON.stringify(value, null, 2);
     </el-table-column>
     <el-table-column :label="$t('platform.logs.table.user')" min-width="180" show-overflow-tooltip>
       <template #default="{ row }">
-        <span v-if="row.user" class="main">{{ row.user.email }}</span>
+        <span v-if="row.user?.email" class="main">{{ row.user.email }}</span>
         <span v-else class="muted">—</span>
       </template>
     </el-table-column>

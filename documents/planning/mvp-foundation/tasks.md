@@ -149,27 +149,28 @@ Each is its own top-level menu item.
   - [x] Lint and build pass
   - [x] Checked in browser: Status column, block (with confirm) and activate from the menu
 
-## Step 5 — Staff + users
+## Step 5 — Users
 
 - [x] To confirm: the creator sets the password by hand (no emails in MVP)? → yes
-- [x] To confirm: does turning off a staff member also turn off their login? → staff has
-      no status for now; only the login (user) can be blocked
-- [x] `CompanyStaff` table: company, first name, last name, position (optional text)
-- [x] Link a user to one staff record (API sends staff names to `UserModel`)
-- [x] Platform Owner: on a company, add its Company Owner (staff + login together)
+- [x] To confirm: staff records vs users → one `users` table for everyone; role `Staff`
+      cannot log in (see decisions.md, "People")
+- [x] Shared: `UserRole.STAFF`, `COMPANY_ROLES`, `COMPANY_LOGIN_ROLES`
+- [x] `users` gets first name, last name, position; email and password can be empty
+- [x] Login refuses users without a password; a STAFF token is rejected
+- [x] One shared service, separate endpoints
+  - [x] Platform Owner: `/api/platform/companies/:uuid/users` (list, add, edit, status)
+  - [x] Company Owner: `/api/company/users` (list, add, edit, status)
+- [x] Role rules: login role needs email + password (kept if it exists); Staff clears the
+      password; nobody changes their own role or status
 - [x] Company start page (empty dashboard) for Company Owner, Storekeeper, Accountant
-- [x] Company Owner — Staff page
-  - [x] List with search and paging
-  - [x] Add / edit
-- [x] Company Owner — logins
-  - [x] "Give login" on a staff member: email, password, role
-  - [x] Change role
-  - [x] Block / activate login
-  - [x] Cannot change their own login
+- [x] Users page (Company Owner) and a company's users page (Platform Owner, from the
+      company "⋯" menu): list with search and paging, Add/Edit dialog, Block/Activate
 - [x] Company Owner — edit own company details
 - [x] Lint and build pass
-- [ ] Checked in browser: as Company Owner add a Chef (no login) and a Storekeeper
-      (with login), then log in as that Storekeeper
+- [ ] Checked in browser: as Platform Owner add a Company Owner to a company; as that
+      owner add a Chef (Staff) and a Storekeeper, then log in as that Storekeeper
+- [ ] Checked in browser: change the Storekeeper to Staff → they cannot log in; back to
+      Storekeeper with a new password → they can
 - [ ] Checked in browser: as Platform Owner block that company → the Storekeeper is
       logged out and cannot log in; activate it → they can log in again
 
@@ -274,10 +275,10 @@ Each is its own top-level menu item.
 
 - [ ] Shared: `StockOutReason` enum — Issued, Spoiled, Other
 - [ ] Tables
-  - [ ] `StockOut` (header): company, reason, date, receiver (staff), note, created by
+  - [ ] `StockOut` (header): company, reason, date, receiver (user), note, created by
   - [ ] `StockOutLine`: document, product, quantity. No price.
 - [ ] Rules
-  - [ ] Issued → receiver required; Other → note required
+  - [ ] Issued → receiver (a company user) required; Other → note required
   - [ ] Same line rules as stock-in (quantity above 0, decimals by unit)
   - [ ] Blocked if not enough stock — the error names the product
   - [ ] Only the creator can edit or delete
@@ -286,7 +287,7 @@ Each is its own top-level menu item.
   - [ ] Accountant only sees
 - [ ] Frontend: list, form, and view pages — same layout as stock-in
 - [ ] Lint and build pass
-- [ ] Checked in browser: issue goods to the Chef, write off spoiled goods, stock goes
+- [ ] Checked in browser: issue goods to the Chef (Staff), write off spoiled goods, stock goes
       down; issuing too much shows an error
 
 ## Step 13 — Redis cache
@@ -321,4 +322,4 @@ Each is its own top-level menu item.
 Ideas agreed for later. Not part of any step above.
 
 - [ ] Delete a company. To decide: delete only a company with no users yet, or also
-      everything it owns (users, staff, products, stock documents).
+      everything it owns (users, products, stock documents).

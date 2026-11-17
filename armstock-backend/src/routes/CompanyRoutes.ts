@@ -5,45 +5,37 @@ import { RoleMiddleware } from "../middlewares/RoleMiddleware";
 import { validate } from "../middlewares/Validate";
 import { asyncHandler } from "../utils/asyncHandler";
 import { CompanyController } from "../controllers/company/CompanyController";
-import { CompanyStaffController } from "../controllers/company/CompanyStaffController";
+import { CompanyUsersController } from "../controllers/company/CompanyUsersController";
 import { CompanyBodySchema } from "../schemas/CompanySchema";
 import { PaginatedSearchQuerySchema, UuidParamsSchema } from "../schemas/SharedSchema";
 import {
-    StaffBodySchema,
-    StaffLoginBodySchema,
-    StaffLoginStatusBodySchema,
-    StaffRoleBodySchema,
-} from "../schemas/company/CompanyStaffSchema";
+    CompanyUserCreateSchema,
+    CompanyUserStatusBodySchema,
+    CompanyUserUpdateSchema,
+} from "../schemas/CompanyUserSchema";
 
 const router = Router();
 const companyController = new CompanyController();
-const staffController = new CompanyStaffController();
+const usersController = new CompanyUsersController();
 
 router.use(AuthMiddleware, RoleMiddleware([UserRole.COMPANY_OWNER]));
 
 router.get("/", asyncHandler(companyController.get));
 router.put("/", validate(CompanyBodySchema), asyncHandler(companyController.update));
 
-router.get("/staff", validate(PaginatedSearchQuerySchema, "query"), asyncHandler(staffController.list));
-router.post("/staff", validate(StaffBodySchema), asyncHandler(staffController.create));
-router.put("/staff/:uuid", validate(UuidParamsSchema, "params"), validate(StaffBodySchema), asyncHandler(staffController.update));
-router.post(
-    "/staff/:uuid/login",
+router.get("/users", validate(PaginatedSearchQuerySchema, "query"), asyncHandler(usersController.list));
+router.post("/users", validate(CompanyUserCreateSchema), asyncHandler(usersController.create));
+router.put(
+    "/users/:uuid",
     validate(UuidParamsSchema, "params"),
-    validate(StaffLoginBodySchema),
-    asyncHandler(staffController.giveLogin),
+    validate(CompanyUserUpdateSchema),
+    asyncHandler(usersController.update),
 );
 router.patch(
-    "/staff/:uuid/login/role",
+    "/users/:uuid/status",
     validate(UuidParamsSchema, "params"),
-    validate(StaffRoleBodySchema),
-    asyncHandler(staffController.setRole),
-);
-router.patch(
-    "/staff/:uuid/login/status",
-    validate(UuidParamsSchema, "params"),
-    validate(StaffLoginStatusBodySchema),
-    asyncHandler(staffController.setLoginStatus),
+    validate(CompanyUserStatusBodySchema),
+    asyncHandler(usersController.setStatus),
 );
 
 export default router;

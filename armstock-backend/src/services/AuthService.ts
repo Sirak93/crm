@@ -16,15 +16,16 @@ import { AuthCacheService } from "./AuthCacheService";
 export class AuthService {
     private userRepo = AppDataSource.getRepository(User);
 
-    /** `user.staff` must be loaded. */
     static toAuthUser(user: User): IAuthUser {
+        // Only users with a login get here, and those always have an email.
+        if (!user.email) throw new AppError(ErrorCodes.AUTH.UNAUTHORIZED, undefined, undefined, { reason: "user has no email", userUuid: user.uuid });
         return {
             uuid: user.uuid,
             email: user.email,
             role: user.role,
             status: user.status,
-            firstName: user.staff?.firstName ?? null,
-            lastName: user.staff?.lastName ?? null,
+            firstName: user.firstName,
+            lastName: user.lastName,
             lastLoginAt: user.lastLoginAt?.toISOString() ?? null,
         };
     }
@@ -36,8 +37,9 @@ export class AuthService {
     }
 
     async login(email: string, password: string): Promise<ILoginResponse> {
-        const user = await this.userRepo.findOne({ where: { email }, relations: { company: true, staff: true } });
-        if (!user) throw new AppError(ErrorCodes.AUTH.INVALID_CREDENTIALS);
+        const user = await this.userRepo.findOne({ where: { email }, relations: { company: true } });
+        // No password = STAFF, who cannot log in.
+        if (!user?.password) throw new AppError(ErrorCodes.AUTH.INVALID_CREDENTIALS);
 
         const match = await bcrypt.compare(password, user.password);
         if (!match) throw new AppError(ErrorCodes.AUTH.INVALID_CREDENTIALS);
@@ -89,7 +91,7 @@ export class AuthService {
     }
 
     async getAuthUser(userUuid: string): Promise<IAuthUser> {
-        const user = await this.userRepo.findOne({ where: { uuid: userUuid }, relations: { staff: true } });
+        const user = await this.userRepo.findOne({ where: { uuid: userUuid } });
         if (!user) throw new AppError(ErrorCodes.AUTH.UNAUTHORIZED, undefined, undefined, { reason: "user not found", userUuid });
 
         return AuthService.toAuthUser(user);

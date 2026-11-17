@@ -17,10 +17,11 @@ export const ROUTE_NAME = {
   SYSTEM_STATUS: 'system-status',
   PLATFORM_DASHBOARD: 'platform-dashboard',
   PLATFORM_COMPANIES: 'platform-companies',
+  PLATFORM_COMPANY_USERS: 'platform-company-users',
   PLATFORM_DATABASE: 'platform-database',
   PLATFORM_LOGS: 'platform-logs',
   COMPANY_DASHBOARD: 'company-dashboard',
-  COMPANY_STAFF: 'company-staff',
+  COMPANY_USERS: 'company-users',
   COMPANY_PROFILE: 'company-profile',
 } as const;
 
