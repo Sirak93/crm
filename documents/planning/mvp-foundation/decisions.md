@@ -78,21 +78,34 @@ from the route middleware.
 - Categories (`product_categories`): a simple flat list per company, no sub-categories.
   A new company gets the defaults copied in (singular names): Բանջարեղեն, Միրգ, Միս,
   Ձուկ, Կաթնամթերք, Հացամթերք, Չոր մթերք, Ըմպելիք, Համեմունք, Տնտեսական ապրանք, Այլ.
-- No price field on the product. Its current price is the price from its last stock-in.
+- No price field on the product. Its current price is the average price from all its
+  stock-ins (calculated, not saved). Wherever an average price is shown, mark it as average
+  (an "avg" suffix or a "~" sign — pick one in Step 11).
 
 ## Stock
 
 - One stock location per company in MVP (no multiple warehouses, no transfers).
 - Stock can never go below zero. Any action that would make it negative is blocked
   ("Not enough stock").
-- Stock value = quantity × last stock-in price.
+- Stock value = quantity × average price. Average price = sum of all stock-in line
+  totals ÷ sum of all stock-in quantities for that product. Stock-out lines have no cost.
+- Stock quantity is not saved anywhere. It is counted in SQL each time: all stock-in lines
+  minus all stock-out lines. A saved stock table can come later if it gets slow.
 
 ## Stock documents
 
+Menu: **Stock** → In / Out / Balance. "Stock", not "Warehouse", matches the code
+(`stock_ins`, `stock_outs`) and keeps "Warehouse" free for multiple warehouses later.
+
 Both stock-in and stock-out are documents: a header plus one or more lines.
 
-**Stock-in** — header: reason, date, supplier, note, created by. Lines: product, quantity,
-price per unit.
+Each document gets a number like `IN-2026-0015` (stock-out: `OUT-…`): a counter per
+company that restarts each year. Deleting the last one frees its number; gaps are fine.
+
+**Stock-in** — header: reason, date, supplier, supplier's invoice number (optional,
+Purchase only), note, created by. Lines: product, quantity,
+price per unit, total. Total is saved so money matches the invoice exactly (3 kg for
+1,000 ֏ stays 1,000, not 3 × 333.33 = 999.99).
 
 | Reason | Rule |
 | --- | --- |
@@ -116,6 +129,8 @@ Reasons are fixed enums in code (shown as a dropdown in the form).
 - Documents can be edited and deleted freely.
 - Only the user who created a document can edit or delete it.
 - An edit or delete is blocked if it would make stock go below zero.
+- Archived products and suppliers can't be picked in a document; ones already in it stay
+  and their rows can still be changed or deleted.
 - When a user leaves, their documents will be reassigned (handled later, ignored in MVP).
 
 ## Suppliers

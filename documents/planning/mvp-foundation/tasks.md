@@ -264,27 +264,44 @@ Each is its own top-level menu item.
 
 ## Step 10 — Stock-in documents
 
-- [ ] To confirm: how stock is counted — summed from documents each time, or kept in a
-      stock table updated on every save
+- [x] To confirm: how stock is counted — summed from documents each time, or kept in a
+      stock table updated on every save → summed in SQL each time, no stock table
 - [ ] Shared: `StockInReason` enum — Purchase, Initial stock, Other
 - [ ] Tables
-  - [ ] `StockIn` (header): company, reason, date, supplier, note, created by
-  - [ ] `StockInLine`: document, product, quantity, price per unit
+  - [ ] `StockIn` (`stock_ins`, header): company, number, reason, date (timestamp with
+        time, defaults to now, user can change), supplier (Purchase only), supplier's
+        invoice number (optional text, Purchase only), note, created by
+  - [ ] Number shown as `IN-2026-0015`: counter per company, restarts each year (year of
+        creation). Next = biggest this year + 1; unique in the DB per company + year, so on
+        a clash the save retries with the next number.
+  - [ ] `StockInLine` (`stock_in_lines`): document (deleted with it), company (copied from
+        the document so stock queries skip the join), product, quantity numeric(14,3),
+        price per unit numeric(14,2), total numeric(14,2). The user types price or total,
+        the other fills in.
 - [ ] Rules
   - [ ] Purchase → supplier required; Other → note required
+  - [ ] Date can't be in the future (past dates are fine)
   - [ ] At least one line; quantity above 0; price 0 or more
+  - [ ] The same product may appear on several lines (like 1C)
   - [ ] Decimals only if the product's unit allows them
   - [ ] Header and lines saved together (all or nothing)
   - [ ] Only the creator can edit or delete
   - [ ] Edit or delete blocked if any product's stock would go below zero
+  - [ ] Archived products and suppliers can't be picked (new or edit); rows that already
+        have them stay and can be changed or deleted
 - [ ] Supplier delete blocked if a stock-in document uses it (moved from Step 9)
 - [ ] API
   - [ ] Company Owner and Storekeeper create
   - [ ] Accountant only sees
-- [ ] Frontend
+- [ ] Frontend (menu "Stock" → "In"; two-level menu: Stock → In / Out / Balance)
   - [ ] List page: date, reason, supplier, total, created by; filters by date, reason,
         supplier
-  - [ ] Form page: header fields change by reason; lines table (add/remove rows)
+  - [ ] Form page: header fields change by reason; lines table (add/remove rows; new row
+        goes at the bottom like 1C, cursor jumps to its product field); pinned bottom bar
+        with row count, document total, Cancel and Save — only the rows scroll
+  - [ ] Unsaved changes warning, only when something changed: our own dialog (Stay /
+        Leave) for in-app navigation and Cancel; the browser's own alert for reload or
+        closing the tab
   - [ ] View page: header and lines
 - [ ] Lint and build pass
 - [ ] Checked in browser: add a purchase with several products, open it, edit it,
@@ -293,11 +310,12 @@ Each is its own top-level menu item.
 ## Step 11 — Stock view
 
 - [ ] API
-  - [ ] Per product: quantity, unit, last stock-in price, value (quantity × price)
+  - [ ] Per product: quantity, unit, average price, value (quantity × average price)
   - [ ] Total value of all stock
   - [ ] Calculated in SQL
   - [ ] All company roles can see it
-- [ ] Frontend: Stock page
+- [ ] Frontend: Stock balance page (menu "Stock" → "Balance")
+  - [ ] Average price marked as average ("avg" suffix or "~" sign)
   - [ ] Total value on top
   - [ ] Table with search and category filter
   - [ ] "Only in stock" switch
@@ -308,7 +326,8 @@ Each is its own top-level menu item.
 
 - [ ] Shared: `StockOutReason` enum — Issued, Spoiled, Other
 - [ ] Tables
-  - [ ] `StockOut` (header): company, reason, date, receiver (user), note, created by
+  - [ ] `StockOut` (header): company, number (`OUT-2026-0015`, same rule as stock-in),
+        reason, date, receiver (user), note, created by
   - [ ] `StockOutLine`: document, product, quantity. No price.
 - [ ] Rules
   - [ ] Issued → receiver (a company user) required; Other → note required
@@ -318,7 +337,7 @@ Each is its own top-level menu item.
 - [ ] API
   - [ ] Company Owner and Storekeeper create
   - [ ] Accountant only sees
-- [ ] Frontend: list, form, and view pages — same layout as stock-in
+- [ ] Frontend (menu "Stock" → "Out"): list, form, and view pages — same layout as stock-in
 - [ ] Lint and build pass
 - [ ] Checked in browser: issue goods to the Chef (Staff), write off spoiled goods, stock goes
       down; issuing too much shows an error
@@ -356,3 +375,5 @@ Ideas agreed for later. Not part of any step above.
 
 - [ ] Delete a company. To decide: delete only a company with no users yet, or also
       everything it owns (users, products, stock documents).
+- [ ] Armenian language: add an Armenian locale file (e.g. menu Պահեստ → Մուտք / Ելք /
+      Մնացորդ for Stock → In / Out / Balance), and maybe make Armenian the default language.
