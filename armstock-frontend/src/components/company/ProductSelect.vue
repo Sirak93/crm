@@ -6,6 +6,7 @@ import CodeBadge from '../CodeBadge.vue';
 import { ProductService } from '../../services/ProductService';
 import type { IProductOption } from '../../interfaces/IProductOption';
 import { toProductOption } from '../../utils/stockInLines';
+import { PICKER_PAGE_SIZE } from '../../constants/constants';
 import { AppLogger } from '../../utils/AppLogger';
 
 const props = defineProps<{
@@ -24,8 +25,6 @@ const emit = defineEmits<{
 
 const model = defineModel<string>({ required: true });
 
-const SEARCH_PAGE_SIZE = 20;
-
 const selectRef = ref<{ focus: () => void; blur: () => void }>();
 const options = ref<IProductOption[]>([]);
 const isLoading = ref(false);
@@ -38,12 +37,13 @@ const shownOptions = computed(() => {
 });
 
 // Only active products can be picked; an archived one already on the row stays through `selected`.
+// Element Plus calls this itself when the dropdown opens, so no extra call on open.
 const search = async (text: string) => {
   query.value = text.trim();
   const request = ++lastRequest;
   isLoading.value = true;
   try {
-    const { items } = await ProductService.list(1, SEARCH_PAGE_SIZE, { search: query.value || undefined, status: ProductStatus.ACTIVE });
+    const { items } = await ProductService.list(1, PICKER_PAGE_SIZE, { search: query.value || undefined, status: ProductStatus.ACTIVE });
     // An older, slower answer must not replace a newer one.
     if (request === lastRequest) options.value = items.map(toProductOption);
   } catch (error) {
@@ -51,10 +51,6 @@ const search = async (text: string) => {
   } finally {
     if (request === lastRequest) isLoading.value = false;
   }
-};
-
-const onVisibleChange = (visible: boolean) => {
-  if (visible && !options.value.length) search('');
 };
 
 const onChange = (uuid: string) => {
@@ -80,7 +76,6 @@ defineExpose({ focus: () => selectRef.value?.focus() });
     :loading="isLoading"
     :placeholder="placeholder"
     :aria-label="placeholder"
-    @visible-change="onVisibleChange"
     @change="onChange"
   >
     <el-option v-for="option in shownOptions" :key="option.uuid" :label="option.name" :value="option.uuid">
