@@ -4,7 +4,7 @@ import { Pencil, Trash2 } from 'lucide-vue-next';
 import RowActionsMenu from '../RowActionsMenu.vue';
 import { ROUTE_NAME } from '../../constants/constants';
 import { STOCK_IN_REASON_LABEL } from '../../constants/stockInReasons';
-import { formatDateTimeShort, formatMoney } from '../../utils/format';
+import { formatDateTimeShort, formatMoney, formatNumber } from '../../utils/format';
 
 defineProps<{
   stockIns: IStockIn[];
@@ -52,6 +52,9 @@ const onAction = (stockIn: IStockIn, action: Action) => {
       <template #default="{ row }">
         <span :class="['cell-text', { 'cell-text--muted': !row.supplierName }]">{{ row.supplierName || '—' }}</span>
       </template>
+    </el-table-column>
+    <el-table-column :label="$t('stockIn.table.products')" min-width="100" align="right">
+      <template #default="{ row }"><span class="cell-text">{{ formatNumber(row.productCount) }}</span></template>
     </el-table-column>
     <el-table-column :label="$t('stockIn.table.total')" min-width="130" align="right">
       <template #default="{ row }"><span class="cell-text cell-text--strong">{{ formatMoney(row.total) }}</span></template>

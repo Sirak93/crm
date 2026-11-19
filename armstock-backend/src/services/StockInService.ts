@@ -109,14 +109,15 @@ export class StockInService {
             this.lineRepo.createQueryBuilder("line")
                 .select("line.stockInUuid", "stockInUuid")
                 .addSelect("SUM(line.total)", "total")
+                .addSelect("COUNT(DISTINCT line.productUuid)", "productCount")
                 .where("line.stockInUuid IN (:...uuids)", { uuids: docs.map((d) => d.uuid) })
                 .groupBy("line.stockInUuid")
-                .getRawMany<{ stockInUuid: string; total: string }>(),
+                .getRawMany<{ stockInUuid: string; total: string; productCount: string }>(),
             supplierUuids.length ? this.supplierRepo.find({ where: { uuid: In(supplierUuids) } }) : [],
             this.userRepo.find({ where: { uuid: In(userUuids) } }),
         ]);
 
-        const totalMap = new Map(totals.map((t) => [t.stockInUuid, Number(t.total)]));
+        const totalMap = new Map(totals.map((t) => [t.stockInUuid, t]));
         const supplierMap = new Map(suppliers.map((s) => [s.uuid, s.name]));
         const userMap = new Map(users.map((u) => [u.uuid, u]));
 
@@ -129,7 +130,8 @@ export class StockInService {
             supplierName: doc.supplierUuid ? supplierMap.get(doc.supplierUuid) ?? null : null,
             invoiceNumber: doc.invoiceNumber,
             note: doc.note,
-            total: totalMap.get(doc.uuid) ?? 0,
+            total: Number(totalMap.get(doc.uuid)?.total ?? 0),
+            productCount: Number(totalMap.get(doc.uuid)?.productCount ?? 0),
             createdByUuid: doc.createdByUuid,
             createdByName: userName(userMap.get(doc.createdByUuid)),
             createdAt: doc.createdAt.toISOString(),

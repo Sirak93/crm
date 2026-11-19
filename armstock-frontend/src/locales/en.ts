@@ -413,6 +413,7 @@ export default {
       date: 'Date',
       reason: 'Reason',
       supplier: 'Supplier',
+      products: 'Products',
       total: 'Total',
       createdBy: 'Created by',
     },

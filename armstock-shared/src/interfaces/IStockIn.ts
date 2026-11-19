@@ -14,6 +14,8 @@ export interface IStockIn {
     note: string | null;
     /** Sum of the line totals. */
     total: number;
+    /** Different products in the document - one product on two rows counts once. */
+    productCount: number;
     createdByUuid: string;
     createdByName: string;
     createdAt: string;
