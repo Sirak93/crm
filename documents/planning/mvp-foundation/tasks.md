@@ -242,22 +242,22 @@ Each is its own top-level menu item.
         no email
   - [x] Name unique inside the company (ignoring case, archived included)
   - [x] Accountant manages suppliers too
-- [ ] `Supplier` table (`suppliers`): company, name, tax ID, note, status. Only name is
+- [x] `Supplier` table (`suppliers`): company, name, tax ID, note, status. Only name is
       required.
-- [ ] `SupplierContact` table (`supplier_contacts`): supplier, name (required), position,
+- [x] `SupplierContact` table (`supplier_contacts`): supplier, name (required), position,
       phone
-- [ ] API (`/api/suppliers`, own company only)
-  - [ ] Company Owner, Accountant, and Storekeeper manage (add, edit, archive/restore,
+- [x] API (`/api/suppliers`, own company only)
+  - [x] Company Owner, Accountant, and Storekeeper manage (add, edit, archive/restore,
         delete)
-  - [ ] Supplier and its contacts saved together (all or nothing)
-  - [ ] Delete removes the contacts too; always allowed for now, the "no stock-in uses
+  - [x] Supplier and its contacts saved together (all or nothing)
+  - [x] Delete removes the contacts too; always allowed for now, the "no stock-in uses
         it" check comes in Step 10
-  - [ ] List: search by name, filter by status, paging
-- [ ] Frontend: Suppliers page (menu "Suppliers")
-  - [ ] Table with filters (starts on Active): firm name, tax ID, contacts, status
-  - [ ] Add/edit dialog: "Firm name", tax ID, note, and a contacts list (add/remove rows)
-  - [ ] Archive / Restore and Delete (with confirm) in the "⋯" menu
-- [ ] Lint and build pass
+  - [x] List: search by name, filter by status, paging
+- [x] Frontend: Suppliers page (menu "Suppliers")
+  - [x] Table with filters (starts on Active): firm name, tax ID, contacts, status
+  - [x] Add/edit dialog: "Firm name", tax ID, note, and a contacts list (add/remove rows)
+  - [x] Archive / Restore and Delete (with confirm) in the "⋯" menu
+- [x] Lint and build pass
 - [ ] Checked in browser: add, edit, find, archive, and delete suppliers
 
 ## Step 10 — Stock-in documents

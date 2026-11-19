@@ -6,6 +6,7 @@ export * from "./constants/RoleConstants";
 
 export * from "./enums/CompanyStatus";
 export * from "./enums/ProductStatus";
+export * from "./enums/SupplierStatus";
 export * from "./enums/UserRole";
 export * from "./enums/UserStatus";
 
@@ -31,5 +32,9 @@ export type * from "./interfaces/IProductCategoryPayload";
 export type * from "./interfaces/IProductCreatePayload";
 export type * from "./interfaces/IProductPayload";
 export type * from "./interfaces/IRefreshResponse";
+export type * from "./interfaces/ISupplier";
+export type * from "./interfaces/ISupplierContact";
+export type * from "./interfaces/ISupplierContactPayload";
+export type * from "./interfaces/ISupplierPayload";
 export type * from "./interfaces/ITableStorage";
 export type * from "./interfaces/IUnusedIndex";

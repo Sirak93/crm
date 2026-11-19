@@ -74,6 +74,12 @@ const routes: RouteRecordRaw[] = [
         meta: { roles: [...COMPANY_LOGIN_ROLES] },
       },
       {
+        path: 'suppliers',
+        name: ROUTE_NAME.COMPANY_SUPPLIERS,
+        component: () => import('../views/company/CompanySuppliers.vue'),
+        meta: { roles: [...COMPANY_LOGIN_ROLES] },
+      },
+      {
         path: 'measure-units',
         name: ROUTE_NAME.COMPANY_MEASURE_UNITS,
         component: () => import('../views/company/CompanyMeasureUnits.vue'),
