@@ -236,17 +236,21 @@ Each is its own top-level menu item.
 - [x] To confirm
   - [x] Keep tax ID (ՀՎՀՀ), optional
   - [x] Status instead of active yes/no: `SupplierStatus` Active (10), Archived (20);
-        no delete, list starts on Active
+        list starts on Active
+  - [x] Delete allowed only if no stock-in document uses the supplier, otherwise archive
 - [ ] `Supplier` table: company, name, contact person, phone, email, tax ID, note,
       status. Only name is required.
 - [ ] API
-  - [ ] Company Owner, Accountant, and Storekeeper manage
+  - [ ] Company Owner, Accountant, and Storekeeper manage (add, edit, archive/restore,
+        delete)
+  - [ ] Delete — always allowed for now; the "no stock-in uses it" check comes in Step 10
   - [ ] List: search by name, filter by status, paging
 - [ ] Frontend: Suppliers page
   - [ ] Table with filters
   - [ ] Add/edit dialog
+  - [ ] Archive / Restore and Delete (with confirm) in the "⋯" menu
 - [ ] Lint and build pass
-- [ ] Checked in browser: add, edit, find, and archive suppliers
+- [ ] Checked in browser: add, edit, find, archive, and delete suppliers
 
 ## Step 10 — Stock-in documents
 
@@ -263,6 +267,7 @@ Each is its own top-level menu item.
   - [ ] Header and lines saved together (all or nothing)
   - [ ] Only the creator can edit or delete
   - [ ] Edit or delete blocked if any product's stock would go below zero
+- [ ] Supplier delete blocked if a stock-in document uses it (moved from Step 9)
 - [ ] API
   - [ ] Company Owner and Storekeeper create
   - [ ] Accountant only sees
