@@ -1,5 +1,7 @@
 <script setup lang="ts">
 import type { IStockInSummary } from 'armstock-shared';
+import { Banknote, FileText, Package } from 'lucide-vue-next';
+import StatCard from '../StatCard.vue';
 import { formatMoney, formatNumber } from '../../utils/format';
 
 defineProps<{
@@ -10,72 +12,29 @@ defineProps<{
 </script>
 
 <template>
-  <dl class="stock-in-summary" :class="{ 'stock-in-summary--loading': isLoading }" aria-live="polite">
-    <div class="stock-in-summary__item">
-      <dt>{{ $t('stockIn.summary.documents') }}</dt>
-      <dd>{{ formatNumber(summary.documentCount) }}</dd>
-    </div>
-    <div class="stock-in-summary__item">
-      <dt>{{ $t('stockIn.summary.products') }}</dt>
-      <dd>{{ formatNumber(summary.productCount) }}</dd>
-    </div>
-    <div class="stock-in-summary__item stock-in-summary__item--total">
-      <dt>{{ $t('stockIn.summary.total') }}</dt>
-      <dd>{{ formatMoney(summary.total) }}</dd>
-    </div>
-  </dl>
+  <div class="stock-in-summary" :class="{ 'stock-in-summary--loading': isLoading }" aria-live="polite">
+    <StatCard
+      :label="$t('stockIn.summary.total')"
+      :value="formatMoney(summary.total)"
+      :icon="Banknote"
+      color="success"
+      compact
+    />
+    <StatCard :label="$t('stockIn.summary.documents')" :value="formatNumber(summary.documentCount)" :icon="FileText" color="primary" compact />
+    <StatCard :label="$t('stockIn.summary.products')" :value="formatNumber(summary.productCount)" :icon="Package" color="info" compact />
+  </div>
 </template>
 
 <style scoped>
 .stock-in-summary {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 0.5rem 1.5rem;
-  margin: 0;
-  padding: 0.625rem 1rem;
-  border: 1px solid var(--border-dark);
-  border-radius: var(--radius);
-  background-color: var(--bg-card);
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  gap: 0.75rem;
   transition: opacity 0.2s ease;
 }
 
 .stock-in-summary--loading {
   opacity: 0.5;
-}
-
-.stock-in-summary__item {
-  display: flex;
-  align-items: baseline;
-  gap: 0.375rem;
-}
-
-.stock-in-summary__item--total {
-  margin-left: auto;
-}
-
-.stock-in-summary dt {
-  font-size: var(--text-sm);
-  color: var(--text-muted);
-}
-
-.stock-in-summary dd {
-  margin: 0;
-  font-size: var(--text-base);
-  font-weight: 700;
-  font-variant-numeric: tabular-nums;
-  color: var(--text-main);
-}
-
-.stock-in-summary__item--total dd {
-  font-size: var(--text-lg);
-  color: var(--primary-dark);
-}
-
-@media (max-width: 576px) {
-  .stock-in-summary__item--total {
-    margin-left: 0;
-    width: 100%;
-  }
 }
 
 @media (prefers-reduced-motion: reduce) {

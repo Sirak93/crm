@@ -9,17 +9,21 @@ defineProps<{
   icon: Component;
   color: StatCardColor;
   hint?: string;
+  /** Icon beside the text instead of above it - for a short row of numbers over a list. */
+  compact?: boolean;
 }>();
 </script>
 
 <template>
-  <div class="stat-card">
+  <div class="stat-card" :class="{ 'stat-card--compact': compact }">
     <span class="stat-card__icon" :class="`stat-card__icon--${color}`">
       <component :is="icon" :size="18" aria-hidden="true" />
     </span>
-    <p class="stat-card__value">{{ value }}</p>
-    <p class="stat-card__label">{{ label }}</p>
-    <p v-if="hint" class="stat-card__hint">{{ hint }}</p>
+    <div class="stat-card__body">
+      <p class="stat-card__value">{{ value }}</p>
+      <p class="stat-card__label">{{ label }}</p>
+      <p v-if="hint" class="stat-card__hint">{{ hint }}</p>
+    </div>
   </div>
 </template>
 
@@ -32,6 +36,17 @@ defineProps<{
   box-shadow: var(--shadow);
 }
 
+.stat-card--compact {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.625rem 0.875rem;
+}
+
+.stat-card__body {
+  min-width: 0;
+}
+
 .stat-card__icon {
   width: 32px;
   height: 32px;
@@ -40,6 +55,21 @@ defineProps<{
   justify-content: center;
   margin-bottom: 0.5rem;
   border-radius: 10px;
+}
+
+.stat-card--compact .stat-card__icon {
+  flex-shrink: 0;
+  margin-bottom: 0;
+}
+
+.stat-card--compact .stat-card__value {
+  margin-bottom: 0;
+  font-size: var(--text-lg);
+}
+
+.stat-card--compact .stat-card__label {
+  margin-bottom: 0;
+  font-size: var(--text-xs);
 }
 
 .stat-card__icon--primary { color: var(--primary); background-color: var(--primary-light); }
