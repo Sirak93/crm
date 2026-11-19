@@ -80,7 +80,8 @@ from the route middleware.
   Ձուկ, Կաթնամթերք, Հացամթերք, Չոր մթերք, Ըմպելիք, Համեմունք, Տնտեսական ապրանք, Այլ.
 - No price field on the product. Its current price is the average price from all its
   stock-ins (calculated, not saved). Wherever an average price is shown, mark it as average
-  (an "avg" suffix or a "~" sign — pick one in Step 11).
+  with a "~" before the number (e.g. ~360.00); the column header says "Avg price".
+  Values built from it (quantity × average, total value) get "~" too.
 
 ## Stock
 

@@ -315,10 +315,15 @@ Each is its own top-level menu item.
   - [ ] Calculated in SQL
   - [ ] All company roles can see it
 - [ ] Frontend: Stock balance page (menu "Stock" → "Balance")
-  - [ ] Average price marked as average ("avg" suffix or "~" sign)
-  - [ ] Total value on top
+  - [ ] Average price marked with "~" before the number (e.g. ~360.00), column header
+        "Avg price", tooltip "Average of all stock-in prices"; value and total value get
+        "~" too
+  - [ ] Total value on top as compact stat cards, like Stock → In (`StatCard compact`):
+        total value ~, products in stock
   - [ ] Table with search and category filter
-  - [ ] "Only in stock" switch
+  - [ ] "Only in stock" switch, on by default; off also shows products at 0
+  - [ ] Archived products: shown with an "Archived" tag while they still have stock (they
+        count in the total value); never shown at 0, even with the switch off
 - [ ] Lint and build pass
 - [ ] Checked in browser: stock page shows what was added in step 10, with values
 
