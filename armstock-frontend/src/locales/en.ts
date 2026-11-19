@@ -438,7 +438,8 @@ export default {
     },
     lines: {
       product: 'Product',
-      productPlaceholder: 'Choose a product',
+      productPlaceholder: 'Search by name or code',
+      code: 'Code',
       quantity: 'Quantity',
       unit: 'Unit',
       price: 'Price',

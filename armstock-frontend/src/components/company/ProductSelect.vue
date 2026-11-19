@@ -2,6 +2,7 @@
 import { computed, ref } from 'vue';
 import { ProductStatus } from 'armstock-shared';
 import { Plus } from 'lucide-vue-next';
+import CodeBadge from '../CodeBadge.vue';
 import { ProductService } from '../../services/ProductService';
 import type { IProductOption } from '../../interfaces/IProductOption';
 import { toProductOption } from '../../utils/stockInLines';
@@ -83,8 +84,10 @@ defineExpose({ focus: () => selectRef.value?.focus() });
     @change="onChange"
   >
     <el-option v-for="option in shownOptions" :key="option.uuid" :label="option.name" :value="option.uuid">
-      <span>{{ option.name }}</span>
-      <span v-if="option.code" class="product-option__code">{{ option.code }}</span>
+      <div class="product-option">
+        <span class="product-option__name">{{ option.name }}</span>
+        <CodeBadge v-if="option.code" :code="option.code" />
+      </div>
     </el-option>
 
     <!-- In the footer, so it stays visible however many matches there are. -->
@@ -102,9 +105,15 @@ defineExpose({ focus: () => selectRef.value?.focus() });
   width: 100%;
 }
 
-.product-option__code {
-  margin-left: 0.5rem;
-  font-size: var(--text-xs);
-  color: var(--text-muted);
+.product-option {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+}
+
+.product-option__name {
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 </style>

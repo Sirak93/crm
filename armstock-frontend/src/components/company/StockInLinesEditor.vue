@@ -12,6 +12,7 @@ import {
 } from 'armstock-shared';
 import { Plus, Trash2 } from 'lucide-vue-next';
 import ProductSelect from './ProductSelect.vue';
+import CodeBadge from '../CodeBadge.vue';
 import ProductDialog from './ProductDialog.vue';
 import { MeasureUnitService } from '../../services/MeasureUnitService';
 import { ProductCategoryService } from '../../services/ProductCategoryService';
@@ -123,6 +124,12 @@ const setProductRef = (key: number, el: unknown) => {
             @select="(product: IProductOption) => onProductSelect(row as IStockInLineForm, product)"
             @create="(name: string) => openProductDialog(row as IStockInLineForm, name)"
           />
+        </template>
+      </el-table-column>
+      <el-table-column :label="$t('stockIn.lines.code')" min-width="100">
+        <template #default="{ row }">
+          <CodeBadge v-if="row.product?.code" :code="row.product.code" />
+          <span v-else class="cell-text cell-text--muted">—</span>
         </template>
       </el-table-column>
       <el-table-column :label="$t('stockIn.lines.quantity')" min-width="130">
