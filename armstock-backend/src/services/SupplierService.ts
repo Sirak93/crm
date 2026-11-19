@@ -1,17 +1,17 @@
-import { In, type EntityManager } from "typeorm";
+import { In } from "typeorm";
 import { ErrorCodes, SupplierStatus, type IPaginationMeta, type ISupplier, type ISupplierContact } from "armstock-shared";
 import { AppDataSource } from "../config/database";
 import { Supplier } from "../models/Supplier";
 import { SupplierContact } from "../models/SupplierContact";
 import { AppError } from "../utils/AppError";
-import type { SupplierBody, SuppliersQuery } from "../schemas/SupplierSchema";
+import type { SupplierBody, SupplierContactBody, SuppliersQuery } from "../schemas/SupplierSchema";
 
 export class SupplierService {
     private repo = AppDataSource.getRepository(Supplier);
     private contactRepo = AppDataSource.getRepository(SupplierContact);
 
     private static toContact(contact: SupplierContact): ISupplierContact {
-        return { uuid: contact.uuid, name: contact.name, position: contact.position, phone: contact.phone };
+        return { uuid: contact.uuid, name: contact.name, position: contact.position, phone: contact.phone, note: contact.note };
     }
 
     private static toSupplier(supplier: Supplier, contacts: SupplierContact[]): ISupplier {
@@ -30,6 +30,14 @@ export class SupplierService {
         const supplier = await this.repo.findOne({ where: { uuid, companyUuid } });
         if (!supplier) throw new AppError(ErrorCodes.SUPPLIER.NOT_FOUND, undefined, undefined, { uuid, companyUuid });
         return supplier;
+    }
+
+    /** The supplier is checked first, so a contact of another company's supplier is never reached. */
+    private async findContactOrFail(companyUuid: string, supplierUuid: string, uuid: string): Promise<SupplierContact> {
+        await this.findOrFail(companyUuid, supplierUuid);
+        const contact = await this.contactRepo.findOne({ where: { uuid, supplierUuid } });
+        if (!contact) throw new AppError(ErrorCodes.SUPPLIER_CONTACT.NOT_FOUND, undefined, undefined, { uuid, supplierUuid });
+        return contact;
     }
 
     /** Unique inside the company, ignoring case - archived suppliers count too. */
@@ -55,13 +63,6 @@ export class SupplierService {
         return suppliers.map((s) => SupplierService.toSupplier(s, bySupplier.get(s.uuid) ?? []));
     }
 
-    /** The sent list replaces the saved contacts. Runs inside the caller's transaction. */
-    private static async replaceContacts(manager: EntityManager, supplierUuid: string, contacts: SupplierBody["contacts"]): Promise<void> {
-        const repo = manager.getRepository(SupplierContact);
-        await repo.delete({ supplierUuid });
-        if (contacts.length) await repo.save(contacts.map((c) => repo.create({ ...c, supplierUuid })));
-    }
-
     async list(companyUuid: string, query: SuppliersQuery): Promise<{ items: ISupplier[]; meta: IPaginationMeta }> {
         const { page, pageSize, search, status } = query;
 
@@ -83,15 +84,8 @@ export class SupplierService {
 
     async create(companyUuid: string, body: SupplierBody): Promise<ISupplier> {
         await this.assertNameFree(companyUuid, body.name);
-        const { contacts, ...fields } = body;
-        const supplier = await AppDataSource.transaction(async (manager) => {
-            const repo = manager.getRepository(Supplier);
-            const saved = await repo.save(repo.create({ ...fields, companyUuid }));
-            await SupplierService.replaceContacts(manager, saved.uuid, contacts);
-            return saved;
-        });
-        const [item] = await this.withContacts([supplier]);
-        return item!;
+        const supplier = await this.repo.save(this.repo.create({ ...body, companyUuid }));
+        return SupplierService.toSupplier(supplier, []);
     }
 
     async update(companyUuid: string, uuid: string, body: SupplierBody): Promise<ISupplier> {
@@ -99,12 +93,8 @@ export class SupplierService {
             this.findOrFail(companyUuid, uuid),
             this.assertNameFree(companyUuid, body.name, uuid),
         ]);
-        const { contacts, ...fields } = body;
-        Object.assign(supplier, fields);
-        await AppDataSource.transaction(async (manager) => {
-            await manager.getRepository(Supplier).save(supplier);
-            await SupplierService.replaceContacts(manager, uuid, contacts);
-        });
+        Object.assign(supplier, body);
+        await this.repo.save(supplier);
         const [item] = await this.withContacts([supplier]);
         return item!;
     }
@@ -120,5 +110,20 @@ export class SupplierService {
     /** Contacts go with it (FK cascade). The "used by a stock-in document" check comes with stock-in. */
     async delete(companyUuid: string, uuid: string): Promise<void> {
         await this.repo.remove(await this.findOrFail(companyUuid, uuid));
+    }
+
+    async addContact(companyUuid: string, supplierUuid: string, body: SupplierContactBody): Promise<ISupplierContact> {
+        await this.findOrFail(companyUuid, supplierUuid);
+        return SupplierService.toContact(await this.contactRepo.save(this.contactRepo.create({ ...body, supplierUuid })));
+    }
+
+    async updateContact(companyUuid: string, supplierUuid: string, uuid: string, body: SupplierContactBody): Promise<ISupplierContact> {
+        const contact = await this.findContactOrFail(companyUuid, supplierUuid, uuid);
+        Object.assign(contact, body);
+        return SupplierService.toContact(await this.contactRepo.save(contact));
+    }
+
+    async deleteContact(companyUuid: string, supplierUuid: string, uuid: string): Promise<void> {
+        await this.contactRepo.remove(await this.findContactOrFail(companyUuid, supplierUuid, uuid));
     }
 }

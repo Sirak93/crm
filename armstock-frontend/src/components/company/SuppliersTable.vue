@@ -1,19 +1,25 @@
 <script setup lang="ts">
-import { SupplierStatus, type ISupplier } from 'armstock-shared';
+import { SupplierStatus, type ISupplier, type ISupplierContact } from 'armstock-shared';
 import { Archive, ArchiveRestore, Pencil, Trash2 } from 'lucide-vue-next';
 import RowActionsMenu from '../RowActionsMenu.vue';
+import SupplierDetails from './SupplierDetails.vue';
 import { SUPPLIER_STATUS_TAG } from '../../constants/statusTags';
 
 defineProps<{
   suppliers: ISupplier[];
   /** uuid of the supplier being saved or deleted. */
   busyUuid: string | null;
+  /** uuid of the contact being deleted. */
+  deletingContactUuid: string | null;
 }>();
 
 const emit = defineEmits<{
   edit: [supplier: ISupplier];
   setStatus: [supplier: ISupplier, status: SupplierStatus];
   delete: [supplier: ISupplier];
+  addContact: [supplier: ISupplier];
+  editContact: [supplier: ISupplier, contact: ISupplierContact];
+  deleteContact: [supplier: ISupplier, contact: ISupplierContact];
 }>();
 
 const ACTION = { EDIT: 'edit', ARCHIVE: 'archive', RESTORE: 'restore', DELETE: 'delete' } as const;
@@ -27,7 +33,19 @@ const onAction = (supplier: ISupplier, action: Action) => {
 </script>
 
 <template>
-  <el-table :data="suppliers" class="app-table app-table--nowrap">
+  <el-table :data="suppliers" class="app-table app-table--nowrap" row-key="uuid">
+    <el-table-column type="expand">
+      <template #default="{ row }">
+        <SupplierDetails
+          :supplier="row as ISupplier"
+          :deleting-contact-uuid="deletingContactUuid"
+          @add-contact="emit('addContact', row as ISupplier)"
+          @edit-contact="(contact) => emit('editContact', row as ISupplier, contact)"
+          @delete-contact="(contact) => emit('deleteContact', row as ISupplier, contact)"
+        />
+      </template>
+    </el-table-column>
+
     <el-table-column prop="name" :label="$t('suppliers.table.name')" min-width="220" show-overflow-tooltip>
       <template #default="{ row }"><span class="cell-text cell-text--strong">{{ row.name }}</span></template>
     </el-table-column>
@@ -84,5 +102,10 @@ const onAction = (supplier: ISupplier, action: Action) => {
 <style scoped>
 .more-tag {
   margin-left: 0.375rem;
+}
+
+.app-table :deep(.el-table__expanded-cell) {
+  padding: 0;
+  background-color: var(--bg-app);
 }
 </style>

@@ -106,6 +106,12 @@ export const ErrorCodes = {
             STATUS: 409,
         },
     },
+    SUPPLIER_CONTACT: {
+        NOT_FOUND: {
+            CODE: "SUPPLIER_CONTACT_NOT_FOUND",
+            STATUS: 404,
+        },
+    },
     RATE_LIMIT: {
         TOO_MANY_REQUESTS: {
             CODE: "RATE_LIMIT_TOO_MANY_REQUESTS",

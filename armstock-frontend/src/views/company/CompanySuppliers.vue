@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { computed, ref } from 'vue';
 import { useI18n } from 'vue-i18n';
-import { SupplierStatus, type IPaginationMeta, type ISupplier } from 'armstock-shared';
+import { SupplierStatus, type IPaginationMeta, type ISupplier, type ISupplierContact } from 'armstock-shared';
 import { Plus, Truck } from 'lucide-vue-next';
 import PageHeader from '../../components/PageHeader.vue';
 import AppCard from '../../components/AppCard.vue';
@@ -9,6 +9,7 @@ import LoadError from '../../components/LoadError.vue';
 import SupplierFilters from '../../components/company/SupplierFilters.vue';
 import SuppliersTable from '../../components/company/SuppliersTable.vue';
 import SupplierDialog from '../../components/company/SupplierDialog.vue';
+import SupplierContactDialog from '../../components/company/SupplierContactDialog.vue';
 import { SupplierService } from '../../services/SupplierService';
 import { NotificationService } from '../../services/NotificationService';
 import { useApiErrorMessage } from '../../composables/useApiErrorMessage';
@@ -30,6 +31,11 @@ const busyUuid = ref<string | null>(null);
 
 const isDialogOpen = ref(false);
 const editingSupplier = ref<ISupplier | null>(null);
+
+const isContactDialogOpen = ref(false);
+const contactSupplier = ref<ISupplier | null>(null);
+const editingContact = ref<ISupplierContact | null>(null);
+const deletingContactUuid = ref<string | null>(null);
 
 const hasFilters = computed(() => !!filters.value.search);
 
@@ -64,7 +70,50 @@ const openEdit = (supplier: ISupplier) => {
   isDialogOpen.value = true;
 };
 
-const onSaved = () => load(editingSupplier.value ? meta.value.page : 1);
+const openContactDialog = (supplier: ISupplier, contact: ISupplierContact | null) => {
+  contactSupplier.value = supplier;
+  editingContact.value = contact;
+  isContactDialogOpen.value = true;
+};
+
+/** A new firm goes straight on to its first contact - it may not be on the current page to expand. */
+const onSaved = (saved: ISupplier) => {
+  const isNew = !editingSupplier.value;
+  load(isNew ? 1 : meta.value.page);
+  if (isNew) openContactDialog(saved, null);
+};
+
+/** Contacts change in place, so the open row stays expanded. */
+const setContacts = (supplierUuid: string, update: (contacts: ISupplierContact[]) => ISupplierContact[]) => {
+  const supplier = suppliers.value.find((s) => s.uuid === supplierUuid);
+  if (supplier) supplier.contacts = update(supplier.contacts);
+};
+
+const onContactSaved = (supplierUuid: string, saved: ISupplierContact) => {
+  setContacts(supplierUuid, (contacts) =>
+    [...contacts.filter((c) => c.uuid !== saved.uuid), saved].sort((a, b) => a.name.localeCompare(b.name)),
+  );
+};
+
+const deleteContact = async (supplier: ISupplier, contact: ISupplierContact) => {
+  const confirmed = await NotificationService.confirm(
+    t('supplierContacts.deleteConfirmTitle', { name: contact.name }),
+    t('supplierContacts.deleteConfirmText', { firm: supplier.name }),
+    t('supplierContacts.delete'),
+  );
+  if (!confirmed) return;
+
+  deletingContactUuid.value = contact.uuid;
+  try {
+    await SupplierService.deleteContact(supplier.uuid, contact.uuid);
+    setContacts(supplier.uuid, (contacts) => contacts.filter((c) => c.uuid !== contact.uuid));
+    NotificationService.success(t('supplierContacts.deleted'));
+  } catch (error) {
+    NotificationService.error(parseError(error, 'supplierContacts.deleteError'));
+  } finally {
+    deletingContactUuid.value = null;
+  }
+};
 
 /** Stays on the same page unless it became empty. */
 const reloadAfterRemoval = () => load(suppliers.value.length === 1 && meta.value.page > 1 ? meta.value.page - 1 : meta.value.page);
@@ -135,9 +184,13 @@ const deleteSupplier = async (supplier: ISupplier) => {
         v-loading="isLoading"
         :suppliers="suppliers"
         :busy-uuid="busyUuid"
+        :deleting-contact-uuid="deletingContactUuid"
         @edit="openEdit"
         @set-status="setStatus"
         @delete="deleteSupplier"
+        @add-contact="(supplier) => openContactDialog(supplier, null)"
+        @edit-contact="openContactDialog"
+        @delete-contact="deleteContact"
       />
     </AppCard>
 
@@ -153,6 +206,12 @@ const deleteSupplier = async (supplier: ISupplier) => {
     />
 
     <SupplierDialog v-model="isDialogOpen" :supplier="editingSupplier" @saved="onSaved" />
+    <SupplierContactDialog
+      v-model="isContactDialogOpen"
+      :supplier="contactSupplier"
+      :contact="editingContact"
+      @saved="onContactSaved"
+    />
   </section>
 </template>
 

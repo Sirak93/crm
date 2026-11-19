@@ -1,7 +1,7 @@
 import { Response } from "express";
 import { AuthRequest } from "../middlewares/AuthMiddleware";
 import { SupplierService } from "../services/SupplierService";
-import type { SupplierBody, SuppliersQuery, SupplierStatusBody } from "../schemas/SupplierSchema";
+import type { SupplierBody, SupplierContactBody, SuppliersQuery, SupplierStatusBody } from "../schemas/SupplierSchema";
 import { AppResponse } from "../utils/AppResponse";
 import { requireCompanyUuid } from "../utils/requireCompanyUuid";
 
@@ -29,6 +29,21 @@ export class SupplierController {
 
     delete = async (req: AuthRequest, res: Response) => {
         await this.service.delete(requireCompanyUuid(req), req.params.uuid as string);
+        return AppResponse.send(res, { success: true });
+    };
+
+    addContact = async (req: AuthRequest, res: Response) => {
+        return AppResponse.send(res, await this.service.addContact(requireCompanyUuid(req), req.params.uuid as string, req.body as SupplierContactBody));
+    };
+
+    updateContact = async (req: AuthRequest, res: Response) => {
+        const { uuid, contactUuid } = req.params as { uuid: string; contactUuid: string };
+        return AppResponse.send(res, await this.service.updateContact(requireCompanyUuid(req), uuid, contactUuid, req.body as SupplierContactBody));
+    };
+
+    deleteContact = async (req: AuthRequest, res: Response) => {
+        const { uuid, contactUuid } = req.params as { uuid: string; contactUuid: string };
+        await this.service.deleteContact(requireCompanyUuid(req), uuid, contactUuid);
         return AppResponse.send(res, { success: true });
     };
 }

@@ -33,6 +33,9 @@ export class SupplierContact {
     @Column({ type: "varchar", nullable: true })
     phone!: string | null;
 
+    @Column({ type: "text", nullable: true })
+    note!: string | null;
+
     @CreateDateColumn({ name: "created_at" })
     createdAt!: Date;
 

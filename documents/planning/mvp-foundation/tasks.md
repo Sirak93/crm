@@ -245,17 +245,19 @@ Each is its own top-level menu item.
 - [x] `Supplier` table (`suppliers`): company, name, tax ID, note, status. Only name is
       required.
 - [x] `SupplierContact` table (`supplier_contacts`): supplier, name (required), position,
-      phone
+      phone, note
 - [x] API (`/api/suppliers`, own company only)
   - [x] Company Owner, Accountant, and Storekeeper manage (add, edit, archive/restore,
         delete)
-  - [x] Supplier and its contacts saved together (all or nothing)
+  - [x] Contacts: own endpoints (`/api/suppliers/:uuid/contacts`) to add, edit, delete
   - [x] Delete removes the contacts too; always allowed for now, the "no stock-in uses
         it" check comes in Step 10
   - [x] List: search by name, filter by status, paging
 - [x] Frontend: Suppliers page (menu "Suppliers")
   - [x] Table with filters (starts on Active): firm name, tax ID, contacts, status
-  - [x] Add/edit dialog: "Firm name", tax ID, note, and a contacts list (add/remove rows)
+  - [x] Expandable rows: contacts (add/edit popup, delete) and the firm note
+  - [x] Add/edit dialog: "Firm name", tax ID, "Firm note"; after create the "Add contact"
+        popup opens
   - [x] Archive / Restore and Delete (with confirm) in the "⋯" menu
 - [x] Lint and build pass
 - [ ] Checked in browser: add, edit, find, archive, and delete suppliers

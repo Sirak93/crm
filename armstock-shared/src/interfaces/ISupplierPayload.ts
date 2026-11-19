@@ -1,9 +1,6 @@
-import type { ISupplierContactPayload } from "./ISupplierContactPayload";
-
-/** Create and edit body - the contacts list replaces the saved one. */
+/** Firm fields only - contacts have their own endpoints. */
 export interface ISupplierPayload {
     name: string;
     taxId: string | null;
     note: string | null;
-    contacts: ISupplierContactPayload[];
 }

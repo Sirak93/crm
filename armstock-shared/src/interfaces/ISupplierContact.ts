@@ -4,4 +4,5 @@ export interface ISupplierContact {
     /** Free text, e.g. Manager or Driver. */
     position: string | null;
     phone: string | null;
+    note: string | null;
 }

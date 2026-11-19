@@ -5,12 +5,19 @@ import { RoleMiddleware } from "../middlewares/RoleMiddleware";
 import { validate } from "../middlewares/Validate";
 import { asyncHandler } from "../utils/asyncHandler";
 import { SupplierController } from "../controllers/SupplierController";
-import { SupplierBodySchema, SuppliersQuerySchema, SupplierStatusBodySchema } from "../schemas/SupplierSchema";
+import {
+    SupplierBodySchema,
+    SupplierContactBodySchema,
+    SupplierContactParamsSchema,
+    SuppliersQuerySchema,
+    SupplierStatusBodySchema,
+} from "../schemas/SupplierSchema";
 import { UuidParamsSchema } from "../schemas/SharedSchema";
 
 const router = Router();
 const supplierController = new SupplierController();
 const uuidParams = validate(UuidParamsSchema, "params");
+const contactParams = validate(SupplierContactParamsSchema, "params");
 
 // Every company login role manages suppliers, the Accountant included.
 router.use(AuthMiddleware, RoleMiddleware([...COMPANY_LOGIN_ROLES]));
@@ -20,5 +27,9 @@ router.post("/", validate(SupplierBodySchema), asyncHandler(supplierController.c
 router.put("/:uuid", uuidParams, validate(SupplierBodySchema), asyncHandler(supplierController.update));
 router.patch("/:uuid/status", uuidParams, validate(SupplierStatusBodySchema), asyncHandler(supplierController.setStatus));
 router.delete("/:uuid", uuidParams, asyncHandler(supplierController.delete));
+
+router.post("/:uuid/contacts", uuidParams, validate(SupplierContactBodySchema), asyncHandler(supplierController.addContact));
+router.put("/:uuid/contacts/:contactUuid", contactParams, validate(SupplierContactBodySchema), asyncHandler(supplierController.updateContact));
+router.delete("/:uuid/contacts/:contactUuid", contactParams, asyncHandler(supplierController.deleteContact));
 
 export default router;

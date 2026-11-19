@@ -5,12 +5,10 @@ import type { FormInstance, FormRules } from 'element-plus';
 import type { ISupplier } from 'armstock-shared';
 import { FileText, Truck } from 'lucide-vue-next';
 import AppDialog from '../AppDialog.vue';
-import SupplierContactsField from './SupplierContactsField.vue';
 import { SupplierService } from '../../services/SupplierService';
 import { NotificationService } from '../../services/NotificationService';
 import { useApiErrorMessage } from '../../composables/useApiErrorMessage';
 import { REQUIRED_RULE_TRIGGER } from '../../constants/constants';
-import type { ISupplierContactForm } from '../../interfaces/ISupplierContactForm';
 
 const props = defineProps<{
   /** null = add a new supplier. */
@@ -26,7 +24,7 @@ const { parseError } = useApiErrorMessage();
 
 const formRef = ref<FormInstance>();
 const isSaving = ref(false);
-const form = ref({ name: '', taxId: '', note: '', contacts: [] as ISupplierContactForm[] });
+const form = ref({ name: '', taxId: '', note: '' });
 
 const isEdit = computed(() => !!props.supplier);
 
@@ -37,12 +35,7 @@ const rules: FormRules = {
 watch(open, (isOpen) => {
   if (!isOpen) return;
   const s = props.supplier;
-  form.value = {
-    name: s?.name ?? '',
-    taxId: s?.taxId ?? '',
-    note: s?.note ?? '',
-    contacts: (s?.contacts ?? []).map((c) => ({ key: c.uuid, name: c.name, position: c.position ?? '', phone: c.phone ?? '' })),
-  };
+  form.value = { name: s?.name ?? '', taxId: s?.taxId ?? '', note: s?.note ?? '' };
   formRef.value?.clearValidate();
 });
 
@@ -53,11 +46,6 @@ const save = async () => {
     name: form.value.name.trim(),
     taxId: form.value.taxId.trim() || null,
     note: form.value.note.trim() || null,
-    contacts: form.value.contacts.map((c) => ({
-      name: c.name.trim(),
-      position: c.position.trim() || null,
-      phone: c.phone.trim() || null,
-    })),
   };
 
   isSaving.value = true;
@@ -79,7 +67,6 @@ const save = async () => {
 <template>
   <AppDialog
     v-model="open"
-    width="680px"
     :title="$t(isEdit ? 'suppliers.editTitle' : 'suppliers.addTitle')"
     :subtitle="supplier ? supplier.name : $t('suppliers.addSubtitle')"
     :locked="isSaving"
@@ -100,10 +87,8 @@ const save = async () => {
         </el-form-item>
       </div>
 
-      <SupplierContactsField v-model="form.contacts" />
-
       <el-form-item :label="$t('suppliers.form.note')" prop="note">
-        <el-input v-model="form.note" type="textarea" :rows="2" maxlength="1000" :placeholder="$t('suppliers.form.optional')" />
+        <el-input v-model="form.note" type="textarea" :rows="3" maxlength="1000" :placeholder="$t('suppliers.form.optional')" />
       </el-form-item>
 
       <!-- Lets Enter submit the form. -->
