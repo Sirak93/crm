@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import type { ISupplier, ISupplierContact } from 'armstock-shared';
-import { Pencil, Phone, StickyNote, Trash2, UserRound, UserRoundPlus } from 'lucide-vue-next';
+import { Pencil, Phone, Trash2, UserRound, UserRoundPlus } from 'lucide-vue-next';
+import { telHref } from '../../utils/telHref';
 
 defineProps<{
   supplier: ISupplier;
@@ -36,7 +37,16 @@ defineEmits<{
               {{ contact.name }}
               <span v-if="contact.position" class="details__muted">· {{ contact.position }}</span>
             </div>
-            <div class="contact__line">
+            <a
+              v-if="telHref(contact.phone)"
+              :href="telHref(contact.phone)!"
+              class="contact__call"
+              :aria-label="$t('supplierContacts.call', { name: contact.name, phone: contact.phone })"
+            >
+              <Phone :size="12" aria-hidden="true" />
+              <span>{{ contact.phone }}</span>
+            </a>
+            <div v-else class="contact__line">
               <Phone :size="12" aria-hidden="true" />
               <span :class="{ details__muted: !contact.phone }">{{ contact.phone || $t('suppliers.details.noPhone') }}</span>
             </div>
@@ -66,29 +76,13 @@ defineEmits<{
       </ul>
     </section>
 
-    <section v-if="supplier.note" class="details__section">
-      <h3 class="details__label">{{ $t('suppliers.details.note') }}</h3>
-      <div class="firm-note">
-        <StickyNote :size="14" aria-hidden="true" class="firm-note__icon" />
-        <p class="firm-note__text">{{ supplier.note }}</p>
-      </div>
-    </section>
   </div>
 </template>
 
 <style scoped>
 .details {
-  display: grid;
-  grid-template-columns: 1fr;
-  gap: 1rem;
   padding: clamp(0.5rem, 2vw, 1rem);
   white-space: normal;
-}
-
-@media (min-width: 992px) {
-  .details {
-    grid-template-columns: 2fr 1fr;
-  }
 }
 
 .details__section {
@@ -174,6 +168,30 @@ defineEmits<{
   color: var(--text-main);
 }
 
+.contact__call {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.25rem;
+  margin-top: 0.25rem;
+  padding: 2px 8px;
+  border-radius: 999px;
+  font-size: var(--text-sm);
+  font-weight: 600;
+  color: var(--primary);
+  background-color: var(--primary-light);
+  text-decoration: none;
+  transition: var(--transition);
+}
+
+.contact__call:hover {
+  filter: brightness(0.95);
+}
+
+.contact__call:focus-visible {
+  outline: 2px solid var(--primary);
+  outline-offset: 2px;
+}
+
 .contact__note {
   margin: 0.25rem 0 0;
   font-size: var(--text-xs);
@@ -189,29 +207,5 @@ defineEmits<{
 
 .contact__actions .el-button + .el-button {
   margin-left: 0;
-}
-
-.firm-note {
-  display: flex;
-  align-items: flex-start;
-  gap: 0.5rem;
-  padding: 0.625rem;
-  border: 1px solid var(--border);
-  border-radius: 8px;
-  background-color: var(--bg-card);
-}
-
-.firm-note__icon {
-  flex-shrink: 0;
-  margin-top: 3px;
-  color: var(--text-muted);
-}
-
-.firm-note__text {
-  margin: 0;
-  font-size: var(--text-sm);
-  color: var(--text-main);
-  white-space: pre-line;
-  overflow-wrap: anywhere;
 }
 </style>

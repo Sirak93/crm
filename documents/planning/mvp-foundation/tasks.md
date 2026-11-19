@@ -254,8 +254,8 @@ Each is its own top-level menu item.
         it" check comes in Step 10
   - [x] List: search by name, filter by status, paging
 - [x] Frontend: Suppliers page (menu "Suppliers")
-  - [x] Table with filters (starts on Active): firm name, tax ID, contacts, status
-  - [x] Expandable rows: contacts (add/edit popup, delete) and the firm note
+  - [x] Table with filters (starts on Active): firm name, tax ID, firm note, status
+  - [x] Expandable rows: contacts (add/edit popup, delete)
   - [x] Add/edit dialog: "Firm name", tax ID, "Firm note"; after create the "Add contact"
         popup opens
   - [x] Archive / Restore and Delete (with confirm) in the "⋯" menu

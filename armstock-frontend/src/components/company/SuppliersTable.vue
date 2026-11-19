@@ -52,16 +52,8 @@ const onAction = (supplier: ISupplier, action: Action) => {
     <el-table-column prop="taxId" :label="$t('suppliers.table.taxId')" min-width="120">
       <template #default="{ row }"><span :class="['cell-text', { 'cell-text--muted': !row.taxId }]">{{ row.taxId || '—' }}</span></template>
     </el-table-column>
-    <el-table-column :label="$t('suppliers.table.contact')" min-width="240" show-overflow-tooltip>
-      <template #default="{ row }">
-        <span v-if="!(row as ISupplier).contacts.length" class="cell-text cell-text--muted">—</span>
-        <span v-else class="cell-text">
-          {{ [row.contacts[0].name, row.contacts[0].phone].filter(Boolean).join(' · ') }}
-          <el-tag v-if="row.contacts.length > 1" size="small" type="info" round class="more-tag">
-            {{ $t('suppliers.table.moreContacts', { count: row.contacts.length - 1 }) }}
-          </el-tag>
-        </span>
-      </template>
+    <el-table-column prop="note" :label="$t('suppliers.table.note')" min-width="220" show-overflow-tooltip>
+      <template #default="{ row }"><span :class="['cell-text', { 'cell-text--muted': !row.note }]">{{ row.note || '—' }}</span></template>
     </el-table-column>
     <el-table-column :label="$t('suppliers.table.status')" min-width="110">
       <template #default="{ row }">
@@ -100,10 +92,6 @@ const onAction = (supplier: ISupplier, action: Action) => {
 </template>
 
 <style scoped>
-.more-tag {
-  margin-left: 0.375rem;
-}
-
 .app-table :deep(.el-table__expanded-cell) {
   padding: 0;
   background-color: var(--bg-app);

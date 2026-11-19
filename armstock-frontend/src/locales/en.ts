@@ -352,15 +352,13 @@ export default {
     table: {
       name: 'Firm name',
       taxId: 'Tax ID',
-      contact: 'Contact',
-      moreContacts: '+{count}',
+      note: 'Firm note',
       status: 'Status',
     },
     details: {
       contacts: 'Contacts',
       noContacts: 'No contacts yet.',
       noPhone: 'No phone',
-      note: 'Firm note',
     },
     form: {
       name: 'Firm name',
@@ -377,6 +375,7 @@ export default {
     editTitle: 'Edit contact',
     editFor: 'Edit {name}',
     deleteFor: 'Delete {name}',
+    call: 'Call {name} at {phone}',
     delete: 'Delete',
     saveError: 'Could not save the contact.',
     deleteError: 'Could not delete the contact.',
