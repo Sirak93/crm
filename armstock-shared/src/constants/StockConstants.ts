@@ -1,0 +1,9 @@
+/** Matches the DB columns: quantity numeric(14,3), money numeric(14,2). */
+export const QUANTITY_DECIMALS = 3;
+export const MONEY_DECIMALS = 2;
+
+export const QUANTITY_MAX = 99_999_999_999;
+export const MONEY_MAX = 999_999_999_999;
+
+/** Most lines one stock document can have. */
+export const STOCK_DOCUMENT_MAX_LINES = 500;

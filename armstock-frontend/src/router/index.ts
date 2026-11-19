@@ -1,5 +1,5 @@
 import { createRouter, createWebHistory, type RouteRecordRaw } from 'vue-router';
-import { COMPANY_LOGIN_ROLES, UserRole } from 'armstock-shared';
+import { COMPANY_LOGIN_ROLES, STOCK_MANAGER_ROLES, UserRole } from 'armstock-shared';
 import { ROUTE_NAME } from '../constants/constants';
 import { useAuthStore } from '../stores/auth';
 import { AppLogger } from '../utils/AppLogger';
@@ -78,6 +78,32 @@ const routes: RouteRecordRaw[] = [
         name: ROUTE_NAME.COMPANY_SUPPLIERS,
         component: () => import('../views/company/CompanySuppliers.vue'),
         meta: { roles: [...COMPANY_LOGIN_ROLES] },
+      },
+      {
+        path: 'stock/in',
+        name: ROUTE_NAME.COMPANY_STOCK_INS,
+        component: () => import('../views/company/CompanyStockIns.vue'),
+        meta: { roles: [...COMPANY_LOGIN_ROLES] },
+      },
+      {
+        path: 'stock/in/new',
+        name: ROUTE_NAME.COMPANY_STOCK_IN_NEW,
+        component: () => import('../views/company/CompanyStockInForm.vue'),
+        meta: { roles: [...STOCK_MANAGER_ROLES] },
+      },
+      {
+        path: 'stock/in/:uuid',
+        name: ROUTE_NAME.COMPANY_STOCK_IN,
+        component: () => import('../views/company/CompanyStockInView.vue'),
+        props: true,
+        meta: { roles: [...COMPANY_LOGIN_ROLES] },
+      },
+      {
+        path: 'stock/in/:uuid/edit',
+        name: ROUTE_NAME.COMPANY_STOCK_IN_EDIT,
+        component: () => import('../views/company/CompanyStockInForm.vue'),
+        props: true,
+        meta: { roles: [...STOCK_MANAGER_ROLES] },
       },
       {
         path: 'measure-units',

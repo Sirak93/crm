@@ -1,7 +1,21 @@
 import type { Component } from 'vue';
-import { Building, Building2, Database, LayoutDashboard, Package, Ruler, ScrollText, Tags, Truck, Users } from 'lucide-vue-next';
+import {
+  ArrowDownToLine,
+  Boxes,
+  Building,
+  Building2,
+  Database,
+  LayoutDashboard,
+  Package,
+  Ruler,
+  ScrollText,
+  Tags,
+  Truck,
+  Users,
+} from 'lucide-vue-next';
 import { COMPANY_LOGIN_ROLES, UserRole } from 'armstock-shared';
 import { ROUTE_NAME, type RouteName } from '../constants/constants';
+import type { INavGroup } from '../interfaces/INavGroup';
 
 export interface INavItem {
   id: string;
@@ -12,7 +26,7 @@ export interface INavItem {
 }
 
 /** Sidebar menu; each user sees only the items for their role. */
-export const NAV_ITEMS: INavItem[] = [
+export const NAV_ITEMS: (INavItem | INavGroup)[] = [
   {
     id: 'platform-dashboard',
     labelKey: 'nav.dashboard',
@@ -47,6 +61,20 @@ export const NAV_ITEMS: INavItem[] = [
     icon: LayoutDashboard,
     routeName: ROUTE_NAME.COMPANY_DASHBOARD,
     roles: [...COMPANY_LOGIN_ROLES],
+  },
+  {
+    id: 'company-stock',
+    labelKey: 'nav.stock',
+    icon: Boxes,
+    children: [
+      {
+        id: 'company-stock-in',
+        labelKey: 'nav.stockIn',
+        icon: ArrowDownToLine,
+        routeName: ROUTE_NAME.COMPANY_STOCK_INS,
+        roles: [...COMPANY_LOGIN_ROLES],
+      },
+    ],
   },
   {
     id: 'company-products',
@@ -91,3 +119,5 @@ export const NAV_ITEMS: INavItem[] = [
     roles: [UserRole.COMPANY_OWNER],
   },
 ];
+
+export const isNavGroup = (entry: INavItem | INavGroup): entry is INavGroup => 'children' in entry;

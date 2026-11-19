@@ -266,44 +266,44 @@ Each is its own top-level menu item.
 
 - [x] To confirm: how stock is counted — summed from documents each time, or kept in a
       stock table updated on every save → summed in SQL each time, no stock table
-- [ ] Shared: `StockInReason` enum — Purchase, Initial stock, Other
-- [ ] Tables
-  - [ ] `StockIn` (`stock_ins`, header): company, number, reason, date (timestamp with
+- [x] Shared: `StockInReason` enum — Purchase, Initial stock, Other
+- [x] Tables
+  - [x] `StockIn` (`stock_ins`, header): company, number, reason, date (timestamp with
         time, defaults to now, user can change), supplier (Purchase only), supplier's
         invoice number (optional text, Purchase only), note, created by
-  - [ ] Number shown as `IN-2026-0015`: counter per company, restarts each year (year of
+  - [x] Number shown as `IN-2026-0015`: counter per company, restarts each year (year of
         creation). Next = biggest this year + 1; unique in the DB per company + year, so on
         a clash the save retries with the next number.
-  - [ ] `StockInLine` (`stock_in_lines`): document (deleted with it), company (copied from
+  - [x] `StockInLine` (`stock_in_lines`): document (deleted with it), company (copied from
         the document so stock queries skip the join), product, quantity numeric(14,3),
         price per unit numeric(14,2), total numeric(14,2). The user types price or total,
         the other fills in.
-- [ ] Rules
-  - [ ] Purchase → supplier required; Other → note required
-  - [ ] Date can't be in the future (past dates are fine)
-  - [ ] At least one line; quantity above 0; price 0 or more
-  - [ ] The same product may appear on several lines (like 1C)
-  - [ ] Decimals only if the product's unit allows them
-  - [ ] Header and lines saved together (all or nothing)
-  - [ ] Only the creator can edit or delete
-  - [ ] Edit or delete blocked if any product's stock would go below zero
-  - [ ] Archived products and suppliers can't be picked (new or edit); rows that already
+- [x] Rules
+  - [x] Purchase → supplier required; Other → note required
+  - [x] Date can't be in the future (past dates are fine)
+  - [x] At least one line; quantity above 0; price 0 or more
+  - [x] The same product may appear on several lines (like 1C)
+  - [x] Decimals only if the product's unit allows them
+  - [x] Header and lines saved together (all or nothing)
+  - [x] Only the creator can edit or delete
+  - [x] Edit or delete blocked if any product's stock would go below zero
+  - [x] Archived products and suppliers can't be picked (new or edit); rows that already
         have them stay and can be changed or deleted
-- [ ] Supplier delete blocked if a stock-in document uses it (moved from Step 9)
-- [ ] API
-  - [ ] Company Owner and Storekeeper create
-  - [ ] Accountant only sees
-- [ ] Frontend (menu "Stock" → "In"; two-level menu: Stock → In / Out / Balance)
-  - [ ] List page: date, reason, supplier, total, created by; filters by date, reason,
+- [x] Supplier delete blocked if a stock-in document uses it (moved from Step 9)
+- [x] API
+  - [x] Company Owner and Storekeeper create
+  - [x] Accountant only sees
+- [x] Frontend (menu "Stock" → "In"; two-level menu: Stock → In / Out / Balance)
+  - [x] List page: date, reason, supplier, total, created by; filters by date, reason,
         supplier
-  - [ ] Form page: header fields change by reason; lines table (add/remove rows; new row
+  - [x] Form page: header fields change by reason; lines table (add/remove rows; new row
         goes at the bottom like 1C, cursor jumps to its product field); pinned bottom bar
         with row count, document total, Cancel and Save — only the rows scroll
-  - [ ] Unsaved changes warning, only when something changed: our own dialog (Stay /
+  - [x] Unsaved changes warning, only when something changed: our own dialog (Stay /
         Leave) for in-app navigation and Cancel; the browser's own alert for reload or
         closing the tab
-  - [ ] View page: header and lines
-- [ ] Lint and build pass
+  - [x] View page: header and lines
+- [x] Lint and build pass
 - [ ] Checked in browser: add a purchase with several products, open it, edit it,
       delete it
 

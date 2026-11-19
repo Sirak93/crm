@@ -23,6 +23,10 @@ export const ROUTE_NAME = {
   COMPANY_DASHBOARD: 'company-dashboard',
   COMPANY_PRODUCTS: 'company-products',
   COMPANY_SUPPLIERS: 'company-suppliers',
+  COMPANY_STOCK_INS: 'company-stock-ins',
+  COMPANY_STOCK_IN_NEW: 'company-stock-in-new',
+  COMPANY_STOCK_IN: 'company-stock-in',
+  COMPANY_STOCK_IN_EDIT: 'company-stock-in-edit',
   COMPANY_MEASURE_UNITS: 'company-measure-units',
   COMPANY_PRODUCT_CATEGORIES: 'company-product-categories',
   COMPANY_USERS: 'company-users',
@@ -41,5 +45,6 @@ export const SEARCH_DEBOUNCE_MS = 400;
 
 /** Element Plus date picker display format - matches formatDateTime. */
 export const DATE_PICKER_FORMAT = 'DD/MM/YYYY';
+export const DATE_TIME_PICKER_FORMAT = 'DD/MM/YYYY HH:mm';
 
 export type RouteName = typeof ROUTE_NAME[keyof typeof ROUTE_NAME];

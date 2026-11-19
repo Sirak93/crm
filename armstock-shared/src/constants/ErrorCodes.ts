@@ -95,6 +95,14 @@ export const ErrorCodes = {
             CODE: "PRODUCT_CODE_TAKEN",
             STATUS: 409,
         },
+        ARCHIVED: {
+            CODE: "PRODUCT_ARCHIVED",
+            STATUS: 422,
+        },
+        QUANTITY_NOT_WHOLE: {
+            CODE: "PRODUCT_QUANTITY_NOT_WHOLE",
+            STATUS: 422,
+        },
     },
     SUPPLIER: {
         NOT_FOUND: {
@@ -103,6 +111,30 @@ export const ErrorCodes = {
         },
         NAME_TAKEN: {
             CODE: "SUPPLIER_NAME_TAKEN",
+            STATUS: 409,
+        },
+        ARCHIVED: {
+            CODE: "SUPPLIER_ARCHIVED",
+            STATUS: 422,
+        },
+        IN_USE: {
+            CODE: "SUPPLIER_IN_USE",
+            STATUS: 409,
+        },
+    },
+    STOCK_IN: {
+        NOT_FOUND: {
+            CODE: "STOCK_IN_NOT_FOUND",
+            STATUS: 404,
+        },
+        NOT_CREATOR: {
+            CODE: "STOCK_IN_NOT_CREATOR",
+            STATUS: 403,
+        },
+    },
+    STOCK: {
+        NOT_ENOUGH: {
+            CODE: "STOCK_NOT_ENOUGH",
             STATUS: 409,
         },
     },

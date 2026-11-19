@@ -4,15 +4,23 @@ import { BRAND } from 'armstock-shared';
 import logoName from 'armstock-assets/brand/logo_name.svg';
 import AppHeader from '../components/AppHeader.vue';
 import SidebarItem from '../components/SidebarItem.vue';
-import { NAV_ITEMS } from '../config/navigation';
+import SidebarGroup from '../components/SidebarGroup.vue';
+import { isNavGroup, NAV_ITEMS, type INavItem } from '../config/navigation';
+import type { INavGroup } from '../interfaces/INavGroup';
 import { useAuthStore } from '../stores/auth';
 
 const authStore = useAuthStore();
 const isSidebarOpen = ref(false);
 
+// A group shows only the links the role may open, and is hidden when none are left.
 const navItems = computed(() => {
   const role = authStore.user?.role;
-  return role ? NAV_ITEMS.filter((item) => item.roles.includes(role)) : [];
+  if (!role) return [];
+  return NAV_ITEMS.flatMap((entry): (INavItem | INavGroup)[] => {
+    if (!isNavGroup(entry)) return entry.roles.includes(role) ? [entry] : [];
+    const children = entry.children.filter((child) => child.roles.includes(role));
+    return children.length ? [{ ...entry, children }] : [];
+  });
 });
 
 const closeSidebar = () => {
@@ -31,7 +39,10 @@ const closeSidebar = () => {
 
       <nav class="sidebar__nav" :aria-label="$t('nav.menu')">
         <p class="sidebar__label">{{ $t('nav.menu') }}</p>
-        <SidebarItem v-for="item in navItems" :key="item.id" :item="item" @navigate="closeSidebar" />
+        <template v-for="entry in navItems" :key="entry.id">
+          <SidebarGroup v-if="isNavGroup(entry)" :group="entry" @navigate="closeSidebar" />
+          <SidebarItem v-else :item="entry" @navigate="closeSidebar" />
+        </template>
       </nav>
     </aside>
 

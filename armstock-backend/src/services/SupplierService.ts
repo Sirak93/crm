@@ -3,6 +3,7 @@ import { ErrorCodes, SupplierStatus, type IPaginationMeta, type ISupplier, type 
 import { AppDataSource } from "../config/database";
 import { Supplier } from "../models/Supplier";
 import { SupplierContact } from "../models/SupplierContact";
+import { StockIn } from "../models/StockIn";
 import { AppError } from "../utils/AppError";
 import type { SupplierBody, SupplierContactBody, SuppliersQuery } from "../schemas/SupplierSchema";
 
@@ -107,9 +108,14 @@ export class SupplierService {
         return item!;
     }
 
-    /** Contacts go with it (FK cascade). The "used by a stock-in document" check comes with stock-in. */
+    /** Contacts go with it (FK cascade). A supplier used by a stock-in document can only be archived. */
     async delete(companyUuid: string, uuid: string): Promise<void> {
-        await this.repo.remove(await this.findOrFail(companyUuid, uuid));
+        const [supplier, inUse] = await Promise.all([
+            this.findOrFail(companyUuid, uuid),
+            AppDataSource.getRepository(StockIn).exists({ where: { supplierUuid: uuid, companyUuid } }),
+        ]);
+        if (inUse) throw new AppError(ErrorCodes.SUPPLIER.IN_USE, undefined, undefined, { uuid });
+        await this.repo.remove(supplier);
     }
 
     async addContact(companyUuid: string, supplierUuid: string, body: SupplierContactBody): Promise<ISupplierContact> {

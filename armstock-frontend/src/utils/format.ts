@@ -1,3 +1,4 @@
+import { MONEY_DECIMALS, QUANTITY_DECIMALS } from 'armstock-shared';
 import i18n from '../i18n';
 
 const BYTE_UNITS = ['B', 'KB', 'MB', 'GB', 'TB'];
@@ -5,6 +6,20 @@ const BYTE_UNITS = ['B', 'KB', 'MB', 'GB', 'TB'];
 const locale = () => i18n.global.locale.value;
 
 export const formatNumber = (value: number): string => new Intl.NumberFormat(locale()).format(value);
+
+/** Always two decimals, e.g. 1,000.00 */
+export const formatMoney = (value: number): string =>
+  new Intl.NumberFormat(locale(), { minimumFractionDigits: MONEY_DECIMALS, maximumFractionDigits: MONEY_DECIMALS }).format(value);
+
+/** Decimals only when there are any, e.g. 100 or 1.25 */
+export const formatQuantity = (value: number): string =>
+  new Intl.NumberFormat(locale(), { maximumFractionDigits: QUANTITY_DECIMALS }).format(value);
+
+/** Rounds to the given decimals without float drift (1.005 → 1.01). */
+export const roundTo = (value: number, decimals: number): number => Number(`${Math.round(Number(`${value}e${decimals}`))}e-${decimals}`);
+
+/** DD/MM/YYYY HH:mm (24-hour), numbers only like formatDateTime. */
+export const formatDateTimeShort = (iso: string): string => formatDateTime(iso).slice(0, 16);
 
 export const formatBytes = (bytes: number): string => {
   if (bytes <= 0) return '0 B';

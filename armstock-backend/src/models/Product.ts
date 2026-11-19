@@ -13,7 +13,7 @@ import { Company } from "./Company";
 import { MeasureUnit } from "./MeasureUnit";
 import { ProductCategory } from "./ProductCategory";
 
-/** No price field - the current price comes from the last stock-in. */
+/** No price field - its price is the average of all its stock-ins, calculated, never stored. */
 @Entity("products")
 @Index("IDX_products_company_uuid", ["companyUuid"])
 @Index("IDX_products_measure_unit_uuid", ["measureUnitUuid"])

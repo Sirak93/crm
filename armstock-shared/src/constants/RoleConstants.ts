@@ -20,3 +20,9 @@ export const CATALOG_MANAGER_ROLES: readonly UserRole[] = [
     UserRole.COMPANY_OWNER,
     UserRole.STOREKEEPER,
 ];
+
+/** Roles that create stock documents. Accountant only views. */
+export const STOCK_MANAGER_ROLES: readonly UserRole[] = [
+    UserRole.COMPANY_OWNER,
+    UserRole.STOREKEEPER,
+];

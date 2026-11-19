@@ -49,14 +49,14 @@ export const NotificationService = {
     iziToast.error({ title: escapeHtml(title), message: escapeHtml(message), ...toastStyle('var(--danger)') }),
 
   /** A destructive-action confirm. Resolves true when confirmed. */
-  confirm: async (title: string, text: string, confirmText: string): Promise<boolean> => {
+  confirm: async (title: string, text: string, confirmText: string, cancelText = i18n.global.t('common.cancel')): Promise<boolean> => {
     const result = await AppSwal.fire({
       title,
       text,
       icon: 'warning',
       showCancelButton: true,
       confirmButtonText: confirmText,
-      cancelButtonText: i18n.global.t('common.cancel'),
+      cancelButtonText: cancelText,
       focusCancel: true,
     });
     return result.isConfirmed;
