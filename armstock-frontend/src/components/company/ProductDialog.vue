@@ -15,6 +15,8 @@ const props = defineProps<{
   product: IProduct | null;
   units: IMeasureUnit[];
   categories: IProductCategory[];
+  /** Pre-fills the name of a new product, e.g. with what was typed in a search. */
+  initialName?: string;
 }>();
 
 const emit = defineEmits<{ saved: [product: IProduct] }>();
@@ -42,7 +44,7 @@ watch(open, (isOpen) => {
   if (!isOpen) return;
   const p = props.product;
   form.value = {
-    name: p?.name ?? '',
+    name: p?.name ?? props.initialName ?? '',
     code: p?.code ?? '',
     measureUnitUuid: p?.measureUnit.uuid ?? '',
     categoryUuid: p?.category.uuid ?? '',

@@ -1,12 +1,27 @@
 <script setup lang="ts">
-import { nextTick } from 'vue';
-import { MONEY_DECIMALS, MONEY_MAX, QUANTITY_DECIMALS, QUANTITY_MAX } from 'armstock-shared';
+import { computed, nextTick, ref } from 'vue';
+import { useI18n } from 'vue-i18n';
+import {
+  MONEY_DECIMALS,
+  MONEY_MAX,
+  QUANTITY_DECIMALS,
+  QUANTITY_MAX,
+  type IMeasureUnit,
+  type IProduct,
+  type IProductCategory,
+} from 'armstock-shared';
 import { Plus, Trash2 } from 'lucide-vue-next';
 import ProductSelect from './ProductSelect.vue';
+import ProductDialog from './ProductDialog.vue';
+import { MeasureUnitService } from '../../services/MeasureUnitService';
+import { ProductCategoryService } from '../../services/ProductCategoryService';
+import { NotificationService } from '../../services/NotificationService';
+import { useAuthStore } from '../../stores/auth';
+import { AppLogger } from '../../utils/AppLogger';
 import type { IProductOption } from '../../interfaces/IProductOption';
 import type { IStockInLineForm } from '../../interfaces/IStockInLineForm';
 import { roundTo } from '../../utils/format';
-import { emptyLine } from '../../utils/stockInLines';
+import { emptyLine, toProductOption } from '../../utils/stockInLines';
 
 defineProps<{
   /** Highlight rows that are not filled in correctly - set after a failed save. */
@@ -15,7 +30,17 @@ defineProps<{
 
 const lines = defineModel<IStockInLineForm[]>({ required: true });
 
+const { t } = useI18n();
+const authStore = useAuthStore();
+
 const productRefs = new Map<number, { focus: () => void }>();
+
+const canCreateProduct = computed(() => !!authStore.user?.canManageCatalog);
+const isProductDialogOpen = ref(false);
+const newProductName = ref('');
+const newProductRowKey = ref<number | null>(null);
+const units = ref<IMeasureUnit[]>([]);
+const categories = ref<IProductCategory[]>([]);
 
 // Like 1C: the new row goes at the bottom and the cursor jumps to its product.
 const addLine = async () => {
@@ -52,6 +77,30 @@ const onTotalChange = (line: IStockInLineForm) => {
   }
 };
 
+// Units and categories are needed only for the dialog, so they load the first time it opens.
+const openProductDialog = async (line: IStockInLineForm, name: string) => {
+  if (!units.value.length || !categories.value.length) {
+    try {
+      [units.value, categories.value] = await Promise.all([MeasureUnitService.list(), ProductCategoryService.list()]);
+    } catch (error) {
+      AppLogger.error('Failed to load units and categories:', error);
+      NotificationService.error(t('stockIn.lines.productDataError'));
+      return;
+    }
+  }
+  newProductRowKey.value = line.key;
+  newProductName.value = name;
+  isProductDialogOpen.value = true;
+};
+
+/** The new product goes straight onto the row it was created from. */
+const onProductCreated = (product: IProduct) => {
+  const line = lines.value.find((l) => l.key === newProductRowKey.value);
+  if (!line) return;
+  line.productUuid = product.uuid;
+  onProductSelect(line, toProductOption(product));
+};
+
 const setProductRef = (key: number, el: unknown) => {
   if (el) productRefs.set(key, el as { focus: () => void });
 };
@@ -68,9 +117,11 @@ const setProductRef = (key: number, el: unknown) => {
             v-model="row.productUuid"
             :selected="row.product"
             :placeholder="$t('stockIn.lines.productPlaceholder')"
+            :can-create="canCreateProduct"
             :class="{ 'is-invalid': showErrors && !row.productUuid }"
             class="lines-editor__product"
             @select="(product: IProductOption) => onProductSelect(row as IStockInLineForm, product)"
+            @create="(name: string) => openProductDialog(row as IStockInLineForm, name)"
           />
         </template>
       </el-table-column>
@@ -147,6 +198,15 @@ const setProductRef = (key: number, el: unknown) => {
         <span>{{ $t('stockIn.lines.add') }}</span>
       </el-button>
     </div>
+
+    <ProductDialog
+      v-model="isProductDialogOpen"
+      :product="null"
+      :units="units"
+      :categories="categories"
+      :initial-name="newProductName"
+      @saved="onProductCreated"
+    />
   </div>
 </template>
 

@@ -1,7 +1,17 @@
-import type { IStockInLine } from 'armstock-shared';
+import type { IProduct, IStockInLine } from 'armstock-shared';
+import type { IProductOption } from '../interfaces/IProductOption';
 import type { IStockInLineForm } from '../interfaces/IStockInLineForm';
 
 let nextKey = 0;
+
+export const toProductOption = (product: IProduct): IProductOption => ({
+  uuid: product.uuid,
+  name: product.name,
+  code: product.code,
+  status: product.status,
+  unitShortName: product.measureUnit.shortName,
+  allowsDecimals: product.measureUnit.allowsDecimals,
+});
 
 export const emptyLine = (): IStockInLineForm => ({
   key: nextKey++,

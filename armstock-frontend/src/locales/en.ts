@@ -445,6 +445,9 @@ export default {
       total: 'Total',
       add: 'Add row',
       remove: 'Remove row {row}',
+      newProduct: 'New product',
+      newProductNamed: 'New product "{name}"',
+      productDataError: 'Could not load units and categories.',
     },
   },
   unsavedChanges: {
