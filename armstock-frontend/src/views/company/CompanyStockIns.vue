@@ -1,13 +1,14 @@
 <script setup lang="ts">
 import { computed, ref } from 'vue';
 import { useRouter } from 'vue-router';
-import type { IPaginationMeta, IStockIn } from 'armstock-shared';
+import type { IPaginationMeta, IStockIn, IStockInSummary } from 'armstock-shared';
 import { ArrowDownToLine, Plus } from 'lucide-vue-next';
 import PageHeader from '../../components/PageHeader.vue';
 import AppCard from '../../components/AppCard.vue';
 import LoadError from '../../components/LoadError.vue';
 import StockInFilters from '../../components/company/StockInFilters.vue';
 import StockInsTable from '../../components/company/StockInsTable.vue';
+import StockInSummary from '../../components/company/StockInSummary.vue';
 import { StockInService } from '../../services/StockInService';
 import { useStockInDelete } from '../../composables/useStockInDelete';
 import { useAuthStore } from '../../stores/auth';
@@ -29,6 +30,8 @@ const isLoading = ref(true);
 const hasLoaded = ref(false);
 const hasError = ref(false);
 const busyUuid = ref<string | null>(null);
+const summary = ref<IStockInSummary | null>(null);
+const isSummaryLoading = ref(false);
 
 const hasFilters = computed(() => Object.values(filters.value).some(Boolean));
 
@@ -48,9 +51,27 @@ const load = async (page = meta.value.page) => {
   }
 };
 
+// Covers every page, so it reloads only when the filters or the documents change - not on paging.
+// Not critical: if it fails, the list still works and the line just stays hidden.
+let lastSummaryRequest = 0;
+const loadSummary = async () => {
+  const request = ++lastSummaryRequest;
+  isSummaryLoading.value = true;
+  try {
+    const result = await StockInService.summary(filters.value);
+    if (request === lastSummaryRequest) summary.value = result;
+  } catch (error) {
+    AppLogger.error('Failed to load the stock-in summary:', error);
+    if (request === lastSummaryRequest) summary.value = null;
+  } finally {
+    if (request === lastSummaryRequest) isSummaryLoading.value = false;
+  }
+};
+
 const onFiltersChange = (newFilters: IStockInFilters) => {
   filters.value = newFilters;
   load(1);
+  loadSummary();
 };
 
 const openView = (stockIn: IStockIn) => router.push({ name: ROUTE_NAME.COMPANY_STOCK_IN, params: { uuid: stockIn.uuid } });
@@ -61,7 +82,10 @@ const onDelete = async (stockIn: IStockIn) => {
   try {
     if (!(await deleteStockIn(stockIn))) return;
     // Stays on the same page unless it became empty.
-    await load(stockIns.value.length === 1 && meta.value.page > 1 ? meta.value.page - 1 : meta.value.page);
+    await Promise.all([
+      load(stockIns.value.length === 1 && meta.value.page > 1 ? meta.value.page - 1 : meta.value.page),
+      loadSummary(),
+    ]);
   } finally {
     busyUuid.value = null;
   }
@@ -84,6 +108,8 @@ const onDelete = async (stockIn: IStockIn) => {
     </PageHeader>
 
     <StockInFilters @change="onFiltersChange" />
+
+    <StockInSummary v-if="summary && summary.documentCount > 0 && !hasError" :summary="summary" :is-loading="isSummaryLoading" />
 
     <LoadError v-if="hasError && !isLoading" :message="$t('stockIn.loadError')" @retry="load()" />
 

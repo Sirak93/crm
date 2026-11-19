@@ -57,13 +57,16 @@ export const StockInBodySchema = z
     // Supplier fields belong to a purchase only.
     .transform((body) => (body.reason === StockInReason.PURCHASE ? body : { ...body, supplierUuid: null, invoiceNumber: null }));
 
-export const StockInsQuerySchema = PaginatedSearchQuerySchema.omit({ search: true }).extend({
+export const StockInFiltersSchema = z.object({
     reason: z.coerce.number().pipe(z.enum(StockInReason)).optional(),
     supplierUuid: z.uuid().optional(),
     dateFrom: z.iso.datetime().optional(),
     dateTo: z.iso.datetime().optional(),
 });
 
+export const StockInsQuerySchema = PaginatedSearchQuerySchema.omit({ search: true }).extend(StockInFiltersSchema.shape);
+
 export type StockInBody = z.infer<typeof StockInBodySchema>;
 export type StockInLineBody = StockInBody["lines"][number];
+export type StockInFilters = z.infer<typeof StockInFiltersSchema>;
 export type StockInsQuery = z.infer<typeof StockInsQuerySchema>;

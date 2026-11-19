@@ -1,7 +1,7 @@
 import { Response } from "express";
 import { AuthRequest } from "../middlewares/AuthMiddleware";
 import { StockInService } from "../services/StockInService";
-import type { StockInBody, StockInsQuery } from "../schemas/StockInSchema";
+import type { StockInBody, StockInFilters, StockInsQuery } from "../schemas/StockInSchema";
 import { AppResponse } from "../utils/AppResponse";
 import { requireCompanyUuid } from "../utils/requireCompanyUuid";
 
@@ -12,6 +12,10 @@ export class StockInController {
     list = async (req: AuthRequest, res: Response) => {
         const { items, meta } = await this.service.list(requireCompanyUuid(req), req.query as unknown as StockInsQuery);
         return AppResponse.send(res, items, meta);
+    };
+
+    summary = async (req: AuthRequest, res: Response) => {
+        return AppResponse.send(res, await this.service.summary(requireCompanyUuid(req), req.query as unknown as StockInFilters));
     };
 
     get = async (req: AuthRequest, res: Response) => {

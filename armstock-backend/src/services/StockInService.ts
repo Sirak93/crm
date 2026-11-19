@@ -1,4 +1,4 @@
-import { In, type EntityManager } from "typeorm";
+import { In, type EntityManager, type SelectQueryBuilder } from "typeorm";
 import {
     ErrorCodes,
     ProductStatus,
@@ -7,6 +7,7 @@ import {
     type IStockIn,
     type IStockInDetails,
     type IStockInLine,
+    type IStockInSummary,
 } from "armstock-shared";
 import { AppDataSource } from "../config/database";
 import { StockIn } from "../models/StockIn";
@@ -17,7 +18,7 @@ import { User } from "../models/User";
 import { AppError } from "../utils/AppError";
 import { formatDocumentNumber, isUniqueViolation } from "../utils/documentNumber";
 import { StockService } from "./StockService";
-import type { StockInBody, StockInsQuery } from "../schemas/StockInSchema";
+import type { StockInBody, StockInFilters, StockInsQuery } from "../schemas/StockInSchema";
 
 const NUMBER_PREFIX = "IN";
 const NUMBER_ATTEMPTS = 3;
@@ -138,16 +139,36 @@ export class StockInService {
         }));
     }
 
-    async list(companyUuid: string, query: StockInsQuery): Promise<{ items: IStockIn[]; meta: IPaginationMeta }> {
-        const { page, pageSize, reason, supplierUuid, dateFrom, dateTo } = query;
-
+    /** The same filters for the list and its summary, so the two always match. */
+    private filtered(companyUuid: string, filters: StockInFilters): SelectQueryBuilder<StockIn> {
+        const { reason, supplierUuid, dateFrom, dateTo } = filters;
         const qb = this.repo.createQueryBuilder("doc").where("doc.companyUuid = :companyUuid", { companyUuid });
         if (reason) qb.andWhere("doc.reason = :reason", { reason });
         if (supplierUuid) qb.andWhere("doc.supplierUuid = :supplierUuid", { supplierUuid });
         if (dateFrom) qb.andWhere("doc.date >= :dateFrom", { dateFrom: new Date(dateFrom) });
         if (dateTo) qb.andWhere("doc.date <= :dateTo", { dateTo: new Date(dateTo) });
+        return qb;
+    }
 
-        const [rows, total] = await qb
+    async summary(companyUuid: string, filters: StockInFilters): Promise<IStockInSummary> {
+        const row = await this.filtered(companyUuid, filters)
+            .leftJoin(StockInLine, "line", "line.stockInUuid = doc.uuid")
+            .select("COUNT(DISTINCT doc.uuid)", "documentCount")
+            .addSelect("COUNT(DISTINCT line.productUuid)", "productCount")
+            .addSelect("COALESCE(SUM(line.total), 0)", "total")
+            .getRawOne<{ documentCount: string; productCount: string; total: string }>();
+
+        return {
+            documentCount: Number(row?.documentCount ?? 0),
+            productCount: Number(row?.productCount ?? 0),
+            total: Number(row?.total ?? 0),
+        };
+    }
+
+    async list(companyUuid: string, query: StockInsQuery): Promise<{ items: IStockIn[]; meta: IPaginationMeta }> {
+        const { page, pageSize } = query;
+
+        const [rows, total] = await this.filtered(companyUuid, query)
             .orderBy("doc.date", "DESC")
             .addOrderBy("doc.createdAt", "DESC")
             .skip((page - 1) * pageSize)

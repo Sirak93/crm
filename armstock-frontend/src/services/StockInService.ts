@@ -1,4 +1,4 @@
-import type { IAppResponse, IPaginationMeta, IStockIn, IStockInDetails, IStockInPayload } from 'armstock-shared';
+import type { IAppResponse, IPaginationMeta, IStockIn, IStockInDetails, IStockInPayload, IStockInSummary } from 'armstock-shared';
 import ApiService from './ApiService';
 import type { IStockInFilters } from '../interfaces/IStockInFilters';
 
@@ -9,6 +9,11 @@ export const StockInService = {
       params: { page, pageSize, ...filters },
     });
     return { items: response.data.data!, meta: response.data.meta as IPaginationMeta };
+  },
+
+  async summary(filters: IStockInFilters): Promise<IStockInSummary> {
+    const response = await ApiService.get<IAppResponse<IStockInSummary>>('/stock-ins/summary', { params: filters });
+    return response.data.data!;
   },
 
   async get(uuid: string): Promise<IStockInDetails> {

@@ -392,6 +392,11 @@ export default {
     deleted: 'Document deleted.',
     deleteConfirmTitle: 'Delete {number}?',
     deleteConfirmText: 'The document and all its rows will be removed. This cannot be undone.',
+    summary: {
+      documents: 'Documents',
+      products: 'Products',
+      total: 'Total',
+    },
     reasons: {
       purchase: 'Purchase',
       initialStock: 'Initial stock',

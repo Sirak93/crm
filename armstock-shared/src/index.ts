@@ -39,6 +39,7 @@ export type * from "./interfaces/IStockInDetails";
 export type * from "./interfaces/IStockInLine";
 export type * from "./interfaces/IStockInLinePayload";
 export type * from "./interfaces/IStockInPayload";
+export type * from "./interfaces/IStockInSummary";
 export type * from "./interfaces/ISupplier";
 export type * from "./interfaces/ISupplierContact";
 export type * from "./interfaces/ISupplierContactPayload";
