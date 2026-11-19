@@ -79,6 +79,7 @@ const setProductRef = (key: number, el: unknown) => {
           <el-input-number
             v-model="row.quantity"
             :controls="false"
+            :disabled="!row.productUuid"
             :min="0"
             :max="QUANTITY_MAX"
             :precision="row.product?.allowsDecimals === false ? 0 : QUANTITY_DECIMALS"
@@ -99,6 +100,7 @@ const setProductRef = (key: number, el: unknown) => {
           <el-input-number
             v-model="row.price"
             :controls="false"
+            :disabled="!row.productUuid"
             :min="0"
             :max="MONEY_MAX"
             :precision="MONEY_DECIMALS"
@@ -114,6 +116,7 @@ const setProductRef = (key: number, el: unknown) => {
           <el-input-number
             v-model="row.total"
             :controls="false"
+            :disabled="!row.productUuid"
             :min="0"
             :max="MONEY_MAX"
             :precision="MONEY_DECIMALS"
@@ -159,7 +162,7 @@ const setProductRef = (key: number, el: unknown) => {
 
 .lines-editor :deep(.is-invalid .el-input__wrapper),
 .lines-editor :deep(.is-invalid .el-select__wrapper) {
-  box-shadow: 0 0 0 1px var(--danger) inset;
+  border-color: var(--danger) !important;
 }
 
 .lines-editor__remove {

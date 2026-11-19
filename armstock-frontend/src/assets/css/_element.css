@@ -101,6 +101,20 @@
     font-family: inherit !important;
 }
 
+/* The base rules above force a white background, which would hide Element Plus's disabled look. */
+.el-input.is-disabled .el-input__wrapper,
+.el-select__wrapper.is-disabled,
+.el-textarea.is-disabled .el-textarea__inner {
+    background-color: var(--bg-muted) !important;
+    border-color: var(--border-dark) !important;
+    cursor: not-allowed;
+}
+
+.el-input.is-disabled .el-input__inner,
+.el-textarea.is-disabled .el-textarea__inner {
+    color: var(--text-light) !important;
+}
+
 .el-dropdown-menu {
     padding: 4px !important;
     /* Its own background would otherwise cover the popper's rounded corners. */
