@@ -54,7 +54,8 @@ defineEmits<{
           </div>
           <div class="contact__actions">
             <el-button
-              text
+              plain
+              circle
               size="small"
               :aria-label="$t('supplierContacts.editFor', { name: contact.name })"
               @click="$emit('editContact', contact)"
@@ -62,7 +63,8 @@ defineEmits<{
               <Pencil :size="14" aria-hidden="true" />
             </el-button>
             <el-button
-              text
+              plain
+              circle
               size="small"
               type="danger"
               :loading="deletingContactUuid === contact.uuid"
@@ -203,6 +205,7 @@ defineEmits<{
 .contact__actions {
   display: flex;
   flex-shrink: 0;
+  gap: 0.25rem;
 }
 
 .contact__actions .el-button + .el-button {

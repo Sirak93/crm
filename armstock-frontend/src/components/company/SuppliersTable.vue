@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { ref } from 'vue';
 import { SupplierStatus, type ISupplier, type ISupplierContact } from 'armstock-shared';
 import { Archive, ArchiveRestore, Pencil, Trash2 } from 'lucide-vue-next';
 import RowActionsMenu from '../RowActionsMenu.vue';
@@ -25,6 +26,17 @@ const emit = defineEmits<{
 const ACTION = { EDIT: 'edit', ARCHIVE: 'archive', RESTORE: 'restore', DELETE: 'delete' } as const;
 type Action = typeof ACTION[keyof typeof ACTION];
 
+// Element Plus puts no class on an open row, so it is tracked here for styling.
+const openUuids = ref(new Set<string>());
+const onExpandChange = (row: ISupplier, expanded: ISupplier[] | boolean) => {
+  const isOpen = Array.isArray(expanded) ? expanded.some((r) => r.uuid === row.uuid) : expanded;
+  const next = new Set(openUuids.value);
+  if (isOpen) next.add(row.uuid);
+  else next.delete(row.uuid);
+  openUuids.value = next;
+};
+const rowClassName = ({ row }: { row: ISupplier }) => (openUuids.value.has(row.uuid) ? 'is-open' : '');
+
 const onAction = (supplier: ISupplier, action: Action) => {
   if (action === ACTION.EDIT) emit('edit', supplier);
   else if (action === ACTION.DELETE) emit('delete', supplier);
@@ -33,7 +45,13 @@ const onAction = (supplier: ISupplier, action: Action) => {
 </script>
 
 <template>
-  <el-table :data="suppliers" class="app-table app-table--nowrap" row-key="uuid">
+  <el-table
+    :data="suppliers"
+    class="app-table app-table--nowrap"
+    row-key="uuid"
+    :row-class-name="rowClassName"
+    @expand-change="onExpandChange"
+  >
     <el-table-column type="expand">
       <template #default="{ row }">
         <SupplierDetails
@@ -95,5 +113,20 @@ const onAction = (supplier: ISupplier, action: Action) => {
 .app-table :deep(.el-table__expanded-cell) {
   padding: 0;
   background-color: var(--bg-app);
+}
+
+/* An open firm and its expanded area read as one block: tinted row, left accent line, closing border. */
+.app-table :deep(.el-table__row.is-open > td),
+.app-table :deep(.el-table__row.is-open:hover > td) {
+  background-color: var(--primary-light);
+}
+
+.app-table :deep(.el-table__row.is-open > td:first-child),
+.app-table :deep(.el-table__row.is-open + tr > .el-table__expanded-cell) {
+  box-shadow: inset 3px 0 0 var(--primary);
+}
+
+.app-table :deep(.el-table__row.is-open + tr > .el-table__expanded-cell) {
+  border-bottom: 2px solid var(--border-strong);
 }
 </style>
