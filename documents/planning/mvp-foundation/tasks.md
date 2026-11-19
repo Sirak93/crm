@@ -238,16 +238,24 @@ Each is its own top-level menu item.
   - [x] Status instead of active yes/no: `SupplierStatus` Active (10), Archived (20);
         list starts on Active
   - [x] Delete allowed only if no stock-in document uses the supplier, otherwise archive
-- [ ] `Supplier` table: company, name, contact person, phone, email, tax ID, note,
-      status. Only name is required.
-- [ ] API
+  - [x] Several contacts per supplier (`supplier_contacts`); phone moves to contacts,
+        no email
+  - [x] Name unique inside the company (ignoring case, archived included)
+  - [x] Accountant manages suppliers too
+- [ ] `Supplier` table (`suppliers`): company, name, tax ID, note, status. Only name is
+      required.
+- [ ] `SupplierContact` table (`supplier_contacts`): supplier, name (required), position,
+      phone
+- [ ] API (`/api/suppliers`, own company only)
   - [ ] Company Owner, Accountant, and Storekeeper manage (add, edit, archive/restore,
         delete)
-  - [ ] Delete — always allowed for now; the "no stock-in uses it" check comes in Step 10
+  - [ ] Supplier and its contacts saved together (all or nothing)
+  - [ ] Delete removes the contacts too; always allowed for now, the "no stock-in uses
+        it" check comes in Step 10
   - [ ] List: search by name, filter by status, paging
-- [ ] Frontend: Suppliers page
-  - [ ] Table with filters
-  - [ ] Add/edit dialog
+- [ ] Frontend: Suppliers page (menu "Suppliers")
+  - [ ] Table with filters (starts on Active): firm name, tax ID, contacts, status
+  - [ ] Add/edit dialog: "Firm name", tax ID, note, and a contacts list (add/remove rows)
   - [ ] Archive / Restore and Delete (with confirm) in the "⋯" menu
 - [ ] Lint and build pass
 - [ ] Checked in browser: add, edit, find, archive, and delete suppliers

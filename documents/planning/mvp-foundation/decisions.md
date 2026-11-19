@@ -120,10 +120,18 @@ Reasons are fixed enums in code (shown as a dropdown in the form).
 
 ## Suppliers
 
-Name, contact person, phone, email, tax ID (ՀՎՀՀ), note (all optional except name), and a
-status (`SupplierStatus`: Active, Archived — archived = hidden from new documents, kept in
-old ones). A supplier can be deleted only if no stock-in document uses it; otherwise it
-is archived. The list starts on Active.
+- Supplier (`suppliers`): name (shown as "Firm name"), tax ID (ՀՎՀՀ), note, status. Only
+  the name is required. The name is unique inside the company (ignoring case, archived
+  ones included).
+- Status (`SupplierStatus`: Active, Archived — archived = hidden from new documents, kept
+  in old ones). The list starts on Active.
+- Contacts (`supplier_contacts`): a supplier has zero or more contacts — name (shown as
+  "Contact name", required), position (free text, e.g. Manager, Driver), phone. E.g. a
+  firm's manager takes the orders and a second person delivers. Contacts are saved
+  together with the supplier (all or nothing) and deleted with it.
+- A supplier can be deleted only if no stock-in document uses it; otherwise it is
+  archived.
+- Company Owner, Storekeeper, and Accountant all manage suppliers (`COMPANY_LOGIN_ROLES`).
 
 ## Stack
 
