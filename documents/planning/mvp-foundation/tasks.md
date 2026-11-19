@@ -27,7 +27,7 @@ Decisions behind these steps: [decisions.md](decisions.md).
 - [x] Step 7 — Product categories
 - [x] Step 8 — Products
 - [x] Step 9 — Suppliers
-- [ ] Step 10 — Stock-in documents
+- [x] Step 10 — Stock-in documents
 - [ ] Step 11 — Stock view
 - [ ] Step 12 — Stock-out documents
 - [ ] Step 13 — Redis cache
@@ -304,7 +304,7 @@ Each is its own top-level menu item.
         closing the tab
   - [x] View page: header and lines
 - [x] Lint and build pass
-- [ ] Checked in browser: add a purchase with several products, open it, edit it,
+- [x] Checked in browser: add a purchase with several products, open it, edit it,
       delete it
 
 ## Step 11 — Stock view

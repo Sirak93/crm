@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import type { INavItem } from '../config/navigation';
+import type { INavItem } from '../interfaces/INavItem';
 
 defineProps<{
   item: INavItem;

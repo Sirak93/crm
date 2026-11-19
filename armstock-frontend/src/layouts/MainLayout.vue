@@ -5,8 +5,9 @@ import logoName from 'armstock-assets/brand/logo_name.svg';
 import AppHeader from '../components/AppHeader.vue';
 import SidebarItem from '../components/SidebarItem.vue';
 import SidebarGroup from '../components/SidebarGroup.vue';
-import { isNavGroup, NAV_ITEMS, type INavItem } from '../config/navigation';
+import { isNavGroup, NAV_ITEMS } from '../config/navigation';
 import type { INavGroup } from '../interfaces/INavGroup';
+import type { INavItem } from '../interfaces/INavItem';
 import { useAuthStore } from '../stores/auth';
 
 const authStore = useAuthStore();

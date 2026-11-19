@@ -1,4 +1,3 @@
-import type { Component } from 'vue';
 import {
   ArrowDownToLine,
   Boxes,
@@ -14,16 +13,9 @@ import {
   Users,
 } from 'lucide-vue-next';
 import { COMPANY_LOGIN_ROLES, UserRole } from 'armstock-shared';
-import { ROUTE_NAME, type RouteName } from '../constants/constants';
+import { ROUTE_NAME } from '../constants/constants';
 import type { INavGroup } from '../interfaces/INavGroup';
-
-export interface INavItem {
-  id: string;
-  labelKey: string;
-  icon: Component;
-  routeName: RouteName;
-  roles: UserRole[];
-}
+import type { INavItem } from '../interfaces/INavItem';
 
 /** Sidebar menu; each user sees only the items for their role. */
 export const NAV_ITEMS: (INavItem | INavGroup)[] = [
