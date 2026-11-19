@@ -18,6 +18,13 @@ export const formatQuantity = (value: number): string =>
 /** Rounds to the given decimals without float drift (1.005 → 1.01). */
 export const roundTo = (value: number, decimals: number): number => Number(`${Math.round(Number(`${value}e${decimals}`))}e-${decimals}`);
 
+/** For date pickers: greys out every day after today. */
+export const isFutureDay = (date: Date): boolean => {
+  const endOfToday = new Date();
+  endOfToday.setHours(23, 59, 59, 999);
+  return date > endOfToday;
+};
+
 /** DD/MM/YYYY HH:mm (24-hour), numbers only like formatDateTime. */
 export const formatDateTimeShort = (iso: string): string => formatDateTime(iso).slice(0, 16);
 

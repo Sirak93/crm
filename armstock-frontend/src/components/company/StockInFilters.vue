@@ -5,8 +5,12 @@ import SupplierSelect from './SupplierSelect.vue';
 import { DATE_PICKER_FORMAT } from '../../constants/constants';
 import { STOCK_IN_REASON_LABEL, STOCK_IN_REASONS } from '../../constants/stockInReasons';
 import type { IStockInFilters } from '../../interfaces/IStockInFilters';
+import { isFutureDay } from '../../utils/format';
+import { useDateRangeShortcuts } from '../../composables/useDateRangeShortcuts';
 
 const emit = defineEmits<{ change: [filters: IStockInFilters] }>();
+
+const dateShortcuts = useDateRangeShortcuts();
 
 const form = reactive({
   dateRange: null as [string, string] | null,
@@ -37,6 +41,8 @@ onMounted(emitChange);
       type="daterange"
       value-format="YYYY-MM-DD"
       :format="DATE_PICKER_FORMAT"
+      :disabled-date="isFutureDay"
+      :shortcuts="dateShortcuts"
       :range-separator="$t('stockIn.filters.to')"
       :start-placeholder="$t('stockIn.filters.startDate')"
       :end-placeholder="$t('stockIn.filters.endDate')"

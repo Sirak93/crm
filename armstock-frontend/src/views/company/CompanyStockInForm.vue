@@ -19,7 +19,7 @@ import { DATE_TIME_PICKER_FORMAT, REQUIRED_RULE_TRIGGER, ROUTE_NAME } from '../.
 import { STOCK_IN_REASON_LABEL, STOCK_IN_REASONS } from '../../constants/stockInReasons';
 import type { IStockInLineForm } from '../../interfaces/IStockInLineForm';
 import type { ISupplierOption } from '../../interfaces/ISupplierOption';
-import { formatMoney, formatNumber, roundTo } from '../../utils/format';
+import { formatMoney, formatNumber, isFutureDay, roundTo } from '../../utils/format';
 import { emptyLine, isLineValid, toLineForm } from '../../utils/stockInLines';
 import { AppLogger } from '../../utils/AppLogger';
 
@@ -89,13 +89,6 @@ const rules: FormRules = {
   ],
   supplierUuid: [requiredWhen(() => isPurchase.value, 'stockIn.form.supplierRequired')],
   note: [requiredWhen(() => form.value.reason === StockInReason.OTHER, 'stockIn.form.noteRequired')],
-};
-
-/** Whole future days are greyed out; a later time today is caught by the rule above. */
-const disabledDate = (date: Date) => {
-  const endOfToday = new Date();
-  endOfToday.setHours(23, 59, 59, 999);
-  return date > endOfToday;
 };
 
 const listRoute = { name: ROUTE_NAME.COMPANY_STOCK_INS };
@@ -199,7 +192,7 @@ const save = async () => {
                 v-model="form.date"
                 type="datetime"
                 :format="DATE_TIME_PICKER_FORMAT"
-                :disabled-date="disabledDate"
+                :disabled-date="isFutureDay"
                 :clearable="false"
                 class="stock-in-form__date"
               />

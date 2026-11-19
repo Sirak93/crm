@@ -457,6 +457,14 @@ export default {
       productDataError: 'Could not load units and categories.',
     },
   },
+  dateRanges: {
+    today: 'Today',
+    last7Days: 'Last 7 days',
+    thisMonth: 'This month',
+    lastMonth: 'Last month',
+    thisYear: 'This year',
+    lastYear: 'Last year',
+  },
   unsavedChanges: {
     title: 'Leave without saving?',
     text: 'You have unsaved changes. They will be lost.',
