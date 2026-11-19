@@ -26,7 +26,7 @@ Decisions behind these steps: [decisions.md](decisions.md).
 - [x] Step 6 — Units
 - [x] Step 7 — Product categories
 - [x] Step 8 — Products
-- [ ] Step 9 — Suppliers
+- [x] Step 9 — Suppliers
 - [ ] Step 10 — Stock-in documents
 - [ ] Step 11 — Stock view
 - [ ] Step 12 — Stock-out documents
@@ -260,7 +260,7 @@ Each is its own top-level menu item.
         popup opens
   - [x] Archive / Restore and Delete (with confirm) in the "⋯" menu
 - [x] Lint and build pass
-- [ ] Checked in browser: add, edit, find, archive, and delete suppliers
+- [x] Checked in browser: add, edit, find, archive, and delete suppliers
 
 ## Step 10 — Stock-in documents
 
