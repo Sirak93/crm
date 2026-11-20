@@ -4,6 +4,7 @@ import { Archive, ArchiveRestore, Ban, CircleCheck, Pencil } from 'lucide-vue-ne
 import RowActionsMenu from '../RowActionsMenu.vue';
 import { USER_STATUS_TAG } from '../../constants/statusTags';
 import { ROLE_LABEL_KEY } from '../../constants/roleLabels';
+import { ROW_ACTION, type RowAction } from '../../constants/rowActions';
 
 const props = defineProps<{
   users: ICompanyUser[];
@@ -18,21 +19,19 @@ const emit = defineEmits<{
   setStatus: [user: ICompanyUser, status: UserStatus];
 }>();
 
-const ACTION = { EDIT: 'edit', BLOCK: 'block', ACTIVATE: 'activate', ARCHIVE: 'archive', RESTORE: 'restore' } as const;
-type Action = typeof ACTION[keyof typeof ACTION];
-
-const STATUS_BY_ACTION: Record<Exclude<Action, typeof ACTION.EDIT>, UserStatus> = {
-  [ACTION.BLOCK]: UserStatus.BLOCKED,
-  [ACTION.ACTIVATE]: UserStatus.ACTIVE,
-  [ACTION.ARCHIVE]: UserStatus.ARCHIVED,
-  [ACTION.RESTORE]: UserStatus.ACTIVE,
+const STATUS_BY_ACTION: Partial<Record<RowAction, UserStatus>> = {
+  [ROW_ACTION.BLOCK]: UserStatus.BLOCKED,
+  [ROW_ACTION.ACTIVATE]: UserStatus.ACTIVE,
+  [ROW_ACTION.ARCHIVE]: UserStatus.ARCHIVED,
+  [ROW_ACTION.RESTORE]: UserStatus.ACTIVE,
 };
 
 const isSelf = (user: ICompanyUser) => user.uuid === props.currentUserUuid;
 
-const onAction = (user: ICompanyUser, action: Action) => {
-  if (action === ACTION.EDIT) emit('edit', user);
-  else emit('setStatus', user, STATUS_BY_ACTION[action]);
+const onAction = (user: ICompanyUser, action: RowAction) => {
+  const status = STATUS_BY_ACTION[action];
+  if (action === ROW_ACTION.EDIT) emit('edit', user);
+  else if (status) emit('setStatus', user, status);
 };
 </script>
 
@@ -62,27 +61,27 @@ const onAction = (user: ICompanyUser, action: Action) => {
         <RowActionsMenu
           :label="$t('companyUsers.actionsFor', { name: `${row.firstName} ${row.lastName}` })"
           :disabled="updatingUuid === row.uuid"
-          @command="(action) => onAction(row as ICompanyUser, action as Action)"
+          @command="(action) => onAction(row as ICompanyUser, action as RowAction)"
         >
-          <el-dropdown-item :command="ACTION.EDIT">
+          <el-dropdown-item :command="ROW_ACTION.EDIT">
             <Pencil :size="16" aria-hidden="true" />
             <span>{{ $t('companyUsers.actions.edit') }}</span>
           </el-dropdown-item>
           <template v-if="!isSelf(row as ICompanyUser)">
-            <el-dropdown-item v-if="row.status === UserStatus.ARCHIVED" :command="ACTION.RESTORE">
+            <el-dropdown-item v-if="row.status === UserStatus.ARCHIVED" :command="ROW_ACTION.RESTORE">
               <ArchiveRestore :size="16" aria-hidden="true" />
               <span>{{ $t('companyUsers.actions.restore') }}</span>
             </el-dropdown-item>
             <template v-else>
-              <el-dropdown-item v-if="row.status === UserStatus.ACTIVE" :command="ACTION.BLOCK" class="dropdown-item--danger">
+              <el-dropdown-item v-if="row.status === UserStatus.ACTIVE" :command="ROW_ACTION.BLOCK" class="dropdown-item--danger">
                 <Ban :size="16" aria-hidden="true" />
                 <span>{{ $t('companyUsers.actions.block') }}</span>
               </el-dropdown-item>
-              <el-dropdown-item v-else :command="ACTION.ACTIVATE">
+              <el-dropdown-item v-else :command="ROW_ACTION.ACTIVATE">
                 <CircleCheck :size="16" aria-hidden="true" />
                 <span>{{ $t('companyUsers.actions.activate') }}</span>
               </el-dropdown-item>
-              <el-dropdown-item :command="ACTION.ARCHIVE">
+              <el-dropdown-item :command="ROW_ACTION.ARCHIVE">
                 <Archive :size="16" aria-hidden="true" />
                 <span>{{ $t('companyUsers.actions.archive') }}</span>
               </el-dropdown-item>

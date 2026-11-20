@@ -6,6 +6,7 @@ import RowActionsMenu from '../RowActionsMenu.vue';
 import { ROUTE_NAME } from '../../constants/constants';
 import { STOCK_OUT_DEPARTMENT_LABEL, STOCK_OUT_REASON_LABEL } from '../../constants/stockOutReasons';
 import { formatDateTimeShort, formatNumber } from '../../utils/format';
+import { ROW_ACTION, type RowAction } from '../../constants/rowActions';
 
 defineProps<{
   stockOuts: IStockOut[];
@@ -23,11 +24,8 @@ const emit = defineEmits<{
 
 const { t } = useI18n();
 
-const ACTION = { EDIT: 'edit', DELETE: 'delete' } as const;
-type Action = typeof ACTION[keyof typeof ACTION];
-
-const onAction = (stockOut: IStockOut, action: Action) => {
-  if (action === ACTION.EDIT) emit('edit', stockOut);
+const onAction = (stockOut: IStockOut, action: RowAction) => {
+  if (action === ROW_ACTION.EDIT) emit('edit', stockOut);
   else emit('delete', stockOut);
 };
 
@@ -79,13 +77,13 @@ const destination = (doc: IStockOut): string => {
             v-if="row.createdBy.uuid === currentUserUuid"
             :label="$t('stockOut.actionsFor', { number: row.number })"
             :disabled="busyUuid === row.uuid"
-            @command="(action) => onAction(row as IStockOut, action as Action)"
+            @command="(action) => onAction(row as IStockOut, action as RowAction)"
           >
-            <el-dropdown-item :command="ACTION.EDIT">
+            <el-dropdown-item :command="ROW_ACTION.EDIT">
               <Pencil :size="16" aria-hidden="true" />
               <span>{{ $t('stockOut.actions.edit') }}</span>
             </el-dropdown-item>
-            <el-dropdown-item :command="ACTION.DELETE" class="dropdown-item--danger">
+            <el-dropdown-item :command="ROW_ACTION.DELETE" class="dropdown-item--danger">
               <Trash2 :size="16" aria-hidden="true" />
               <span>{{ $t('stockOut.actions.delete') }}</span>
             </el-dropdown-item>

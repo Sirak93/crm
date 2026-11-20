@@ -3,6 +3,7 @@ import { CompanyStatus, type ICompany } from 'armstock-shared';
 import { Ban, CircleCheck, Pencil, Users } from 'lucide-vue-next';
 import RowActionsMenu from '../RowActionsMenu.vue';
 import { COMPANY_STATUS_TAG } from '../../constants/statusTags';
+import { ROW_ACTION, type RowAction } from '../../constants/rowActions';
 
 defineProps<{
   companies: ICompany[];
@@ -16,13 +17,10 @@ const emit = defineEmits<{
   setStatus: [company: ICompany, status: CompanyStatus];
 }>();
 
-const ACTION = { EDIT: 'edit', USERS: 'users', BLOCK: 'block', ACTIVATE: 'activate' } as const;
-type Action = typeof ACTION[keyof typeof ACTION];
-
-const onAction = (company: ICompany, action: Action) => {
-  if (action === ACTION.EDIT) emit('edit', company);
-  else if (action === ACTION.USERS) emit('users', company);
-  else emit('setStatus', company, action === ACTION.BLOCK ? CompanyStatus.BLOCKED : CompanyStatus.ACTIVE);
+const onAction = (company: ICompany, action: RowAction) => {
+  if (action === ROW_ACTION.EDIT) emit('edit', company);
+  else if (action === ROW_ACTION.USERS) emit('users', company);
+  else emit('setStatus', company, action === ROW_ACTION.BLOCK ? CompanyStatus.BLOCKED : CompanyStatus.ACTIVE);
 };
 </script>
 
@@ -55,25 +53,25 @@ const onAction = (company: ICompany, action: Action) => {
         <RowActionsMenu
           :label="$t('platform.companies.actionsFor', { name: row.name })"
           :disabled="updatingUuid === row.uuid"
-          @command="(action) => onAction(row as ICompany, action as Action)"
+          @command="(action) => onAction(row as ICompany, action as RowAction)"
         >
-          <el-dropdown-item :command="ACTION.EDIT">
+          <el-dropdown-item :command="ROW_ACTION.EDIT">
             <Pencil :size="16" aria-hidden="true" />
             <span>{{ $t('platform.companies.actions.edit') }}</span>
           </el-dropdown-item>
-          <el-dropdown-item :command="ACTION.USERS">
+          <el-dropdown-item :command="ROW_ACTION.USERS">
             <Users :size="16" aria-hidden="true" />
             <span>{{ $t('platform.companies.actions.users') }}</span>
           </el-dropdown-item>
           <el-dropdown-item
             v-if="row.status === CompanyStatus.ACTIVE"
-            :command="ACTION.BLOCK"
+            :command="ROW_ACTION.BLOCK"
             class="dropdown-item--danger"
           >
             <Ban :size="16" aria-hidden="true" />
             <span>{{ $t('platform.companies.actions.block') }}</span>
           </el-dropdown-item>
-          <el-dropdown-item v-else :command="ACTION.ACTIVATE">
+          <el-dropdown-item v-else :command="ROW_ACTION.ACTIVATE">
             <CircleCheck :size="16" aria-hidden="true" />
             <span>{{ $t('platform.companies.actions.activate') }}</span>
           </el-dropdown-item>

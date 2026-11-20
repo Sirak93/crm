@@ -2,6 +2,7 @@
 import type { IProductCategory } from 'armstock-shared';
 import { Pencil, Trash2 } from 'lucide-vue-next';
 import RowActionsMenu from '../RowActionsMenu.vue';
+import { ROW_ACTION, type RowAction } from '../../constants/rowActions';
 
 defineProps<{
   categories: IProductCategory[];
@@ -16,11 +17,8 @@ const emit = defineEmits<{
   delete: [category: IProductCategory];
 }>();
 
-const ACTION = { EDIT: 'edit', DELETE: 'delete' } as const;
-type Action = typeof ACTION[keyof typeof ACTION];
-
-const onAction = (category: IProductCategory, action: Action) => {
-  if (action === ACTION.EDIT) emit('edit', category);
+const onAction = (category: IProductCategory, action: RowAction) => {
+  if (action === ROW_ACTION.EDIT) emit('edit', category);
   else emit('delete', category);
 };
 </script>
@@ -35,13 +33,13 @@ const onAction = (category: IProductCategory, action: Action) => {
         <RowActionsMenu
           :label="$t('productCategories.actionsFor', { name: row.name })"
           :disabled="deletingUuid === row.uuid"
-          @command="(action) => onAction(row as IProductCategory, action as Action)"
+          @command="(action) => onAction(row as IProductCategory, action as RowAction)"
         >
-          <el-dropdown-item :command="ACTION.EDIT">
+          <el-dropdown-item :command="ROW_ACTION.EDIT">
             <Pencil :size="16" aria-hidden="true" />
             <span>{{ $t('productCategories.actions.edit') }}</span>
           </el-dropdown-item>
-          <el-dropdown-item :command="ACTION.DELETE" class="dropdown-item--danger">
+          <el-dropdown-item :command="ROW_ACTION.DELETE" class="dropdown-item--danger">
             <Trash2 :size="16" aria-hidden="true" />
             <span>{{ $t('productCategories.actions.delete') }}</span>
           </el-dropdown-item>

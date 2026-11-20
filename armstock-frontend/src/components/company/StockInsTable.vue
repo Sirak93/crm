@@ -5,6 +5,7 @@ import RowActionsMenu from '../RowActionsMenu.vue';
 import { ROUTE_NAME } from '../../constants/constants';
 import { STOCK_IN_REASON_LABEL } from '../../constants/stockInReasons';
 import { formatDateTimeShort, formatMoney, formatNumber } from '../../utils/format';
+import { ROW_ACTION, type RowAction } from '../../constants/rowActions';
 
 defineProps<{
   stockIns: IStockIn[];
@@ -20,11 +21,8 @@ const emit = defineEmits<{
   delete: [stockIn: IStockIn];
 }>();
 
-const ACTION = { EDIT: 'edit', DELETE: 'delete' } as const;
-type Action = typeof ACTION[keyof typeof ACTION];
-
-const onAction = (stockIn: IStockIn, action: Action) => {
-  if (action === ACTION.EDIT) emit('edit', stockIn);
+const onAction = (stockIn: IStockIn, action: RowAction) => {
+  if (action === ROW_ACTION.EDIT) emit('edit', stockIn);
   else emit('delete', stockIn);
 };
 </script>
@@ -69,13 +67,13 @@ const onAction = (stockIn: IStockIn, action: Action) => {
             v-if="row.createdBy.uuid === currentUserUuid"
             :label="$t('stockIn.actionsFor', { number: row.number })"
             :disabled="busyUuid === row.uuid"
-            @command="(action) => onAction(row as IStockIn, action as Action)"
+            @command="(action) => onAction(row as IStockIn, action as RowAction)"
           >
-            <el-dropdown-item :command="ACTION.EDIT">
+            <el-dropdown-item :command="ROW_ACTION.EDIT">
               <Pencil :size="16" aria-hidden="true" />
               <span>{{ $t('stockIn.actions.edit') }}</span>
             </el-dropdown-item>
-            <el-dropdown-item :command="ACTION.DELETE" class="dropdown-item--danger">
+            <el-dropdown-item :command="ROW_ACTION.DELETE" class="dropdown-item--danger">
               <Trash2 :size="16" aria-hidden="true" />
               <span>{{ $t('stockIn.actions.delete') }}</span>
             </el-dropdown-item>

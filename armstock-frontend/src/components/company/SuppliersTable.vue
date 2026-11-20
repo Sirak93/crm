@@ -5,6 +5,7 @@ import { Archive, ArchiveRestore, Pencil, Trash2 } from 'lucide-vue-next';
 import RowActionsMenu from '../RowActionsMenu.vue';
 import SupplierDetails from './SupplierDetails.vue';
 import { SUPPLIER_STATUS_TAG } from '../../constants/statusTags';
+import { ROW_ACTION, type RowAction } from '../../constants/rowActions';
 
 defineProps<{
   suppliers: ISupplier[];
@@ -23,9 +24,6 @@ const emit = defineEmits<{
   deleteContact: [supplier: ISupplier, contact: ISupplierContact];
 }>();
 
-const ACTION = { EDIT: 'edit', ARCHIVE: 'archive', RESTORE: 'restore', DELETE: 'delete' } as const;
-type Action = typeof ACTION[keyof typeof ACTION];
-
 // Element Plus puts no class on an open row, so it is tracked here for styling.
 const openUuids = ref(new Set<string>());
 const onExpandChange = (row: ISupplier, expanded: ISupplier[] | boolean) => {
@@ -37,10 +35,10 @@ const onExpandChange = (row: ISupplier, expanded: ISupplier[] | boolean) => {
 };
 const rowClassName = ({ row }: { row: ISupplier }) => (openUuids.value.has(row.uuid) ? 'is-open' : '');
 
-const onAction = (supplier: ISupplier, action: Action) => {
-  if (action === ACTION.EDIT) emit('edit', supplier);
-  else if (action === ACTION.DELETE) emit('delete', supplier);
-  else emit('setStatus', supplier, action === ACTION.ARCHIVE ? SupplierStatus.ARCHIVED : SupplierStatus.ACTIVE);
+const onAction = (supplier: ISupplier, action: RowAction) => {
+  if (action === ROW_ACTION.EDIT) emit('edit', supplier);
+  else if (action === ROW_ACTION.DELETE) emit('delete', supplier);
+  else emit('setStatus', supplier, action === ROW_ACTION.ARCHIVE ? SupplierStatus.ARCHIVED : SupplierStatus.ACTIVE);
 };
 </script>
 
@@ -85,21 +83,21 @@ const onAction = (supplier: ISupplier, action: Action) => {
         <RowActionsMenu
           :label="$t('suppliers.actionsFor', { name: row.name })"
           :disabled="busyUuid === row.uuid"
-          @command="(action) => onAction(row as ISupplier, action as Action)"
+          @command="(action) => onAction(row as ISupplier, action as RowAction)"
         >
-          <el-dropdown-item :command="ACTION.EDIT">
+          <el-dropdown-item :command="ROW_ACTION.EDIT">
             <Pencil :size="16" aria-hidden="true" />
             <span>{{ $t('suppliers.actions.edit') }}</span>
           </el-dropdown-item>
-          <el-dropdown-item v-if="row.status === SupplierStatus.ACTIVE" :command="ACTION.ARCHIVE">
+          <el-dropdown-item v-if="row.status === SupplierStatus.ACTIVE" :command="ROW_ACTION.ARCHIVE">
             <Archive :size="16" aria-hidden="true" />
             <span>{{ $t('suppliers.actions.archive') }}</span>
           </el-dropdown-item>
-          <el-dropdown-item v-else :command="ACTION.RESTORE">
+          <el-dropdown-item v-else :command="ROW_ACTION.RESTORE">
             <ArchiveRestore :size="16" aria-hidden="true" />
             <span>{{ $t('suppliers.actions.restore') }}</span>
           </el-dropdown-item>
-          <el-dropdown-item :command="ACTION.DELETE" class="dropdown-item--danger">
+          <el-dropdown-item :command="ROW_ACTION.DELETE" class="dropdown-item--danger">
             <Trash2 :size="16" aria-hidden="true" />
             <span>{{ $t('suppliers.actions.delete') }}</span>
           </el-dropdown-item>

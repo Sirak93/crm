@@ -424,7 +424,8 @@ Suggested chunks (each: notes → OK → build → lint/build):
   - [x] `roles` table: company, name, `permissions int[]`
   - [ ] `users`: `account_type`, `role_uuid` (members only), `permissions int[]`,
         "can log in"
-  - [ ] New company: Owner account + the three default roles seeded from the map
+  - [x] New company: the three default roles seeded from the map
+  - [ ] New company: one Owner account (see Rules)
   - [ ] Old `role` column and `UserRole` enum removed (database recreated, no migration) -
         at the end of chunk 3, once nothing uses them; until then they live side by side
 - [ ] Dev seeder (`npm run seed:dev -w armstock-backend`) - replaces the old "Role check
@@ -449,7 +450,7 @@ Suggested chunks (each: notes → OK → build → lint/build):
         `MANAGE_USER_PERMISSIONS` (Platform Owner: later)
   - [ ] Default role templates stay compact - only the basics for each job
   - [ ] Nobody can change their own permissions or role
-  - [ ] Product delete (new): only while the product is in no stock-in or stock-out line;
+  - [x] Product delete (new): only while the product is in no stock-in or stock-out line;
         otherwise "archive it instead"
   - [ ] Every delete checks the permission first, then the "not in use" rule
   - [ ] A role in use can't be deleted - the error says how many users have it (active,
@@ -472,22 +473,24 @@ Suggested chunks (each: notes → OK → build → lint/build):
         (managing roles and permissions there: later)
 - [ ] Picker endpoints - open to every logged-in company member (no permission), minimal
       data only, never prices, stock amounts, or emails
-  - [ ] `GET /options/products` → `IStockLineProduct` (uuid, name, code, status, unit,
+  - [x] `GET /options/products` → `IStockLineProduct` (uuid, name, code, status, unit,
         allows decimals); search, `forStockOut`, `suppliedBy` (both move here from
         `GET /products`)
-  - [ ] `GET /options/suppliers` → uuid, name, status; search, active only or all
-  - [ ] `GET /options/receivers` → uuid, name, position, status (moves from
+  - [x] `GET /options/suppliers` → uuid, name, status; search, active only or all
+  - [x] `GET /options/receivers` → uuid, name, position, status (moves from
         `/stock-outs/receivers`)
-  - [ ] `GET /options/roles` → uuid, name
+  - [x] `GET /options/roles` → uuid, name
   - [ ] Every picker and picker-style filter in the frontend uses these (product and
-        supplier pickers, supplier filters, receiver picker, role picker and filter)
+        supplier pickers, supplier filters, receiver picker, role picker and filter) -
+        all done except the role picker and filter (they come with the user dialog)
 - [ ] Backend
   - [ ] Roles API: list, create, edit (with "apply to users"), delete - Owner or
         `MANAGE_USER_PERMISSIONS`
   - [ ] `PermissionMiddleware(Permission.X)` replaces the role lists on company routes
   - [ ] Permissions in the auth cache; a change applies on the user's next request
 - [ ] Frontend
-  - [ ] Products: Delete action (with `PRODUCT_DELETE`), refused while in use
+  - [ ] Products: Delete action (with `PRODUCT_DELETE`), refused while in use - done
+        with today's role check; switch to `PRODUCT_DELETE` with the other permissions
   - [ ] Company dashboard: the cards from decisions.md, each shown by its permission and
         loading on its own; empty state when no card applies; open to every member who can
         log in

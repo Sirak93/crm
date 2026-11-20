@@ -4,6 +4,7 @@ import { Archive, ArchiveRestore, Pencil, Trash2 } from 'lucide-vue-next';
 import CodeBadge from '../CodeBadge.vue';
 import RowActionsMenu from '../RowActionsMenu.vue';
 import { PRODUCT_STATUS_TAG } from '../../constants/statusTags';
+import { ROW_ACTION, type RowAction } from '../../constants/rowActions';
 
 defineProps<{
   products: IProduct[];
@@ -19,13 +20,10 @@ const emit = defineEmits<{
   delete: [product: IProduct];
 }>();
 
-const ACTION = { EDIT: 'edit', ARCHIVE: 'archive', RESTORE: 'restore', DELETE: 'delete' } as const;
-type Action = typeof ACTION[keyof typeof ACTION];
-
-const onAction = (product: IProduct, action: Action) => {
-  if (action === ACTION.EDIT) emit('edit', product);
-  else if (action === ACTION.DELETE) emit('delete', product);
-  else emit('setStatus', product, action === ACTION.ARCHIVE ? ProductStatus.ARCHIVED : ProductStatus.ACTIVE);
+const onAction = (product: IProduct, action: RowAction) => {
+  if (action === ROW_ACTION.EDIT) emit('edit', product);
+  else if (action === ROW_ACTION.DELETE) emit('delete', product);
+  else emit('setStatus', product, action === ROW_ACTION.ARCHIVE ? ProductStatus.ARCHIVED : ProductStatus.ACTIVE);
 };
 </script>
 
@@ -58,21 +56,21 @@ const onAction = (product: IProduct, action: Action) => {
         <RowActionsMenu
           :label="$t('products.actionsFor', { name: row.name })"
           :disabled="updatingUuid === row.uuid"
-          @command="(action) => onAction(row as IProduct, action as Action)"
+          @command="(action) => onAction(row as IProduct, action as RowAction)"
         >
-          <el-dropdown-item :command="ACTION.EDIT">
+          <el-dropdown-item :command="ROW_ACTION.EDIT">
             <Pencil :size="16" aria-hidden="true" />
             <span>{{ $t('products.actions.edit') }}</span>
           </el-dropdown-item>
-          <el-dropdown-item v-if="row.status === ProductStatus.ACTIVE" :command="ACTION.ARCHIVE">
+          <el-dropdown-item v-if="row.status === ProductStatus.ACTIVE" :command="ROW_ACTION.ARCHIVE">
             <Archive :size="16" aria-hidden="true" />
             <span>{{ $t('products.actions.archive') }}</span>
           </el-dropdown-item>
-          <el-dropdown-item v-else :command="ACTION.RESTORE">
+          <el-dropdown-item v-else :command="ROW_ACTION.RESTORE">
             <ArchiveRestore :size="16" aria-hidden="true" />
             <span>{{ $t('products.actions.restore') }}</span>
           </el-dropdown-item>
-          <el-dropdown-item :command="ACTION.DELETE" class="dropdown-item--danger">
+          <el-dropdown-item :command="ROW_ACTION.DELETE" class="dropdown-item--danger">
             <Trash2 :size="16" aria-hidden="true" />
             <span>{{ $t('products.actions.delete') }}</span>
           </el-dropdown-item>
