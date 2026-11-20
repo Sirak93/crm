@@ -392,40 +392,67 @@ Each is its own top-level menu item.
 
 ## Step 14 — User permissions
 
-Each user has their own list of permissions; the Company Owner turns them on and off per user
-(e.g. one Accountant may manage suppliers, another may not). See "Permissions" in
-[decisions.md](decisions.md).
+Company roles become editable templates, and every user has their own permission list.
+Full rules: "Permissions (from Step 14)" in [decisions.md](decisions.md).
 
-- [ ] **To confirm:** the exact permission list and the default permissions of each role
+- [ ] **To confirm:** the exact permission list (grouped by area) and the starting
+      permissions of Storekeeper, Accountant, and HR
+- [ ] **To confirm:** what the company dashboard shows - blocks shown by permission
+      (e.g. stock value cards need "view stock values")
+- [ ] **To confirm:** how existing users move over (old role → account type + role +
+      permissions; Staff → member without login)
 - [ ] Shared
-  - [ ] `Permission` enum (one value per valuable action, e.g. `PRODUCT_CREATE`,
-        `PRODUCT_EDIT`, `SUPPLIER_MANAGE`, `STOCK_IN_CREATE`)
-  - [ ] Default permissions per role
-- [ ] DB: `users.permissions` — `int[]` column with the user's full list
-- [ ] Role defaults are copied to the user on create and on role change; the Owner edits
-      that copy
-- [ ] Company Owner always has every permission - can't be turned off
+  - [ ] `Permission` enum, one value per valuable action
+  - [ ] `OWNER_ONLY_PERMISSIONS` (e.g. `MANAGE_ROLES`)
+  - [ ] `AccountType` enum: `PLATFORM_OWNER`, `COMPANY_OWNER`, `COMPANY_MEMBER` (replaces
+        `UserRole`)
+  - [ ] `DefaultRole` enum + `DEFAULT_ROLE_PERMISSIONS` map: Storekeeper, Accountant, HR
+  - [ ] One `can(accountType, permissions, permission)` helper used by backend and
+        frontend; it takes a `ReadonlySet<Permission>` - the API sends an array, the
+        frontend `UserModel` and the backend auth snapshot turn it into a `Set` once
+- [ ] DB
+  - [ ] `roles` table: company, name, `permissions int[]`
+  - [ ] `users`: `account_type`, `role_uuid` (members only), `permissions int[]`,
+        "can log in"
+  - [ ] New company: Owner account + the three default roles seeded from the map
+- [ ] Rules
+  - [ ] Exactly one Company Owner; only the Platform Owner can touch that account
+  - [ ] Role permissions copied to the user on create and on role change
+  - [ ] Role edit asks whether to also apply to that role's users (replacing their own
+        changes)
+  - [ ] `MANAGE_USERS` and `MANAGE_USER_PERMISSIONS` are separate permissions
+  - [ ] Nobody can change their own permissions
+  - [ ] Owner-only permissions can't be granted to anyone
+  - [ ] "Can log in" per user: no = no email, no password, no permissions; still a
+        stock-out receiver
 - [ ] Backend
+  - [ ] Roles API: list, create, edit (with "apply to users"), delete - Owner only
   - [ ] `PermissionMiddleware(Permission.X)` replaces the role lists on company routes
   - [ ] Permissions in the auth cache; a change applies on the user's next request
-  - [ ] Only the Company Owner (and the Platform Owner for a company) edits permissions
 - [ ] Frontend
-  - [ ] `can(Permission.X)` replaces the `canManage…` flags in menu, buttons, and routes
-  - [ ] User dialog: permission panel grouped by area (Products, Suppliers, Stock…) with
-        switches and "Reset to role defaults"
-  - [ ] Routes check a permission (`meta.permission`) instead of roles
-  - [ ] Lost access while using the app - a request refused with 403 (e.g. Save), or a
-        reload of a page that is no longer allowed: reload the user, and if the current page
-        is no longer allowed, show one generic popup ("Your permissions have changed. You no
-        longer have access to this page.") with OK. OK reloads the app at `/`, which opens
-        the role's own dashboard. Same popup for both cases, so the user always sees why;
-        the unsaved-changes dialog is skipped and typed data is lost (accepted)
+  - [ ] Roles page (Owner only): list, add, edit permissions, delete
+  - [ ] User dialog: role picker, "Can log in", permission panel grouped by area with
+        switches and "Reset to role defaults"; read-only without
+        `MANAGE_USER_PERMISSIONS` and on your own account; hidden without login
+  - [ ] `can(Permission.X)` replaces the `canManage…` flags in menu and buttons; routes use
+        `meta.permission`
+  - [ ] Lost access - a request refused with 403 (e.g. Save), or a reload of a page that is
+        no longer allowed: reload the user, and if the page is no longer allowed show one
+        generic popup ("Your permissions have changed. You no longer have access to this
+        page.") with OK. OK reloads the app at `/` (the user's dashboard). Same popup for
+        both cases; the unsaved-changes dialog is skipped and typed data is lost (accepted)
 - [ ] Lint and build pass
-- [ ] Checked in browser: turn off supplier management for one Accountant - the menu and
-      buttons disappear and the API refuses; another Accountant still has it; a role change
-      resets to the new role's defaults; a Storekeeper on the new stock-in form loses
-      "create stock-in" - Save shows the popup and OK opens the dashboard; reloading that
-      form page shows the same popup
+- [ ] Checked in browser
+  - [ ] Two Accountants: turn off supplier management for one - menu and buttons
+        disappear and the API refuses; the other still has it
+  - [ ] Edit a role and apply to its users - their lists change; edit again without
+        applying - they stay
+  - [ ] An HR user with `MANAGE_USERS` only sees the permission panel read-only; your own
+        account is always read-only; the Owner account has no edit actions
+  - [ ] A user without login has no email, password, or permissions, and can still be a
+        stock-out receiver
+  - [ ] A Storekeeper on the new stock-in form loses "create stock-in" - Save shows the
+        popup and OK opens the dashboard; reloading that form page shows the same popup
 
 ## Step 15 — Redis cache
 
@@ -486,6 +513,8 @@ framework, no new package — runs with `ts-node`.
 
 Ideas agreed for later. Not part of any step above.
 
+- [ ] Transfer company ownership - Platform Owner action only: move the Owner account type to
+      another user and give the old Owner a normal role in the same step.
 - [ ] Delete a company. To decide: delete only a company with no users yet, or also
       everything it owns (users, products, stock documents).
 - [ ] Armenian language: add an Armenian locale file (e.g. menu Պահեստ → Մուտք / Ելք /

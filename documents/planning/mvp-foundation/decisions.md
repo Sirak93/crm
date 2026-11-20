@@ -41,27 +41,73 @@ Company Owner. Page paths stay short (`/database`, `/logs`).
 Storekeeper can manage suppliers for now. Removing that later is just removing the role
 from the route middleware.
 
-## Permissions
+## Permissions (from Step 14)
 
-From Step 14 the roles table above is the **default** for each role, not a fixed rule.
-Each user has their own permission list, and the Company Owner turns single permissions on
-or off per user (e.g. one Accountant may manage suppliers, another may not).
+From Step 14 the roles table above is only where the **default roles** start. Roles become
+company records the Owner edits, and every user has their own permission list.
 
-- Permissions are a code enum (`Permission`), one value per valuable action.
-- Stored on the user as the **full list**: `users.permissions`, a Postgres `int[]` column.
-  No separate table - the list is small and always read together with the user.
-- On user create and on role change, the role's defaults are copied to the user. The Owner
-  then edits that copy. Changing a role's defaults later does not touch existing users.
-- Company Owner always has every permission; it can't be turned off.
-- Checks use permissions, not roles: `PermissionMiddleware(Permission.X)` on the API,
-  `can(Permission.X)` in the frontend. A change applies on the user's next request.
-- Frontend gets permissions with the user (login and app load). When a request is refused
-  with 403, it reloads the user. If the open page is no longer allowed - after a 403 or on a
-  page reload - one generic popup explains it, and OK reloads the app at `/` (the role's own
-  dashboard). Typed data on that page is lost.
-- A history of who changed what can come later as a separate log table.
+**Account type** - a code enum on the user (today's `role` column), separate from the
+company role:
+
+| `account_type` | Meaning |
+| --- | --- |
+| `PLATFORM_OWNER` | The platform owner |
+| `COMPANY_OWNER` | The **one** owner of a company - always exactly one |
+| `COMPANY_MEMBER` | Everyone else: has a company role (`role_uuid`) and their own `permissions` |
+
+**Company roles** (`roles`: company, name, `permissions int[]`)
+
+- A role is a group name plus a starting permission set - a template, nothing more.
+- Only the Owner adds, edits, and deletes roles (`MANAGE_ROLES`, owner-only).
+- New company: seeded from a code map `DEFAULT_ROLE_PERMISSIONS` keyed by a small
+  `DefaultRole` enum - **Storekeeper, Accountant, HR**. After that the company edits its own
+  copy; the code map only matters for new companies. There is no Staff role any more.
+- Editing a role's permissions asks: "Also apply to the N users with this role? Their own
+  changes will be replaced." Yes overwrites their lists; No leaves them as they are.
+
+**User permissions** (`users.permissions`, Postgres `int[]`, the full list)
+
+- Copied from the role on user create and on role change; then edited per user (e.g. an HR
+  specialist gets "Manage users", the HR intern only "Add user").
+- No separate table - the list is small and always read together with the user. A history
+  of who changed what can come later as a separate log table.
+- `MANAGE_USERS` (create/edit users, login, email, password, role, block, archive) and
+  `MANAGE_USER_PERMISSIONS` (turn single permissions on/off for others) are separate. At
+  first only the Owner has them; the Owner decides who else gets them.
+- **Nobody can change their own permissions** (read-only panel on your own account; the API
+  refuses too). Anyone with `MANAGE_USER_PERMISSIONS` may grant any permission to others,
+  except owner-only ones.
+- **Owner-only permissions** (`OWNER_ONLY_PERMISSIONS`, e.g. `MANAGE_ROLES`) never appear in a
+  role or a permission panel, and the API refuses to grant them.
+
+**Login is per user**, not per role: whoever creates or edits the account chooses "Can log
+in". Yes = email and password required, permissions apply. No = no email, no password, no
+permissions (panel hidden); the person can still be a stock-out receiver. This replaces
+the Staff role.
+
+**Company Owner**
+
+- Exactly one per company, created with the company by the Platform Owner.
+- Only the Platform Owner can touch the Owner account. Inside the company nobody can edit,
+  block, archive, or change it; the Owner role can't be given to anyone.
+- Has every permission without storing them: `permissions` stays empty.
+- Transferring ownership: a Platform Owner action, in a later phase.
+
+**Checks** - one rule on both sides:
+`can(p) = user.accountType === COMPANY_OWNER || user.permissions.has(p)`. The API sends
+`permissions` as an array; the frontend `UserModel` and the backend auth snapshot turn it
+into a `Set` once, so the many checks are direct lookups.
+`PermissionMiddleware(Permission.X)` on the API, `can(Permission.X)` and `meta.permission`
+on routes in the frontend. A change applies on the user's next request (auth cache).
+
+**Losing access while using the app.** Frontend gets permissions with the user (login and
+app load). When a request is refused with 403, it reloads the user. If the open page is no
+longer allowed - after a 403 or on a page reload - one generic popup explains it, and OK
+reloads the app at `/` (the user's own dashboard). Typed data on that page is lost.
 
 ## People: one Users table
+
+> Until Step 14. From then, roles, login, and Staff follow "Permissions (from Step 14)" above.
 
 - Every person in a company is a **User**: first name, last name, position (optional
   text), role, status, email, password.
