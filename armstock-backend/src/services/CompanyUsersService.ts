@@ -12,8 +12,7 @@ import { User } from "../models/User";
 import { AppError } from "../utils/AppError";
 import { BCRYPT_ROUNDS } from "../constants/AuthConstants";
 import { AuthCacheService } from "./AuthCacheService";
-import type { PaginatedSearchQuery } from "../schemas/SharedSchema";
-import type { CompanyUserBody } from "../schemas/CompanyUserSchema";
+import type { CompanyUserBody, CompanyUsersQuery } from "../schemas/CompanyUserSchema";
 
 /**
  * A company's users, managed by the Platform Owner and the Company Owner through their own
@@ -49,10 +48,11 @@ export class CompanyUsersService {
         if (await this.repo.exists({ where })) throw new AppError(ErrorCodes.USER.EMAIL_TAKEN);
     }
 
-    async list(companyUuid: string, query: PaginatedSearchQuery): Promise<{ items: ICompanyUser[]; meta: IPaginationMeta }> {
-        const { page, pageSize, search } = query;
+    async list(companyUuid: string, query: CompanyUsersQuery): Promise<{ items: ICompanyUser[]; meta: IPaginationMeta }> {
+        const { page, pageSize, search, status } = query;
 
         const qb = this.repo.createQueryBuilder("user").where("user.companyUuid = :companyUuid", { companyUuid });
+        if (status) qb.andWhere("user.status = :status", { status });
         if (search) {
             qb.andWhere(new Brackets((w) => {
                 w.where("user.firstName ILIKE :search", { search: `%${search}%` })
@@ -63,7 +63,10 @@ export class CompanyUsersService {
         }
 
         const [rows, total] = await qb
-            .orderBy("user.createdAt", "DESC")
+            // Status values go Active -> Blocked -> Archived, so archived users come last.
+            .orderBy("user.status", "ASC")
+            .addOrderBy("user.firstName", "ASC")
+            .addOrderBy("user.lastName", "ASC")
             .skip((page - 1) * pageSize)
             .take(pageSize)
             .getManyAndCount();

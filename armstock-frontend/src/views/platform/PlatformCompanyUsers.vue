@@ -15,7 +15,7 @@ const company = ref<ICompany | null>(null);
 const hasError = ref(false);
 
 const api: ICompanyUsersApi = {
-  list: (page, pageSize, search) => PlatformCompaniesService.listUsers(props.uuid, page, pageSize, search),
+  list: (page, pageSize, filters) => PlatformCompaniesService.listUsers(props.uuid, page, pageSize, filters),
   create: (payload) => PlatformCompaniesService.createUser(props.uuid, payload),
   update: (uuid, payload) => PlatformCompaniesService.updateUser(props.uuid, uuid, payload),
   setStatus: (uuid, status) => PlatformCompaniesService.setUserStatus(props.uuid, uuid, status),

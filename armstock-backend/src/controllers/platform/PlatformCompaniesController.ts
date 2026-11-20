@@ -5,7 +5,7 @@ import { CompanyUsersService } from "../../services/CompanyUsersService";
 import type { CompanyBody } from "../../schemas/CompanySchema";
 import type { PaginatedSearchQuery } from "../../schemas/SharedSchema";
 import type { CompanyStatusBody } from "../../schemas/platform/PlatformCompaniesSchema";
-import type { CompanyUserBody, CompanyUserStatusBody } from "../../schemas/CompanyUserSchema";
+import type { CompanyUserBody, CompanyUserStatusBody, CompanyUsersQuery } from "../../schemas/CompanyUserSchema";
 import { AppResponse } from "../../utils/AppResponse";
 
 export class PlatformCompaniesController {
@@ -35,7 +35,7 @@ export class PlatformCompaniesController {
     };
 
     listUsers = async (req: AuthRequest, res: Response) => {
-        const { items, meta } = await this.usersService.list(req.params.uuid as string, req.query as unknown as PaginatedSearchQuery);
+        const { items, meta } = await this.usersService.list(req.params.uuid as string, req.query as unknown as CompanyUsersQuery);
         return AppResponse.send(res, items, meta);
     };
 

@@ -9,6 +9,7 @@ import type {
   UserStatus,
 } from 'armstock-shared';
 import ApiService from '../ApiService';
+import type { IUserFilters } from '../../interfaces/IUserFilters';
 
 export const PlatformCompaniesService = {
   async list(page: number, pageSize: number, search: string): Promise<{ items: ICompany[]; meta: IPaginationMeta }> {
@@ -38,9 +39,9 @@ export const PlatformCompaniesService = {
     return response.data.data!;
   },
 
-  async listUsers(companyUuid: string, page: number, pageSize: number, search: string): Promise<{ items: ICompanyUser[]; meta: IPaginationMeta }> {
+  async listUsers(companyUuid: string, page: number, pageSize: number, filters: IUserFilters): Promise<{ items: ICompanyUser[]; meta: IPaginationMeta }> {
     const response = await ApiService.get<IAppResponse<ICompanyUser[]>>(`/platform/companies/${companyUuid}/users`, {
-      params: { page, pageSize, search: search || undefined },
+      params: { page, pageSize, ...filters },
     });
     return { items: response.data.data!, meta: response.data.meta as IPaginationMeta };
   },

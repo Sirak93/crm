@@ -1,13 +1,13 @@
 <script setup lang="ts">
 import { UserStatus, type ICompanyUser } from 'armstock-shared';
-import { Ban, CircleCheck, Pencil } from 'lucide-vue-next';
+import { Archive, ArchiveRestore, Ban, CircleCheck, Pencil } from 'lucide-vue-next';
 import RowActionsMenu from '../RowActionsMenu.vue';
 import { USER_STATUS_TAG } from '../../constants/statusTags';
 import { ROLE_LABEL_KEY } from '../../constants/roleLabels';
 
 const props = defineProps<{
   users: ICompanyUser[];
-  /** The logged-in user - they cannot block themselves. */
+  /** The logged-in user - they cannot change their own status. */
   currentUserUuid: string | null;
   /** uuid of the user whose status is saving. */
   updatingUuid: string | null;
@@ -18,14 +18,21 @@ const emit = defineEmits<{
   setStatus: [user: ICompanyUser, status: UserStatus];
 }>();
 
-const ACTION = { EDIT: 'edit', BLOCK: 'block', ACTIVATE: 'activate' } as const;
+const ACTION = { EDIT: 'edit', BLOCK: 'block', ACTIVATE: 'activate', ARCHIVE: 'archive', RESTORE: 'restore' } as const;
 type Action = typeof ACTION[keyof typeof ACTION];
+
+const STATUS_BY_ACTION: Record<Exclude<Action, typeof ACTION.EDIT>, UserStatus> = {
+  [ACTION.BLOCK]: UserStatus.BLOCKED,
+  [ACTION.ACTIVATE]: UserStatus.ACTIVE,
+  [ACTION.ARCHIVE]: UserStatus.ARCHIVED,
+  [ACTION.RESTORE]: UserStatus.ACTIVE,
+};
 
 const isSelf = (user: ICompanyUser) => user.uuid === props.currentUserUuid;
 
 const onAction = (user: ICompanyUser, action: Action) => {
   if (action === ACTION.EDIT) emit('edit', user);
-  else emit('setStatus', user, action === ACTION.BLOCK ? UserStatus.BLOCKED : UserStatus.ACTIVE);
+  else emit('setStatus', user, STATUS_BY_ACTION[action]);
 };
 </script>
 
@@ -62,14 +69,24 @@ const onAction = (user: ICompanyUser, action: Action) => {
             <span>{{ $t('companyUsers.actions.edit') }}</span>
           </el-dropdown-item>
           <template v-if="!isSelf(row as ICompanyUser)">
-            <el-dropdown-item v-if="row.status === UserStatus.ACTIVE" :command="ACTION.BLOCK" class="dropdown-item--danger">
-              <Ban :size="16" aria-hidden="true" />
-              <span>{{ $t('companyUsers.actions.block') }}</span>
+            <el-dropdown-item v-if="row.status === UserStatus.ARCHIVED" :command="ACTION.RESTORE">
+              <ArchiveRestore :size="16" aria-hidden="true" />
+              <span>{{ $t('companyUsers.actions.restore') }}</span>
             </el-dropdown-item>
-            <el-dropdown-item v-else :command="ACTION.ACTIVATE">
-              <CircleCheck :size="16" aria-hidden="true" />
-              <span>{{ $t('companyUsers.actions.activate') }}</span>
-            </el-dropdown-item>
+            <template v-else>
+              <el-dropdown-item v-if="row.status === UserStatus.ACTIVE" :command="ACTION.BLOCK" class="dropdown-item--danger">
+                <Ban :size="16" aria-hidden="true" />
+                <span>{{ $t('companyUsers.actions.block') }}</span>
+              </el-dropdown-item>
+              <el-dropdown-item v-else :command="ACTION.ACTIVATE">
+                <CircleCheck :size="16" aria-hidden="true" />
+                <span>{{ $t('companyUsers.actions.activate') }}</span>
+              </el-dropdown-item>
+              <el-dropdown-item :command="ACTION.ARCHIVE">
+                <Archive :size="16" aria-hidden="true" />
+                <span>{{ $t('companyUsers.actions.archive') }}</span>
+              </el-dropdown-item>
+            </template>
           </template>
         </RowActionsMenu>
       </template>

@@ -334,8 +334,11 @@ Each is its own top-level menu item.
       works here, login stopped for now)
 - [ ] Archived users cannot log in, same as blocked
 - [ ] Archive / restore from the users list (Company Owner's Users page and the Platform
-      Owner's company users page — one shared service); "Archived" tag
-- [ ] Users list hides archived users by default, like products start on Active
+      Owner's company users page — one shared service); "Archived" tag. Menu: Active →
+      Edit · Block · Archive; Blocked → Edit · Activate · Archive; Archived → Edit · Restore
+      (Restore sets Active)
+- [ ] Users list shows everyone sorted Active → Blocked → Archived; filters like suppliers
+      (search + single-select status, starts empty)
 - [ ] Lint and build pass
 - [ ] Checked in browser: archive a Staff user, it leaves the default list, restore it;
       archive a logged-in user — they are logged out on their next action and cannot

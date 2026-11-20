@@ -7,9 +7,10 @@ import { asyncHandler } from "../utils/asyncHandler";
 import { CompanyController } from "../controllers/company/CompanyController";
 import { CompanyUsersController } from "../controllers/company/CompanyUsersController";
 import { CompanyBodySchema } from "../schemas/CompanySchema";
-import { PaginatedSearchQuerySchema, UuidParamsSchema } from "../schemas/SharedSchema";
+import { UuidParamsSchema } from "../schemas/SharedSchema";
 import {
     CompanyUserCreateSchema,
+    CompanyUsersQuerySchema,
     CompanyUserStatusBodySchema,
     CompanyUserUpdateSchema,
 } from "../schemas/CompanyUserSchema";
@@ -23,7 +24,7 @@ router.use(AuthMiddleware, RoleMiddleware([UserRole.COMPANY_OWNER]));
 router.get("/", asyncHandler(companyController.get));
 router.put("/", validate(CompanyBodySchema), asyncHandler(companyController.update));
 
-router.get("/users", validate(PaginatedSearchQuerySchema, "query"), asyncHandler(usersController.list));
+router.get("/users", validate(CompanyUsersQuerySchema, "query"), asyncHandler(usersController.list));
 router.post("/users", validate(CompanyUserCreateSchema), asyncHandler(usersController.create));
 router.put(
     "/users/:uuid",

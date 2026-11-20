@@ -1,8 +1,7 @@
 import { Response } from "express";
 import { AuthRequest } from "../../middlewares/AuthMiddleware";
 import { CompanyUsersService } from "../../services/CompanyUsersService";
-import type { PaginatedSearchQuery } from "../../schemas/SharedSchema";
-import type { CompanyUserBody, CompanyUserStatusBody } from "../../schemas/CompanyUserSchema";
+import type { CompanyUserBody, CompanyUserStatusBody, CompanyUsersQuery } from "../../schemas/CompanyUserSchema";
 import { AppResponse } from "../../utils/AppResponse";
 import { requireCompanyUuid } from "../../utils/requireCompanyUuid";
 
@@ -11,7 +10,7 @@ export class CompanyUsersController {
     private service = new CompanyUsersService();
 
     list = async (req: AuthRequest, res: Response) => {
-        const { items, meta } = await this.service.list(requireCompanyUuid(req), req.query as unknown as PaginatedSearchQuery);
+        const { items, meta } = await this.service.list(requireCompanyUuid(req), req.query as unknown as CompanyUsersQuery);
         return AppResponse.send(res, items, meta);
     };
 

@@ -1,12 +1,13 @@
 import type { IAppResponse, ICompanyUser, ICompanyUserPayload, IPaginationMeta, UserStatus } from 'armstock-shared';
 import ApiService from '../ApiService';
 import type { ICompanyUsersApi } from '../../interfaces/ICompanyUsersApi';
+import type { IUserFilters } from '../../interfaces/IUserFilters';
 
 /** The Company Owner's own company users. */
 export const CompanyUsersService: ICompanyUsersApi = {
-  async list(page: number, pageSize: number, search: string): Promise<{ items: ICompanyUser[]; meta: IPaginationMeta }> {
+  async list(page: number, pageSize: number, filters: IUserFilters): Promise<{ items: ICompanyUser[]; meta: IPaginationMeta }> {
     const response = await ApiService.get<IAppResponse<ICompanyUser[]>>('/company/users', {
-      params: { page, pageSize, search: search || undefined },
+      params: { page, pageSize, ...filters },
     });
     return { items: response.data.data!, meta: response.data.meta as IPaginationMeta };
   },

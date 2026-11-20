@@ -1,6 +1,6 @@
 import { z } from "zod";
 import { COMPANY_LOGIN_ROLES, COMPANY_ROLES, UserRole, UserStatus } from "armstock-shared";
-import { optionalText, PasswordSchema } from "./SharedSchema";
+import { optionalText, PaginatedSearchQuerySchema, PasswordSchema } from "./SharedSchema";
 
 const CompanyUserBaseSchema = z.object({
     firstName: z.string().trim().min(1).max(100),
@@ -34,5 +34,10 @@ export const CompanyUserStatusBodySchema = z.object({
     status: z.enum(UserStatus),
 });
 
+export const CompanyUsersQuerySchema = PaginatedSearchQuerySchema.extend({
+    status: z.coerce.number().pipe(z.enum(UserStatus)).optional(),
+});
+
 export type CompanyUserBody = z.infer<typeof CompanyUserBaseSchema>;
 export type CompanyUserStatusBody = z.infer<typeof CompanyUserStatusBodySchema>;
+export type CompanyUsersQuery = z.infer<typeof CompanyUsersQuerySchema>;

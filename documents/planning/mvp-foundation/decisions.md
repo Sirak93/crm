@@ -19,8 +19,9 @@ company's data is kept apart.
   `ARCHIVED`.
   - Blocked company → none of its users can log in.
   - Blocked user → that user cannot log in (still works here, stopped for now).
-  - Archived user → left the company, kept for history. Cannot log in; hidden from the
-    users list by default.
+  - Archived user → left the company, kept for history. Cannot log in. The users list
+    shows everyone sorted Active → Blocked → Archived, with a single-select status filter
+    (starts empty). Restore always sets the user back to Active.
 - No company delete in MVP (see "Later" in tasks.md).
 
 ## Roles

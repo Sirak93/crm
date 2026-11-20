@@ -13,6 +13,7 @@ import { PaginatedSearchQuerySchema, UuidParamsSchema } from "../schemas/SharedS
 import { CompanyStatusBodySchema, CompanyUserParamsSchema } from "../schemas/platform/PlatformCompaniesSchema";
 import {
     CompanyUserCreateSchema,
+    CompanyUsersQuerySchema,
     CompanyUserStatusBodySchema,
     CompanyUserUpdateSchema,
 } from "../schemas/CompanyUserSchema";
@@ -43,7 +44,7 @@ router.get("/companies/:uuid", validate(UuidParamsSchema, "params"), asyncHandle
 router.get(
     "/companies/:uuid/users",
     validate(UuidParamsSchema, "params"),
-    validate(PaginatedSearchQuerySchema, "query"),
+    validate(CompanyUsersQuerySchema, "query"),
     asyncHandler(companiesController.listUsers),
 );
 router.post(
