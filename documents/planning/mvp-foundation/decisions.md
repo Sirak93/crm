@@ -15,9 +15,12 @@ company's data is kept apart.
 - The Platform Owner has no company.
 - No public sign-up. The Platform Owner creates companies and manages their users.
 - Companies and users have a status, not a yes/no flag — each its own enum
-  (`CompanyStatus`, `UserStatus`), for now `ACTIVE` and `BLOCKED`.
+  (`CompanyStatus`, `UserStatus`), for now `ACTIVE` and `BLOCKED`; users also get
+  `ARCHIVED`.
   - Blocked company → none of its users can log in.
-  - Blocked user → that user cannot log in.
+  - Blocked user → that user cannot log in (still works here, stopped for now).
+  - Archived user → left the company, kept for history. Cannot log in; hidden from the
+    users list by default.
 - No company delete in MVP (see "Later" in tasks.md).
 
 ## Roles
@@ -51,7 +54,7 @@ from the route middleware.
 - Users are added from the users list only: the Company Owner on the "Users" page, the
   Platform Owner on a company's users page. Each has its own endpoints; both call one
   shared service.
-- Goods are issued to a User (any role, including Staff).
+- A stock-out can name a User (any role, including Staff) as the optional receiver.
 
 ## Units (measure units)
 
@@ -87,7 +90,11 @@ from the route middleware.
 
 - One stock location per company in MVP (no multiple warehouses, no transfers).
 - Stock can never go below zero. Any action that would make it negative is blocked
-  ("Not enough stock").
+  ("Not enough stock"). The check uses the current total at the moment of saving, not
+  the stock on the document's date (a date-based check is not for MVP). The error names
+  each product with its available quantity and unit ("Not enough stock: Meat — available
+  2 kg"), for stock-out and for stock-in edit/delete alike. No live stock hint in the
+  form.
 - Stock value = quantity × average price. Average price = sum of all stock-in line
   totals ÷ sum of all stock-in quantities for that product. Stock-out lines have no cost.
 - Stock quantity is not saved anywhere. It is counted in SQL each time: all stock-in lines
@@ -114,14 +121,20 @@ price per unit, total. Total is saved so money matches the invoice exactly (3 kg
 | Initial stock | No supplier (starting balance) |
 | Other | No supplier, note required |
 
-**Stock-out** — header: reason, date, receiver, note, created by. Lines: product,
-quantity. No price.
+**Stock-out** — header: reason, date, supplier, department, receiver, note, created by.
+Lines: product, quantity. No price.
 
-| Reason | Rule |
-| --- | --- |
-| Issued | Receiver (a company user) required |
-| Spoiled | No receiver |
-| Other | No receiver, note required |
+| Reason | Where it went | Receiver | Note |
+| --- | --- | --- | --- |
+| Returned | Supplier, required | — | optional |
+| Issued | Department, required (`StockOutDepartment`: Kitchen for now) | optional | optional |
+| Damaged / Expired / Spoiled | — (a loss) | — | optional |
+| Other | — | — | required |
+
+Damaged, Expired and Spoiled stay separate so a later report can show why goods were lost.
+The department is a code enum, not a table; more values are added when needed. The
+receiver picker shows active users first, then blocked and archived ones with their tag,
+because a document may be entered days after the person left.
 
 Reasons are fixed enums in code (shown as a dropdown in the form).
 
@@ -132,6 +145,10 @@ Reasons are fixed enums in code (shown as a dropdown in the form).
 - An edit or delete is blocked if it would make stock go below zero.
 - Archived products and suppliers can't be picked in a document; ones already in it stay
   and their rows can still be changed or deleted.
+- Exception, stock-out only: an archived product can be picked while it still has stock
+  (shown with an "Archived" tag in the picker), so what is left can be used up or written
+  off. At 0 it drops out of the picker and the balance page. Stock-in never takes archived
+  products.
 - When a user leaves, their documents will be reassigned (handled later, ignored in MVP).
 
 ## Suppliers

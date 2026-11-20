@@ -29,9 +29,10 @@ Decisions behind these steps: [decisions.md](decisions.md).
 - [x] Step 9 — Suppliers
 - [x] Step 10 — Stock-in documents
 - [x] Step 11 — Stock view
-- [ ] Step 12 — Stock-out documents
-- [ ] Step 13 — Redis cache
-- [ ] Step 14 — Role check pass
+- [ ] Step 12 — Archived users
+- [ ] Step 13 — Stock-out documents
+- [ ] Step 14 — Redis cache
+- [ ] Step 15 — Role check pass
 
 ---
 
@@ -327,27 +328,54 @@ Each is its own top-level menu item.
 - [x] Lint and build pass
 - [x] Checked in browser: stock page shows what was added in step 10, with values
 
-## Step 12 — Stock-out documents
+## Step 12 — Archived users
 
-- [ ] Shared: `StockOutReason` enum — Issued, Spoiled, Other
+- [ ] Shared: `UserStatus.ARCHIVED = 30` — the person left the company (Blocked = still
+      works here, login stopped for now)
+- [ ] Archived users cannot log in, same as blocked
+- [ ] Archive / restore from the users list (Company Owner's Users page and the Platform
+      Owner's company users page — one shared service); "Archived" tag
+- [ ] Users list hides archived users by default, like products start on Active
+- [ ] Lint and build pass
+- [ ] Checked in browser: archive a Staff user, it leaves the default list, restore it;
+      archive a logged-in user — they are logged out on their next action and cannot
+      log in again
+
+## Step 13 — Stock-out documents
+
+- [ ] Shared enums
+  - [ ] `StockOutReason` — Returned, Issued, Damaged, Expired, Spoiled, Other
+  - [ ] `StockOutDepartment` — Kitchen (more values later)
 - [ ] Tables
   - [ ] `StockOut` (header): company, number (`OUT-2026-0015`, same rule as stock-in),
-        reason, date, receiver (user), note, created by
+        reason, date, supplier, department, receiver (user), note, created by
   - [ ] `StockOutLine`: document, product, quantity. No price.
 - [ ] Rules
-  - [ ] Issued → receiver (a company user) required; Other → note required
+  - [ ] Returned → supplier required (active suppliers only)
+  - [ ] Issued → department required (form fills in Kitchen); receiver optional
+  - [ ] Damaged / Expired / Spoiled → no supplier, department, or receiver
+  - [ ] Other → note required; note optional for every other reason
+  - [ ] Receiver picker: active users first, then blocked and archived ones with their
+        tag (goods may be entered days later, after the person left)
   - [ ] Same line rules as stock-in (quantity above 0, decimals by unit)
-  - [ ] Blocked if not enough stock — the error names the product
+  - [ ] Blocked if not enough stock — the error names each product with its available
+        quantity and unit ("Not enough stock: Meat — available 2 kg"); stock-in edit and
+        delete show the same message
+  - [ ] `AppError`: optional client-safe data, separate from `details` (which stays
+        logs-only)
+  - [ ] Archived products can be picked while they still have stock ("Archived" tag in
+        the picker); stock-in still blocks them
   - [ ] Only the creator can edit or delete
 - [ ] API
   - [ ] Company Owner and Storekeeper create
   - [ ] Accountant only sees
 - [ ] Frontend (menu "Stock" → "Out"): list, form, and view pages — same layout as stock-in
 - [ ] Lint and build pass
-- [ ] Checked in browser: issue goods to the Chef (Staff), write off spoiled goods, stock goes
-      down; issuing too much shows an error
+- [ ] Checked in browser: issue goods to the Kitchen with the Chef (Staff) as receiver,
+      write off spoiled goods, return goods to a supplier, stock goes down; issuing too
+      much shows an error
 
-## Step 13 — Redis cache
+## Step 14 — Redis cache
 
 - [ ] Shared Redis helper copied from armlytic
 - [ ] Cache units
@@ -360,7 +388,7 @@ Each is its own top-level menu item.
 - [ ] Checked in browser: lists work the same, logs show cache hits, changes show up
       at once
 
-## Step 14 — Role check pass
+## Step 15 — Role check pass
 
 - [ ] Seeder adds a demo company with one user per role (emails and passwords from env)
 - [ ] Check every page and API for each role

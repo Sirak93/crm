@@ -8,7 +8,7 @@ import { StockInLine } from "../models/StockInLine";
 import { AppError } from "../utils/AppError";
 import type { StockBalanceFilters, StockBalanceQuery } from "../schemas/StockSchema";
 
-// Built on the "stock" subquery from balanceQuery. Step 12 subtracts the stock-out lines from QUANTITY.
+// Built on the "stock" subquery from balanceQuery. Step 13 subtracts the stock-out lines from QUANTITY.
 const QUANTITY = "COALESCE(stock.in_quantity, 0)";
 const AVG_PRICE = "stock.in_total / NULLIF(stock.in_quantity, 0)";
 const VALUE = `COALESCE(ROUND(${QUANTITY} * ${AVG_PRICE}, 2), 0)`;
@@ -33,7 +33,7 @@ export class StockService {
     static async assertNotNegative(manager: EntityManager, companyUuid: string, productUuids: string[]): Promise<void> {
         if (!productUuids.length) return;
 
-        // Step 12 subtracts the stock-out lines here.
+        // Step 13 subtracts the stock-out lines here.
         const negative = await manager
             .createQueryBuilder(StockInLine, "line")
             .select("line.productUuid", "productUuid")
