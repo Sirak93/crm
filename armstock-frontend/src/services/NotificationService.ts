@@ -64,6 +64,20 @@ export const NotificationService = {
     return result.isConfirmed;
   },
 
+  /** A non-destructive offer with Cancel. Resolves true when accepted. */
+  offer: async (title: string, text: string, confirmText: string): Promise<boolean> => {
+    const result = await AppSwal.fire({
+      title,
+      text,
+      icon: 'question',
+      showCancelButton: true,
+      confirmButtonText: confirmText,
+      cancelButtonText: i18n.global.t('common.cancel'),
+      customClass: { ...SWAL_CLASSES, confirmButton: 'app-swal-btn app-swal-btn--primary' },
+    });
+    return result.isConfirmed;
+  },
+
   /** A yes / no question with Cancel. Resolves true (yes), false (no), or null (cancelled). */
   ask: async (title: string, text: string, yesText: string, noText: string): Promise<boolean | null> => {
     const result = await AppSwal.fire({

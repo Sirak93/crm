@@ -1,4 +1,11 @@
 export default {
+  scanner: {
+    notFound: 'No product with barcode {barcode}.',
+    notFoundTitle: 'Product not found',
+    createProduct: 'Create product',
+    lookupError: 'Could not look up the barcode.',
+    found: 'Found: {name}',
+  },
   common: {
     logout: 'Log out',
     cancel: 'Cancel',
@@ -379,6 +386,8 @@ export default {
       nameRequired: 'Enter the name',
       code: 'Code / SKU',
       codePlaceholder: 'Optional',
+      barcode: 'Barcode',
+      barcodePlaceholder: 'Scan or type',
       unit: 'Unit',
       unitPlaceholder: 'Choose a unit',
       unitRequired: 'Choose a unit',
@@ -855,6 +864,7 @@ export default {
     PRODUCT_CATEGORY_IN_USE: 'This category is used by products and cannot be deleted.',
     PRODUCT_NOT_FOUND: 'This product no longer exists.',
     PRODUCT_CODE_TAKEN: 'Another product already has this code.',
+    PRODUCT_BARCODE_TAKEN: 'Another product already has this barcode.',
     PRODUCT_IN_USE: 'This product is used in stock documents. Archive it instead.',
     SUPPLIER_NOT_FOUND: 'This supplier no longer exists.',
     SUPPLIER_NAME_TAKEN: 'A supplier with this name already exists.',

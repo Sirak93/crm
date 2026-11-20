@@ -1,13 +1,19 @@
 <script setup lang="ts">
-import { nextTick } from 'vue';
+import { nextTick, ref } from 'vue';
+import { useI18n } from 'vue-i18n';
 import { QUANTITY_DECIMALS, QUANTITY_MAX, type IStockLineProduct } from 'armstock-shared';
 import { Plus, Trash2 } from 'lucide-vue-next';
 import ProductSelect from './ProductSelect.vue';
 import CodeBadge from '../CodeBadge.vue';
 import type { IStockOutLineForm } from '../../interfaces/IStockOutLineForm';
 import { emptyOutLine } from '../../utils/stockOutLines';
+import { withScannedProduct } from '../../utils/stockLines';
+import { OptionsService } from '../../services/OptionsService';
+import { NotificationService } from '../../services/NotificationService';
+import { useApiErrorMessage } from '../../composables/useApiErrorMessage';
+import { useBarcodeScanner } from '../../composables/useBarcodeScanner';
 
-defineProps<{
+const props = defineProps<{
   /** Highlight rows that are not filled in correctly - set after a failed save. */
   showErrors: boolean;
   /** Return: the supplier whose products can be picked (null = none picked yet). */
@@ -16,7 +22,11 @@ defineProps<{
 
 const lines = defineModel<IStockOutLineForm[]>({ required: true });
 
+const { t } = useI18n();
+const { parseError } = useApiErrorMessage();
+
 const productRefs = new Map<number, { focus: () => void }>();
+const isScanning = ref(false);
 
 // Like 1C: the new row goes at the bottom and the cursor jumps to its product.
 const addLine = async () => {
@@ -36,6 +46,30 @@ const onProductSelect = (line: IStockOutLineForm, product: IStockLineProduct) =>
   // A whole-number unit drops any decimals typed for the previous product.
   if (!product.allowsDecimals && line.quantity !== undefined) line.quantity = Math.round(line.quantity);
 };
+
+// Same rules as the product picker: stock-out products only, and for a return only this supplier's.
+const onScan = async (barcode: string) => {
+  if (props.suppliedBy === null) {
+    NotificationService.error(t('stockOut.lines.chooseSupplierFirst'));
+    return;
+  }
+  isScanning.value = true;
+  try {
+    const [product] = await OptionsService.products({ barcode, forStockOut: true, suppliedBy: props.suppliedBy });
+    if (!product) {
+      NotificationService.error(t('scanner.notFound', { barcode }));
+      return;
+    }
+    const result = withScannedProduct(lines.value, product, emptyOutLine);
+    lines.value = result.lines;
+  } catch (error) {
+    NotificationService.error(parseError(error, 'scanner.lookupError'));
+  } finally {
+    isScanning.value = false;
+  }
+};
+
+useBarcodeScanner(onScan, () => !isScanning.value);
 
 const setProductRef = (key: number, el: unknown) => {
   if (el) productRefs.set(key, el as { focus: () => void });

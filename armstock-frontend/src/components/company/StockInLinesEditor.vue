@@ -24,7 +24,10 @@ import { AppLogger } from '../../utils/AppLogger';
 import type { IStockInLineForm } from '../../interfaces/IStockInLineForm';
 import { roundTo } from '../../utils/format';
 import { emptyLine } from '../../utils/stockInLines';
-import { toLineProduct } from '../../utils/stockLines';
+import { toLineProduct, withScannedProduct } from '../../utils/stockLines';
+import { OptionsService } from '../../services/OptionsService';
+import { useApiErrorMessage } from '../../composables/useApiErrorMessage';
+import { useBarcodeScanner } from '../../composables/useBarcodeScanner';
 
 defineProps<{
   /** Highlight rows that are not filled in correctly - set after a failed save. */
@@ -34,6 +37,7 @@ defineProps<{
 const lines = defineModel<IStockInLineForm[]>({ required: true });
 
 const { t } = useI18n();
+const { parseError } = useApiErrorMessage();
 const authStore = useAuthStore();
 
 const productRefs = new Map<number, { focus: () => void }>();
@@ -41,7 +45,10 @@ const productRefs = new Map<number, { focus: () => void }>();
 const canCreateProduct = computed(() => !!authStore.user?.can(Permission.PRODUCT_ADD));
 const isProductDialogOpen = ref(false);
 const newProductName = ref('');
+/** null = the product comes from a scan and goes onto the lines like any scanned product. */
 const newProductRowKey = ref<number | null>(null);
+const newProductBarcode = ref('');
+const isScanning = ref(false);
 const units = ref<IMeasureUnit[]>([]);
 const categories = ref<IProductCategory[]>([]);
 
@@ -81,7 +88,7 @@ const onTotalChange = (line: IStockInLineForm) => {
 };
 
 // Units and categories are needed only for the dialog, so they load the first time it opens.
-const openProductDialog = async (line: IStockInLineForm, name: string) => {
+const openProductDialog = async (line: IStockInLineForm | null, name: string, barcode = '') => {
   if (!units.value.length || !categories.value.length) {
     try {
       [units.value, categories.value] = await Promise.all([MeasureUnitService.list(), ProductCategoryService.list()]);
@@ -91,18 +98,47 @@ const openProductDialog = async (line: IStockInLineForm, name: string) => {
       return;
     }
   }
-  newProductRowKey.value = line.key;
+  newProductRowKey.value = line?.key ?? null;
   newProductName.value = name;
+  newProductBarcode.value = barcode;
   isProductDialogOpen.value = true;
 };
 
 /** The new product goes straight onto the row it was created from. */
 const onProductCreated = (product: IProduct) => {
+  if (newProductRowKey.value === null) {
+    addScannedProduct(toLineProduct(product));
+    return;
+  }
   const line = lines.value.find((l) => l.key === newProductRowKey.value);
   if (!line) return;
   line.productUuid = product.uuid;
   onProductSelect(line, toLineProduct(product));
 };
+
+const addScannedProduct = (product: IStockLineProduct) => {
+  const result = withScannedProduct(lines.value, product, emptyLine);
+  lines.value = result.lines;
+  onQuantityOrPriceChange(result.line);
+};
+
+const onScan = async (barcode: string) => {
+  isScanning.value = true;
+  try {
+    const [product] = await OptionsService.products({ barcode });
+    if (product) addScannedProduct(product);
+    else if (!canCreateProduct.value) NotificationService.error(t('scanner.notFound', { barcode }));
+    else if (await NotificationService.offer(t('scanner.notFoundTitle'), t('scanner.notFound', { barcode }), t('scanner.createProduct'))) {
+      await openProductDialog(null, '', barcode);
+    }
+  } catch (error) {
+    NotificationService.error(parseError(error, 'scanner.lookupError'));
+  } finally {
+    isScanning.value = false;
+  }
+};
+
+useBarcodeScanner(onScan, () => !isProductDialogOpen.value && !isScanning.value);
 
 const setProductRef = (key: number, el: unknown) => {
   if (el) productRefs.set(key, el as { focus: () => void });
@@ -214,6 +250,7 @@ const setProductRef = (key: number, el: unknown) => {
       :units="units"
       :categories="categories"
       :initial-name="newProductName"
+      :initial-barcode="newProductBarcode"
       @saved="onProductCreated"
     />
   </div>

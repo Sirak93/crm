@@ -4,4 +4,6 @@ export interface IProductOptionsFilters {
   forStockOut?: boolean;
   /** Only products that came in from this supplier. */
   suppliedBy?: string;
+  /** Exact match - a scan. */
+  barcode?: string;
 }

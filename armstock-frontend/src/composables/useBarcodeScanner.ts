@@ -13,6 +13,7 @@ const asTextField = (target: EventTarget | null): TextField | null =>
 /**
  * Calls `onScan` with each scanned barcode while `enabled`. A scan into the barcode field
  * (BARCODE_INPUT_ATTR) only fills it; a scan into any other field is undone in that field.
+ * While not `enabled` (a dialog is open) scans are still undone, so they cannot type or submit there.
  */
 export const useBarcodeScanner = (onScan: (barcode: string) => void, enabled: MaybeRefOrGetter<boolean> = true) => {
   let buffer = '';
@@ -35,7 +36,7 @@ export const useBarcodeScanner = (onScan: (barcode: string) => void, enabled: Ma
 
   const onKeyDown = (event: KeyboardEvent) => {
     const target = asTextField(event.target);
-    if (!toValue(enabled) || target?.closest(`[${BARCODE_INPUT_ATTR}]`) || event.ctrlKey || event.metaKey || event.altKey) {
+    if (target?.closest(`[${BARCODE_INPUT_ATTR}]`) || event.ctrlKey || event.metaKey || event.altKey) {
       reset();
       return;
     }
@@ -49,7 +50,7 @@ export const useBarcodeScanner = (onScan: (barcode: string) => void, enabled: Ma
         event.preventDefault();
         event.stopPropagation();
         restoreField();
-        onScan(buffer);
+        if (toValue(enabled)) onScan(buffer);
       }
       reset();
       return;

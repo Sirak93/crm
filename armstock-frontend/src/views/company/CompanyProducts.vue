@@ -20,6 +20,7 @@ import type { IProductFilters } from '../../interfaces/IProductFilters';
 import { formatNumber } from '../../utils/format';
 import { AppLogger } from '../../utils/AppLogger';
 import { useOpenAddFromQuery } from '../../composables/useOpenAddFromQuery';
+import { useBarcodeScanner } from '../../composables/useBarcodeScanner';
 
 const { t } = useI18n();
 const { parseError } = useApiErrorMessage();
@@ -41,6 +42,8 @@ const updatingUuid = ref<string | null>(null);
 
 const isDialogOpen = ref(false);
 const editingProduct = ref<IProduct | null>(null);
+const newProductBarcode = ref('');
+const isScanning = ref(false);
 
 const hasFilters = computed(() => !!(filters.value.search || filters.value.categoryUuid));
 
@@ -77,17 +80,36 @@ const onFiltersChange = (newFilters: IProductFilters) => {
 
 const retry = () => Promise.all([loadLookups(), load()]);
 
-const openAdd = () => {
+const openAdd = (barcode = '') => {
   editingProduct.value = null;
+  newProductBarcode.value = barcode;
   isDialogOpen.value = true;
 };
 
-useOpenAddFromQuery(() => canAdd.value, openAdd);
+useOpenAddFromQuery(() => canAdd.value, () => openAdd());
 
 const openEdit = (product: IProduct) => {
   editingProduct.value = product;
   isDialogOpen.value = true;
 };
+
+// Found: open it (or just name it without edit rights). Not found: create it with this barcode.
+const onScan = async (barcode: string) => {
+  isScanning.value = true;
+  try {
+    const { items: [product] } = await ProductService.list(1, 1, { barcode });
+    if (product && canEdit.value) openEdit(product);
+    else if (product) NotificationService.success(t('scanner.found', { name: product.name }));
+    else if (canAdd.value) openAdd(barcode);
+    else NotificationService.error(t('scanner.notFound', { barcode }));
+  } catch (error) {
+    NotificationService.error(parseError(error, 'scanner.lookupError'));
+  } finally {
+    isScanning.value = false;
+  }
+};
+
+useBarcodeScanner(onScan, () => !isDialogOpen.value && !isScanning.value);
 
 const onSaved = () => load(editingProduct.value ? meta.value.page : 1);
 
@@ -139,7 +161,7 @@ onMounted(loadLookups);
       :badge="hasLoaded ? formatNumber(meta.total) : undefined"
     >
       <template v-if="canAdd" #actions>
-        <el-button type="primary" @click="openAdd">
+        <el-button type="primary" @click="openAdd()">
           <Plus :size="16" aria-hidden="true" />
           <span>{{ $t('products.add') }}</span>
         </el-button>
@@ -188,6 +210,7 @@ onMounted(loadLookups);
       :product="editingProduct"
       :units="units"
       :categories="categories"
+      :initial-barcode="newProductBarcode"
       @saved="onSaved"
     />
   </section>

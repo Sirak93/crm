@@ -3,12 +3,13 @@ import { computed, ref, watch } from 'vue';
 import { useI18n } from 'vue-i18n';
 import type { FormInstance, FormRules } from 'element-plus';
 import type { IMeasureUnit, IProduct, IProductCategory } from 'armstock-shared';
-import { Barcode, Package } from 'lucide-vue-next';
+import { Barcode, Package, ScanBarcode } from 'lucide-vue-next';
 import AppDialog from '../AppDialog.vue';
 import { ProductService } from '../../services/ProductService';
 import { NotificationService } from '../../services/NotificationService';
 import { useApiErrorMessage } from '../../composables/useApiErrorMessage';
-import { REQUIRED_RULE_TRIGGER } from '../../constants/constants';
+import { BARCODE_MAX_LENGTH } from 'armstock-shared';
+import { BARCODE_INPUT_ATTR, REQUIRED_RULE_TRIGGER } from '../../constants/constants';
 
 const props = defineProps<{
   /** null = add a new product. */
@@ -17,6 +18,8 @@ const props = defineProps<{
   categories: IProductCategory[];
   /** Pre-fills the name of a new product, e.g. with what was typed in a search. */
   initialName?: string;
+  /** Pre-fills the barcode of a new product - the one just scanned. */
+  initialBarcode?: string;
 }>();
 
 const emit = defineEmits<{ saved: [product: IProduct] }>();
@@ -28,7 +31,7 @@ const { parseError } = useApiErrorMessage();
 
 const formRef = ref<FormInstance>();
 const isSaving = ref(false);
-const form = ref({ name: '', code: '', measureUnitUuid: '', categoryUuid: '' });
+const form = ref({ name: '', code: '', barcode: '', measureUnitUuid: '', categoryUuid: '' });
 
 const isEdit = computed(() => !!props.product);
 
@@ -46,6 +49,7 @@ watch(open, (isOpen) => {
   form.value = {
     name: p?.name ?? props.initialName ?? '',
     code: p?.code ?? '',
+    barcode: p?.barcode ?? props.initialBarcode ?? '',
     measureUnitUuid: p?.measureUnit.uuid ?? '',
     categoryUuid: p?.category.uuid ?? '',
   };
@@ -58,7 +62,7 @@ const save = async () => {
   const payload = {
     name: form.value.name.trim(),
     code: form.value.code.trim() || null,
-    barcode: props.product?.barcode ?? null,
+    barcode: form.value.barcode.trim() || null,
     categoryUuid: form.value.categoryUuid,
   };
 
@@ -97,6 +101,21 @@ const save = async () => {
         <el-form-item :label="$t('products.form.code')" prop="code">
           <el-input v-model="form.code" maxlength="50" :placeholder="$t('products.form.codePlaceholder')">
             <template #prefix><Barcode :size="16" aria-hidden="true" /></template>
+          </el-input>
+        </el-form-item>
+      </div>
+
+      <div class="form-row">
+        <el-form-item :label="$t('products.form.barcode')" prop="barcode">
+          <!-- Enter is the scanner's end key here, not "save". -->
+          <el-input
+            v-model="form.barcode"
+            v-bind="{ [BARCODE_INPUT_ATTR]: '' }"
+            :maxlength="BARCODE_MAX_LENGTH"
+            :placeholder="$t('products.form.barcodePlaceholder')"
+            @keydown.enter.prevent
+          >
+            <template #prefix><ScanBarcode :size="16" aria-hidden="true" /></template>
           </el-input>
         </el-form-item>
       </div>
