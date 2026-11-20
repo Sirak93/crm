@@ -29,7 +29,7 @@ Decisions behind these steps: [decisions.md](decisions.md).
 - [x] Step 9 — Suppliers
 - [x] Step 10 — Stock-in documents
 - [x] Step 11 — Stock view
-- [ ] Step 12 — Archived users
+- [x] Step 12 — Archived users
 - [ ] Step 13 — Stock-out documents
 - [ ] Step 14 — Redis cache
 - [ ] Step 15 — Role check pass
@@ -330,17 +330,17 @@ Each is its own top-level menu item.
 
 ## Step 12 — Archived users
 
-- [ ] Shared: `UserStatus.ARCHIVED = 30` — the person left the company (Blocked = still
+- [x] Shared: `UserStatus.ARCHIVED = 30` — the person left the company (Blocked = still
       works here, login stopped for now)
-- [ ] Archived users cannot log in, same as blocked
-- [ ] Archive / restore from the users list (Company Owner's Users page and the Platform
+- [x] Archived users cannot log in, same as blocked
+- [x] Archive / restore from the users list (Company Owner's Users page and the Platform
       Owner's company users page — one shared service); "Archived" tag. Menu: Active →
       Edit · Block · Archive; Blocked → Edit · Activate · Archive; Archived → Edit · Restore
       (Restore sets Active)
-- [ ] Users list shows everyone sorted Active → Blocked → Archived; filters like suppliers
+- [x] Users list shows everyone sorted Active → Blocked → Archived; filters like suppliers
       (search + single-select status, starts empty)
-- [ ] Lint and build pass
-- [ ] Checked in browser: archive a Staff user, it leaves the default list, restore it;
+- [x] Lint and build pass
+- [x] Checked in browser: archive a Staff user, it leaves the default list, restore it;
       archive a logged-in user — they are logged out on their next action and cannot
       log in again
 
