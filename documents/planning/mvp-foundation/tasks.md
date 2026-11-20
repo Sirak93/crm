@@ -31,9 +31,10 @@ Decisions behind these steps: [decisions.md](decisions.md).
 - [x] Step 11 — Stock view
 - [x] Step 12 — Archived users
 - [ ] Step 13 — Stock-out documents
-- [ ] Step 14 — Redis cache
-- [ ] Step 15 — Role check pass
-- [ ] Step 16 — Backend tester
+- [ ] Step 14 — User permissions
+- [ ] Step 15 — Redis cache
+- [ ] Step 16 — Role check pass
+- [ ] Step 17 — Backend tester
 
 ---
 
@@ -389,7 +390,44 @@ Each is its own top-level menu item.
       write off spoiled goods, return goods to a supplier, stock goes down; issuing too
       much shows an error
 
-## Step 14 — Redis cache
+## Step 14 — User permissions
+
+Each user has their own list of permissions; the Company Owner turns them on and off per user
+(e.g. one Accountant may manage suppliers, another may not). See "Permissions" in
+[decisions.md](decisions.md).
+
+- [ ] **To confirm:** the exact permission list and the default permissions of each role
+- [ ] Shared
+  - [ ] `Permission` enum (one value per valuable action, e.g. `PRODUCT_CREATE`,
+        `PRODUCT_EDIT`, `SUPPLIER_MANAGE`, `STOCK_IN_CREATE`)
+  - [ ] Default permissions per role
+- [ ] DB: `users.permissions` — `int[]` column with the user's full list
+- [ ] Role defaults are copied to the user on create and on role change; the Owner edits
+      that copy
+- [ ] Company Owner always has every permission - can't be turned off
+- [ ] Backend
+  - [ ] `PermissionMiddleware(Permission.X)` replaces the role lists on company routes
+  - [ ] Permissions in the auth cache; a change applies on the user's next request
+  - [ ] Only the Company Owner (and the Platform Owner for a company) edits permissions
+- [ ] Frontend
+  - [ ] `can(Permission.X)` replaces the `canManage…` flags in menu, buttons, and routes
+  - [ ] User dialog: permission panel grouped by area (Products, Suppliers, Stock…) with
+        switches and "Reset to role defaults"
+  - [ ] Routes check a permission (`meta.permission`) instead of roles
+  - [ ] Lost access while using the app - a request refused with 403 (e.g. Save), or a
+        reload of a page that is no longer allowed: reload the user, and if the current page
+        is no longer allowed, show one generic popup ("Your permissions have changed. You no
+        longer have access to this page.") with OK. OK reloads the app at `/`, which opens
+        the role's own dashboard. Same popup for both cases, so the user always sees why;
+        the unsaved-changes dialog is skipped and typed data is lost (accepted)
+- [ ] Lint and build pass
+- [ ] Checked in browser: turn off supplier management for one Accountant - the menu and
+      buttons disappear and the API refuses; another Accountant still has it; a role change
+      resets to the new role's defaults; a Storekeeper on the new stock-in form loses
+      "create stock-in" - Save shows the popup and OK opens the dashboard; reloading that
+      form page shows the same popup
+
+## Step 15 — Redis cache
 
 - [ ] Shared Redis helper copied from armlytic
 - [ ] Cache units
@@ -402,7 +440,7 @@ Each is its own top-level menu item.
 - [ ] Checked in browser: lists work the same, logs show cache hits, changes show up
       at once
 
-## Step 15 — Role check pass
+## Step 16 — Role check pass
 
 - [ ] Seeder adds a demo company with one user per role (emails and passwords from env)
 - [ ] Check every page and API for each role
@@ -410,11 +448,12 @@ Each is its own top-level menu item.
   - [ ] Company Owner
   - [ ] Storekeeper
   - [ ] Accountant
-- [ ] Fix anything that does not match the roles table in [decisions.md](decisions.md)
+- [ ] Fix anything that does not match the roles table and the permission defaults in
+      [decisions.md](decisions.md)
 - [ ] Lint and build pass
 - [ ] Checked in browser: each role sees only its own menus and actions
 
-## Step 16 — Backend tester
+## Step 17 — Backend tester
 
 A reusable end-to-end tester like armlytic's (`armlytic-backend/src/scripts/tester/`): it
 calls the real HTTP API with real logins and checks the responses and the database. No test

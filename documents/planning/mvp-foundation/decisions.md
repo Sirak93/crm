@@ -41,6 +41,26 @@ Company Owner. Page paths stay short (`/database`, `/logs`).
 Storekeeper can manage suppliers for now. Removing that later is just removing the role
 from the route middleware.
 
+## Permissions
+
+From Step 14 the roles table above is the **default** for each role, not a fixed rule.
+Each user has their own permission list, and the Company Owner turns single permissions on
+or off per user (e.g. one Accountant may manage suppliers, another may not).
+
+- Permissions are a code enum (`Permission`), one value per valuable action.
+- Stored on the user as the **full list**: `users.permissions`, a Postgres `int[]` column.
+  No separate table - the list is small and always read together with the user.
+- On user create and on role change, the role's defaults are copied to the user. The Owner
+  then edits that copy. Changing a role's defaults later does not touch existing users.
+- Company Owner always has every permission; it can't be turned off.
+- Checks use permissions, not roles: `PermissionMiddleware(Permission.X)` on the API,
+  `can(Permission.X)` in the frontend. A change applies on the user's next request.
+- Frontend gets permissions with the user (login and app load). When a request is refused
+  with 403, it reloads the user. If the open page is no longer allowed - after a 403 or on a
+  page reload - one generic popup explains it, and OK reloads the app at `/` (the role's own
+  dashboard). Typed data on that page is lost.
+- A history of who changed what can come later as a separate log table.
+
 ## People: one Users table
 
 - Every person in a company is a **User**: first name, last name, position (optional
