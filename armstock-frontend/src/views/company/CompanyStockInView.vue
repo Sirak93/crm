@@ -29,9 +29,10 @@ const isLoading = ref(true);
 const hasError = ref(false);
 const isDeleting = ref(false);
 
-/** Edit and delete: the creator only, with the create permission. */
-const isCreator = computed(() => !!doc.value && doc.value.createdBy.uuid === authStore.user?.uuid
-  && !!authStore.user?.can(Permission.STOCK_IN_CREATE));
+/** Edit and delete: the creator only, each with its own permission. */
+const isCreator = computed(() => !!doc.value && doc.value.createdBy.uuid === authStore.user?.uuid);
+const canEdit = computed(() => isCreator.value && !!authStore.user?.can(Permission.STOCK_IN_EDIT));
+const canDelete = computed(() => isCreator.value && !!authStore.user?.can(Permission.STOCK_IN_DELETE));
 
 const load = async () => {
   isLoading.value = true;
@@ -70,12 +71,12 @@ const onDelete = async () => {
 
     <template v-else>
       <PageHeader :title="doc.number" :subtitle="$t(STOCK_IN_REASON_LABEL[doc.reason])">
-        <template v-if="isCreator" #actions>
-          <el-button @click="router.push({ name: ROUTE_NAME.COMPANY_STOCK_IN_EDIT, params: { uuid: doc.uuid } })">
+        <template v-if="canEdit || canDelete" #actions>
+          <el-button v-if="canEdit" @click="router.push({ name: ROUTE_NAME.COMPANY_STOCK_IN_EDIT, params: { uuid: doc.uuid } })">
             <Pencil :size="16" aria-hidden="true" />
             <span>{{ $t('stockIn.actions.edit') }}</span>
           </el-button>
-          <el-button type="danger" plain :loading="isDeleting" @click="onDelete">
+          <el-button v-if="canDelete" type="danger" plain :loading="isDeleting" @click="onDelete">
             <Trash2 :size="16" aria-hidden="true" />
             <span>{{ $t('stockIn.actions.delete') }}</span>
           </el-button>

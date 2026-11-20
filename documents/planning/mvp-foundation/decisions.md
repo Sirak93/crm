@@ -119,15 +119,15 @@ on or off separately.
 | | `SUPPLIER_ARCHIVE`, `SUPPLIER_DELETE` | | ✓ ✓ | |
 | Supplier contacts | `SUPPLIER_CONTACT_ADD`, `SUPPLIER_CONTACT_EDIT`, `SUPPLIER_CONTACT_DELETE` | ✓ ✓ ✓ | ✓ ✓ ✓ | |
 | Stock | `STOCK_BALANCE_VIEW` | ✓ | ✓ | |
-| | `STOCK_IN_VIEW`, `STOCK_IN_CREATE` | ✓ ✓ | ✓ | |
-| | `STOCK_OUT_VIEW`, `STOCK_OUT_CREATE` | ✓ ✓ | ✓ | |
+| | `STOCK_IN_VIEW`, `STOCK_IN_CREATE`, `STOCK_IN_EDIT`, `STOCK_IN_DELETE` | ✓ ✓ ✓ ✓ | ✓ | |
+| | `STOCK_OUT_VIEW`, `STOCK_OUT_CREATE`, `STOCK_OUT_EDIT`, `STOCK_OUT_DELETE` | ✓ ✓ ✓ ✓ | ✓ | |
 
 - `USER_EDIT` is off for HR by default: with it someone can change another user's password
   and log in as them, so the Owner gives it only to HR people they trust.
 - Units and categories have no view permission - they are reference data every logged-in
   member reads (product form, filters). Their pages show for anyone with one of their
   permissions.
-- Stock documents: edit and delete stay creator-only and need the matching `*_CREATE`.
+- Stock documents: edit and delete stay creator-only and need the matching `*_EDIT` / `*_DELETE`.
 - Delete needs both the permission and the data rule: units, categories, products, and
   suppliers can be deleted only while nothing uses them.
 - **Product delete** is new in Step 14: allowed only while the product is in no stock-in or

@@ -12,6 +12,8 @@ const router = Router();
 const stockInController = new StockInController();
 const canView = PermissionMiddleware(Permission.STOCK_IN_VIEW);
 const canCreate = PermissionMiddleware(Permission.STOCK_IN_CREATE);
+const canEdit = PermissionMiddleware(Permission.STOCK_IN_EDIT);
+const canDelete = PermissionMiddleware(Permission.STOCK_IN_DELETE);
 const uuidParams = validate(UuidParamsSchema, "params");
 
 router.use(CompanyMemberMiddleware);
@@ -20,8 +22,8 @@ router.get("/", canView, validate(StockInsQuerySchema, "query"), asyncHandler(st
 router.get("/summary", canView, validate(StockInFiltersSchema, "query"), asyncHandler(stockInController.summary));
 router.get("/:uuid", canView, uuidParams, asyncHandler(stockInController.get));
 router.post("/", canCreate, validate(StockInBodySchema), asyncHandler(stockInController.create));
-// Edit and delete need the create permission; the service also checks that the user is the document's creator.
-router.put("/:uuid", canCreate, uuidParams, validate(StockInBodySchema), asyncHandler(stockInController.update));
-router.delete("/:uuid", canCreate, uuidParams, asyncHandler(stockInController.delete));
+// The service also checks that the user is the document's creator.
+router.put("/:uuid", canEdit, uuidParams, validate(StockInBodySchema), asyncHandler(stockInController.update));
+router.delete("/:uuid", canDelete, uuidParams, asyncHandler(stockInController.delete));
 
 export default router;

@@ -411,7 +411,7 @@ Suggested chunks (each: notes → OK → build → lint/build):
 - [x] **Confirmed:** no move-over of old users - the local database is dropped and
       recreated, and the dev seeder below fills it again
 - [x] Shared
-  - [x] `Permission` enum - the 29 permissions from the table in decisions.md
+  - [x] `Permission` enum - the 33 permissions from the table in decisions.md
   - [x] Permission groups for the panel (`PermissionGroup` enum + `PERMISSION_GROUPS`):
         Company, Users, Units, Categories, Products, Suppliers, Supplier contacts, Stock
   - [x] `AccountType` enum: `PLATFORM_OWNER`, `COMPANY_OWNER`, `COMPANY_MEMBER` (replaces

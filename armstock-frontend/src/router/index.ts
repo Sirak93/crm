@@ -106,7 +106,7 @@ const routes: RouteRecordRaw[] = [
         name: ROUTE_NAME.COMPANY_STOCK_IN_EDIT,
         component: () => import('../views/company/CompanyStockInForm.vue'),
         props: true,
-        meta: { accountTypes: COMPANY_ACCOUNT_TYPES, permissions: [Permission.STOCK_IN_CREATE] },
+        meta: { accountTypes: COMPANY_ACCOUNT_TYPES, permissions: [Permission.STOCK_IN_EDIT] },
       },
       {
         path: 'stock/out',
@@ -132,7 +132,7 @@ const routes: RouteRecordRaw[] = [
         name: ROUTE_NAME.COMPANY_STOCK_OUT_EDIT,
         component: () => import('../views/company/CompanyStockOutForm.vue'),
         props: true,
-        meta: { accountTypes: COMPANY_ACCOUNT_TYPES, permissions: [Permission.STOCK_OUT_CREATE] },
+        meta: { accountTypes: COMPANY_ACCOUNT_TYPES, permissions: [Permission.STOCK_OUT_EDIT] },
       },
       {
         path: 'stock/balance',

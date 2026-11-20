@@ -22,6 +22,8 @@ const authStore = useAuthStore();
 const { deleteStockOut } = useStockOutDelete();
 
 const canCreate = computed(() => !!authStore.user?.can(Permission.STOCK_OUT_CREATE));
+const canEdit = computed(() => !!authStore.user?.can(Permission.STOCK_OUT_EDIT));
+const canDelete = computed(() => !!authStore.user?.can(Permission.STOCK_OUT_DELETE));
 
 const stockOuts = ref<IStockOut[]>([]);
 const meta = ref<IPaginationMeta>({ page: 1, pageSize: DEFAULT_PAGE_SIZE, total: 0, totalPages: 0 });
@@ -125,7 +127,8 @@ const onDelete = async (stockOut: IStockOut) => {
         v-loading="isLoading"
         :stock-outs="stockOuts"
         :current-user-uuid="authStore.user?.uuid ?? null"
-        :can-edit-own="canCreate"
+        :can-edit-own="canEdit"
+        :can-delete-own="canDelete"
         :busy-uuid="busyUuid"
         @open="openView"
         @edit="openEdit"

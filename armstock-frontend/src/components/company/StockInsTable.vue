@@ -9,9 +9,10 @@ import { ROW_ACTION, type RowAction } from '../../constants/rowActions';
 
 defineProps<{
   stockIns: IStockIn[];
-  /** Only the creator may edit or delete a document, and only with the create permission. */
+  /** Only the creator may edit or delete a document, each with its own permission. */
   currentUserUuid: string | null;
   canEditOwn: boolean;
+  canDeleteOwn: boolean;
   /** uuid of the document being deleted. */
   busyUuid: string | null;
 }>();
@@ -65,16 +66,16 @@ const onAction = (stockIn: IStockIn, action: RowAction) => {
       <template #default="{ row }">
         <div @click.stop>
           <RowActionsMenu
-            v-if="canEditOwn && row.createdBy.uuid === currentUserUuid"
+            v-if="(canEditOwn || canDeleteOwn) && row.createdBy.uuid === currentUserUuid"
             :label="$t('stockIn.actionsFor', { number: row.number })"
             :disabled="busyUuid === row.uuid"
             @command="(action) => onAction(row as IStockIn, action as RowAction)"
           >
-            <el-dropdown-item :command="ROW_ACTION.EDIT">
+            <el-dropdown-item v-if="canEditOwn" :command="ROW_ACTION.EDIT">
               <Pencil :size="16" aria-hidden="true" />
               <span>{{ $t('stockIn.actions.edit') }}</span>
             </el-dropdown-item>
-            <el-dropdown-item :command="ROW_ACTION.DELETE" class="dropdown-item--danger">
+            <el-dropdown-item v-if="canDeleteOwn" :command="ROW_ACTION.DELETE" class="dropdown-item--danger">
               <Trash2 :size="16" aria-hidden="true" />
               <span>{{ $t('stockIn.actions.delete') }}</span>
             </el-dropdown-item>
