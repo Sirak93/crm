@@ -125,7 +125,7 @@ const onDelete = async (stockIn: IStockIn) => {
         v-loading="isLoading"
         :stock-ins="stockIns"
         :current-user-uuid="authStore.user?.uuid ?? null"
-        :can-edit="canCreate"
+        :can-edit-own="canCreate"
         :busy-uuid="busyUuid"
         @open="openView"
         @edit="openEdit"

@@ -11,7 +11,7 @@ defineProps<{
   stockIns: IStockIn[];
   /** Only the creator may edit or delete a document, and only with the create permission. */
   currentUserUuid: string | null;
-  canEdit: boolean;
+  canEditOwn: boolean;
   /** uuid of the document being deleted. */
   busyUuid: string | null;
 }>();
@@ -65,7 +65,7 @@ const onAction = (stockIn: IStockIn, action: RowAction) => {
       <template #default="{ row }">
         <div @click.stop>
           <RowActionsMenu
-            v-if="canEdit && row.createdBy.uuid === currentUserUuid"
+            v-if="canEditOwn && row.createdBy.uuid === currentUserUuid"
             :label="$t('stockIn.actionsFor', { number: row.number })"
             :disabled="busyUuid === row.uuid"
             @command="(action) => onAction(row as IStockIn, action as RowAction)"
