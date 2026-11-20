@@ -1,6 +1,6 @@
 import { z } from "zod";
 import { UserStatus } from "armstock-shared";
-import { optionalText, PaginatedSearchQuerySchema, PasswordSchema } from "./SharedSchema";
+import { optionalText, PaginatedSearchQuerySchema, PasswordSchema, PermissionListSchema } from "./SharedSchema";
 
 const CompanyUserBaseSchema = z.object({
     firstName: z.string().trim().min(1).max(100),
@@ -20,7 +20,11 @@ const requireEmailForLogin = (body: CompanyUserBase, ctx: z.RefinementCtx) => {
     }
 };
 
-export const CompanyUserCreateSchema = CompanyUserBaseSchema.extend({ roleUuid: z.uuid() }).superRefine((body, ctx) => {
+export const CompanyUserCreateSchema = CompanyUserBaseSchema.extend({
+    roleUuid: z.uuid(),
+    // Used only when the person adding may manage permissions; otherwise the role's set is copied.
+    permissions: PermissionListSchema.optional(),
+}).superRefine((body, ctx) => {
     requireEmailForLogin(body, ctx);
     if (body.canLogIn && !body.password) {
         ctx.addIssue({ code: "custom", path: ["password"], message: "Password is required for a user who logs in" });
@@ -30,8 +34,9 @@ export const CompanyUserCreateSchema = CompanyUserBaseSchema.extend({ roleUuid: 
 /** The password rule depends on the stored user, so the service checks it. */
 export const CompanyUserUpdateSchema = CompanyUserBaseSchema.superRefine(requireEmailForLogin);
 
-export const CompanyUserRoleBodySchema = z.object({
+export const CompanyUserAccessBodySchema = z.object({
     roleUuid: z.uuid(),
+    permissions: PermissionListSchema,
 });
 
 export const CompanyUserStatusBodySchema = z.object({
@@ -45,6 +50,6 @@ export const CompanyUsersQuerySchema = PaginatedSearchQuerySchema.extend({
 
 export type CompanyUserBody = z.infer<typeof CompanyUserUpdateSchema>;
 export type CompanyUserCreateBody = z.infer<typeof CompanyUserCreateSchema>;
-export type CompanyUserRoleBody = z.infer<typeof CompanyUserRoleBodySchema>;
+export type CompanyUserAccessBody = z.infer<typeof CompanyUserAccessBodySchema>;
 export type CompanyUserStatusBody = z.infer<typeof CompanyUserStatusBodySchema>;
 export type CompanyUsersQuery = z.infer<typeof CompanyUsersQuerySchema>;

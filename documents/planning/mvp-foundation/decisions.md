@@ -97,6 +97,8 @@ company role:
 - **Nobody can change their own permissions or role** (read-only panel on your own account;
   the API refuses too). Anyone with `MANAGE_USER_PERMISSIONS` may grant any permission to
   others.
+- **Without `MANAGE_USER_PERMISSIONS` the permission panel is hidden** (e.g. HR with only
+  `USER_ADD`): they pick a role and the server copies its set; any list they send is ignored.
 
 **Permission list and default roles** (`✓` = on in that role's template). Every action is
 its own permission; the panel groups them, with a group switch, but each one can be turned

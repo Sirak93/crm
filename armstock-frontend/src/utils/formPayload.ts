@@ -51,6 +51,7 @@ export const toUserForm = (user: ICompanyUser | null): IUserForm => ({
   canLogIn: user?.canLogIn ?? true,
   email: user?.email ?? '',
   password: '',
+  permissions: [...(user?.permissions ?? [])],
 });
 
 /** Without login no email or password is sent. */
@@ -63,8 +64,12 @@ export const toUserPayload = (form: IUserForm): ICompanyUserPayload => ({
   password: form.canLogIn ? form.password || null : null,
 });
 
-/** `roleUuid` must be set (the form requires it on create). */
-export const toUserCreatePayload = (form: IUserForm): ICompanyUserCreatePayload => ({
+/**
+ * `roleUuid` must be set (the form requires it on create). Permissions go only when the person adding
+ * may manage them - otherwise the server copies the role's set.
+ */
+export const toUserCreatePayload = (form: IUserForm, withPermissions: boolean): ICompanyUserCreatePayload => ({
   ...toUserPayload(form),
   roleUuid: form.roleUuid,
+  ...(withPermissions && form.canLogIn ? { permissions: form.permissions } : {}),
 });

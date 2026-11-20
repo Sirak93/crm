@@ -33,7 +33,7 @@ export type * from "./interfaces/ICompanyPayload";
 export type * from "./interfaces/ICompanyUser";
 export type * from "./interfaces/ICompanyUserCreatePayload";
 export type * from "./interfaces/ICompanyUserPayload";
-export type * from "./interfaces/ICompanyUserRolePayload";
+export type * from "./interfaces/ICompanyUserAccessPayload";
 export type * from "./interfaces/IDatabaseStorage";
 export type * from "./interfaces/IHealthStatus";
 export type * from "./interfaces/ILoginResponse";

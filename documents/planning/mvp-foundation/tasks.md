@@ -430,7 +430,7 @@ Suggested chunks (each: notes → OK → build → lint/build):
         Every user added later is a `COMPANY_MEMBER`
   - [x] Old `role` column and `UserRole` enum removed (database recreated, no migration) -
         at the end of chunk 3, once nothing uses them; until then they live side by side
-- [ ] Dev seeder (`npm run seed:dev -w armstock-backend`) - replaces the old "Role check
+- [x] Dev seeder (`npm run seed:dev -w armstock-backend`) - replaces the old "Role check
       pass" seeder
   - [x] Creates a demo company: the Owner, a Storekeeper, an Accountant, an HR user, and
         a Staff user without login, with the default roles and their permissions, plus the seed
@@ -438,7 +438,7 @@ Suggested chunks (each: notes → OK → build → lint/build):
   - [x] Emails and the shared password from `.env` (`DEV_SEED_*`), placeholders in
         `.env.example`; stops with a clear message when one is missing
   - [x] Refuses to run unless `NODE_ENV` is `development`
-  - [ ] Local `.env` filled with the current local emails and the dev password - only
+  - [x] Local `.env` filled with the current local emails and the dev password - only
         after asking the user
 - [ ] Rules
   - [x] Exactly one Company Owner; only the Platform Owner can touch that account
@@ -465,9 +465,9 @@ Suggested chunks (each: notes → OK → build → lint/build):
         account type set by the server, never from the request
   - [x] Can log in = yes: email and password required (password only on create or when
         turning login on); no: email and password cleared, permissions emptied
-  - [ ] Role picker lists the company's roles; picking one fills the permission panel with
+  - [x] Role picker lists the company's roles; picking one fills the permission panel with
         its set (create) - on edit only with `MANAGE_USER_PERMISSIONS`
-  - [ ] Each part of the dialog follows its permission: basic data `USER_EDIT`, role and
+  - [x] Each part of the dialog follows its permission: basic data `USER_EDIT`, role and
         permissions `MANAGE_USER_PERMISSIONS`; your own account and the Owner account
         are read-only where the rules say so
   - [x] Users list: role name column, "No login" tag, role filter next to the status filter
@@ -497,13 +497,14 @@ Suggested chunks (each: notes → OK → build → lint/build):
   - [ ] Company dashboard: the cards from decisions.md, each shown by its permission and
         loading on its own; empty state when no card applies; open to every member who can
         log in
-  - [ ] Permission panel: groups with a group switch, every permission its own switch
+  - [x] Permission panel: groups with a group switch, every permission its own switch
   - [ ] Roles page (Owner or `MANAGE_USER_PERMISSIONS`): list, add, edit permissions,
         delete
-  - [ ] User dialog: role picker (on create with `USER_ADD`; on edit only with
+  - [x] User dialog: role picker (on create with `USER_ADD`; on edit only with
         `MANAGE_USER_PERMISSIONS`), "Can log in", permission panel grouped by area with
-        switches and "Reset to role defaults"; read-only without
-        `MANAGE_USER_PERMISSIONS` and on your own account; hidden without login
+        switches and "Reset to role defaults"; hidden without `MANAGE_USER_PERMISSIONS`
+        (the role decides) and without login; read-only on your own account. Saved through
+        `PUT /company/users/:uuid/access` (role + permissions together)
   - [x] `can(Permission.X)` replaces the `canManage…` flags in menu and buttons; routes use
         `meta.permission`
   - [x] Lost access - a request refused with 403 (e.g. Save), or a reload of a page that is
@@ -521,7 +522,7 @@ Suggested chunks (each: notes → OK → build → lint/build):
         them, then it deletes
   - [ ] An HR intern with only `USER_ADD` creates a user with a role but can't open
         existing users; an HR user with `USER_EDIT` changes a password but the role picker
-        and permission panel are read-only; with `MANAGE_USER_PERMISSIONS` both open (but
+        is read-only and the permission panel is hidden; with `MANAGE_USER_PERMISSIONS` both open (but
         not on your own account); the Owner account has no edit actions
   - [ ] A user without login has no email, password, or permissions, and can still be a
         stock-out receiver

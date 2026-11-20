@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { computed, onMounted, ref } from 'vue';
 import { useI18n } from 'vue-i18n';
-import { UserStatus, type ICompanyUser, type INamedRef, type IPaginationMeta } from 'armstock-shared';
+import { UserStatus, type ICompanyUser, type INamedRef, type IPaginationMeta, type IRole } from 'armstock-shared';
 import { Plus, Users } from 'lucide-vue-next';
 import PageHeader from '../PageHeader.vue';
 import AppCard from '../AppCard.vue';
@@ -41,6 +41,7 @@ const updatingUuid = ref<string | null>(null);
 const currentUserUuid = computed(() => authStore.user?.uuid ?? null);
 const hasFilters = computed(() => !!(filters.value.search || filters.value.status || filters.value.roleUuid));
 const roles = ref<INamedRef[]>([]);
+const roleTemplates = ref<IRole[]>([]);
 
 const isDialogOpen = ref(false);
 const editingUser = ref<ICompanyUser | null>(null);
@@ -63,10 +64,15 @@ const load = async (page = meta.value.page) => {
   }
 };
 
-/** For the role picker and the role filter. */
+/** For the role picker and the role filter; with the right to manage permissions also each role's set. */
 const loadRoles = async () => {
   try {
-    roles.value = await props.api.roles();
+    if (props.access.canManageAccess && props.api.roleTemplates) {
+      roleTemplates.value = await props.api.roleTemplates();
+      roles.value = roleTemplates.value;
+    } else {
+      roles.value = await props.api.roles();
+    }
   } catch (error) {
     AppLogger.error('Failed to load roles:', error);
     hasError.value = true;
@@ -209,6 +215,7 @@ onMounted(loadRoles);
       :user="editingUser"
       :current-user-uuid="currentUserUuid"
       :roles="roles"
+      :role-templates="roleTemplates"
       :access="access"
       @saved="onSaved"
     />

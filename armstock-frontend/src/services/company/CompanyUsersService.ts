@@ -1,14 +1,15 @@
 import type {
   IAppResponse,
   ICompanyUser,
+  ICompanyUserAccessPayload,
   ICompanyUserCreatePayload,
   ICompanyUserPayload,
-  ICompanyUserRolePayload,
   IPaginationMeta,
   UserStatus,
 } from 'armstock-shared';
 import ApiService from '../ApiService';
 import { OptionsService } from '../OptionsService';
+import { RoleService } from './RoleService';
 import type { ICompanyUsersApi } from '../../interfaces/ICompanyUsersApi';
 import type { IUserFilters } from '../../interfaces/IUserFilters';
 
@@ -31,8 +32,8 @@ export const CompanyUsersService: ICompanyUsersApi = {
     return response.data.data!;
   },
 
-  async setRole(uuid: string, roleUuid: string): Promise<ICompanyUser> {
-    const response = await ApiService.put<IAppResponse<ICompanyUser>>(`/company/users/${uuid}/role`, { roleUuid } satisfies ICompanyUserRolePayload);
+  async setAccess(uuid: string, payload: ICompanyUserAccessPayload): Promise<ICompanyUser> {
+    const response = await ApiService.put<IAppResponse<ICompanyUser>>(`/company/users/${uuid}/access`, payload);
     return response.data.data!;
   },
 
@@ -42,4 +43,5 @@ export const CompanyUsersService: ICompanyUsersApi = {
   },
 
   roles: () => OptionsService.roles(),
+  roleTemplates: () => RoleService.list(),
 };

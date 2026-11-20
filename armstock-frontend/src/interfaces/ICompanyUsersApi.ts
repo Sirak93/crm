@@ -1,9 +1,11 @@
 import type {
   ICompanyUser,
+  ICompanyUserAccessPayload,
   ICompanyUserCreatePayload,
   ICompanyUserPayload,
   INamedRef,
   IPaginationMeta,
+  IRole,
   UserStatus,
 } from 'armstock-shared';
 import type { IUserFilters } from './IUserFilters';
@@ -16,6 +18,8 @@ export interface ICompanyUsersApi {
   setStatus(uuid: string, status: UserStatus): Promise<ICompanyUser>;
   /** The company's roles, for the role picker and filter. */
   roles(): Promise<INamedRef[]>;
-  /** Company side only - the Platform Owner changes roles later. */
-  setRole?(uuid: string, roleUuid: string): Promise<ICompanyUser>;
+  /** Company side only - the Platform Owner manages roles and permissions later. */
+  setAccess?(uuid: string, payload: ICompanyUserAccessPayload): Promise<ICompanyUser>;
+  /** The roles with their permissions - for the permission panel; company side only. */
+  roleTemplates?(): Promise<IRole[]>;
 }

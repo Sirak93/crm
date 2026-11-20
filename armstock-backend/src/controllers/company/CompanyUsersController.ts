@@ -1,10 +1,11 @@
 import { Response } from "express";
+import { can, Permission } from "armstock-shared";
 import { AuthRequest } from "../../middlewares/AuthMiddleware";
 import { CompanyUsersService } from "../../services/CompanyUsersService";
 import type {
     CompanyUserBody,
     CompanyUserCreateBody,
-    CompanyUserRoleBody,
+    CompanyUserAccessBody,
     CompanyUserStatusBody,
     CompanyUsersQuery,
 } from "../../schemas/CompanyUserSchema";
@@ -21,7 +22,11 @@ export class CompanyUsersController {
     };
 
     create = async (req: AuthRequest, res: Response) => {
-        return AppResponse.send(res, await this.service.create(requireCompanyUuid(req), req.body as CompanyUserCreateBody));
+        return AppResponse.send(res, await this.service.create(
+            requireCompanyUuid(req),
+            req.body as CompanyUserCreateBody,
+            can(req.user!.accountType, req.user!.permissions, Permission.MANAGE_USER_PERMISSIONS),
+        ));
     };
 
     update = async (req: AuthRequest, res: Response) => {
@@ -33,9 +38,13 @@ export class CompanyUsersController {
         ));
     };
 
-    setRole = async (req: AuthRequest, res: Response) => {
-        const { roleUuid } = req.body as CompanyUserRoleBody;
-        return AppResponse.send(res, await this.service.setRole(requireCompanyUuid(req), req.params.uuid as string, req.user!, roleUuid));
+    setAccess = async (req: AuthRequest, res: Response) => {
+        return AppResponse.send(res, await this.service.setAccess(
+            requireCompanyUuid(req),
+            req.params.uuid as string,
+            req.user!,
+            req.body as CompanyUserAccessBody,
+        ));
     };
 
     setStatus = async (req: AuthRequest, res: Response) => {

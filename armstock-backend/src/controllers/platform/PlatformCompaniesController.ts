@@ -47,7 +47,7 @@ export class PlatformCompaniesController {
     };
 
     createUser = async (req: AuthRequest, res: Response) => {
-        return AppResponse.send(res, await this.usersService.create(req.params.uuid as string, req.body as CompanyUserCreateBody));
+        return AppResponse.send(res, await this.usersService.create(req.params.uuid as string, req.body as CompanyUserCreateBody, false));
     };
 
     updateUser = async (req: AuthRequest, res: Response) => {

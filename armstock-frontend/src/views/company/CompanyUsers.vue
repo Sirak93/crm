@@ -12,7 +12,7 @@ const access = computed<IUsersAccess>(() => ({
   canView: !!authStore.user?.can(Permission.USER_VIEW),
   canAdd: !!authStore.user?.can(Permission.USER_ADD),
   canEdit: !!authStore.user?.can(Permission.USER_EDIT),
-  canChangeRole: !!authStore.user?.can(Permission.MANAGE_USER_PERMISSIONS),
+  canManageAccess: !!authStore.user?.can(Permission.MANAGE_USER_PERMISSIONS),
   canEditOwner: false,
 }));
 </script>

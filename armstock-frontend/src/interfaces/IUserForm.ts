@@ -1,3 +1,5 @@
+import type { Permission } from 'armstock-shared';
+
 export interface IUserForm {
   firstName: string;
   lastName: string;
@@ -8,4 +10,5 @@ export interface IUserForm {
   email: string;
   /** Empty = keep the current password. */
   password: string;
+  permissions: Permission[];
 }

@@ -32,7 +32,7 @@ const isOwner = (user: ICompanyUser) => user.accountType === AccountType.COMPANY
 
 /** Basic data, login, and status - the Owner account only from the platform side. */
 const canEditRow = (user: ICompanyUser) => (isOwner(user) ? props.access.canEditOwner : props.access.canEdit);
-const canOpenEdit = (user: ICompanyUser) => canEditRow(user) || (props.access.canChangeRole && !isOwner(user) && !isSelf(user));
+const canOpenEdit = (user: ICompanyUser) => canEditRow(user) || (props.access.canManageAccess && !isOwner(user) && !isSelf(user));
 const canChangeStatus = (user: ICompanyUser) => canEditRow(user) && !isSelf(user);
 
 const onAction = (user: ICompanyUser, action: RowAction) => {

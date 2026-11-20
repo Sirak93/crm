@@ -10,7 +10,7 @@ import { CompanyBodySchema } from "../schemas/CompanySchema";
 import { UuidParamsSchema } from "../schemas/SharedSchema";
 import {
     CompanyUserCreateSchema,
-    CompanyUserRoleBodySchema,
+    CompanyUserAccessBodySchema,
     CompanyUsersQuerySchema,
     CompanyUserStatusBodySchema,
     CompanyUserUpdateSchema,
@@ -37,11 +37,11 @@ router.get(
 router.post("/users", PermissionMiddleware(Permission.USER_ADD), validate(CompanyUserCreateSchema), asyncHandler(usersController.create));
 router.put("/users/:uuid", canEditUser, uuidParams, validate(CompanyUserUpdateSchema), asyncHandler(usersController.update));
 router.put(
-    "/users/:uuid/role",
+    "/users/:uuid/access",
     PermissionMiddleware(Permission.MANAGE_USER_PERMISSIONS),
     uuidParams,
-    validate(CompanyUserRoleBodySchema),
-    asyncHandler(usersController.setRole),
+    validate(CompanyUserAccessBodySchema),
+    asyncHandler(usersController.setAccess),
 );
 router.patch("/users/:uuid/status", canEditUser, uuidParams, validate(CompanyUserStatusBodySchema), asyncHandler(usersController.setStatus));
 

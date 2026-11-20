@@ -9,7 +9,7 @@ import { BCRYPT_ROUNDS } from "../constants/AuthConstants";
 import { AuthCacheService } from "./AuthCacheService";
 import { RoleService } from "./RoleService";
 import type { IRequestUser } from "../interfaces/IRequestUser";
-import type { CompanyUserBody, CompanyUserCreateBody, CompanyUsersQuery } from "../schemas/CompanyUserSchema";
+import type { CompanyUserAccessBody, CompanyUserBody, CompanyUserCreateBody, CompanyUsersQuery } from "../schemas/CompanyUserSchema";
 
 /**
  * A company's users, managed by the Platform Owner and by company members through their own
@@ -105,8 +105,11 @@ export class CompanyUsersService {
         };
     }
 
-    /** Always a member; the role's permissions are copied in. The schema already requires email + password with login. */
-    async create(companyUuid: string, body: CompanyUserCreateBody): Promise<ICompanyUser> {
+    /**
+     * Always a member. Permissions: the sent list when `canSetPermissions`, otherwise the role's set.
+     * The schema already requires email + password with login.
+     */
+    async create(companyUuid: string, body: CompanyUserCreateBody, canSetPermissions: boolean): Promise<ICompanyUser> {
         const [role] = await Promise.all([
             this.roleService.findOrFail(companyUuid, body.roleUuid),
             body.canLogIn ? this.assertEmailFree(body.email) : undefined,
@@ -122,7 +125,7 @@ export class CompanyUsersService {
             canLogIn: body.canLogIn,
             email: body.canLogIn ? body.email : null,
             password: body.canLogIn && body.password ? await bcrypt.hash(body.password, BCRYPT_ROUNDS) : null,
-            permissions: body.canLogIn ? [...role.permissions] : [],
+            permissions: body.canLogIn ? [...(canSetPermissions && body.permissions ? body.permissions : role.permissions)] : [],
         }));
         return CompanyUsersService.toCompanyUser(user, role);
     }
@@ -162,17 +165,17 @@ export class CompanyUsersService {
         return this.toResult(companyUuid, user);
     }
 
-    /** Moves a member to another role; its permissions replace theirs. */
-    async setRole(companyUuid: string, uuid: string, actor: IRequestUser, roleUuid: string): Promise<ICompanyUser> {
+    /** A member's role and own permission list (kept empty without login). */
+    async setAccess(companyUuid: string, uuid: string, actor: IRequestUser, body: CompanyUserAccessBody): Promise<ICompanyUser> {
         const user = await this.findOrFail(companyUuid, uuid);
         CompanyUsersService.assertNotOwnerFromCompany(user, actor);
         CompanyUsersService.assertNotSelf(user, actor);
         // The Owner has no role, and the account type is never changed here.
         if (user.accountType !== AccountType.COMPANY_MEMBER) throw new AppError(ErrorCodes.USER.OWNER_LOCKED);
 
-        const role = await this.roleService.findOrFail(companyUuid, roleUuid);
+        const role = await this.roleService.findOrFail(companyUuid, body.roleUuid);
         user.roleUuid = role.uuid;
-        if (user.canLogIn) user.permissions = [...role.permissions];
+        user.permissions = user.canLogIn ? body.permissions : [];
 
         await this.repo.save(user);
         await AuthCacheService.setUserAccess(user);
