@@ -410,22 +410,23 @@ Suggested chunks (each: notes → OK → build → lint/build):
 - [x] **Confirmed:** the company dashboard cards - table in decisions.md
 - [x] **Confirmed:** no move-over of old users - the local database is dropped and
       recreated, and the dev seeder below fills it again
-- [ ] Shared
-  - [ ] `Permission` enum - the 29 permissions from the table in decisions.md
-  - [ ] Permission groups for the panel (Company, Users, Units, Categories, Products,
-        Suppliers, Supplier contacts, Stock)
-  - [ ] `AccountType` enum: `PLATFORM_OWNER`, `COMPANY_OWNER`, `COMPANY_MEMBER` (replaces
+- [x] Shared
+  - [x] `Permission` enum - the 29 permissions from the table in decisions.md
+  - [x] Permission groups for the panel (`PermissionGroup` enum + `PERMISSION_GROUPS`):
+        Company, Users, Units, Categories, Products, Suppliers, Supplier contacts, Stock
+  - [x] `AccountType` enum: `PLATFORM_OWNER`, `COMPANY_OWNER`, `COMPANY_MEMBER` (replaces
         `UserRole`)
-  - [ ] `DefaultRole` enum + `DEFAULT_ROLE_PERMISSIONS` map: Storekeeper, Accountant, HR
-  - [ ] One `can(accountType, permissions, permission)` helper used by backend and
+  - [x] `DefaultRole` enum + `DEFAULT_ROLE_PERMISSIONS` map: Storekeeper, Accountant, HR
+  - [x] One `can(accountType, permissions, permission)` helper used by backend and
         frontend; it takes a `ReadonlySet<Permission>` - the API sends an array, the
         frontend `UserModel` and the backend auth snapshot turn it into a `Set` once
 - [ ] DB
-  - [ ] `roles` table: company, name, `permissions int[]`
+  - [x] `roles` table: company, name, `permissions int[]`
   - [ ] `users`: `account_type`, `role_uuid` (members only), `permissions int[]`,
         "can log in"
   - [ ] New company: Owner account + the three default roles seeded from the map
-  - [ ] Old `role` column and `UserRole` enum removed (database recreated, no migration)
+  - [ ] Old `role` column and `UserRole` enum removed (database recreated, no migration) -
+        at the end of chunk 3, once nothing uses them; until then they live side by side
 - [ ] Dev seeder (`npm run seed:dev -w armstock-backend`) - replaces the old "Role check
       pass" seeder
   - [ ] Recreates a demo company: the Owner, a Storekeeper, an Accountant, an HR user, and

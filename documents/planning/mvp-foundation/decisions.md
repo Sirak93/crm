@@ -108,8 +108,8 @@ on or off separately.
 | | `USER_ADD` | | | ✓ |
 | | `USER_EDIT` (incl. email, password, login) | | | |
 | | `MANAGE_USER_PERMISSIONS` | | | |
-| Units | `UNIT_ADD`, `UNIT_EDIT`, `UNIT_DELETE` | ✓ ✓ ✓ | | |
-| Categories | `CATEGORY_ADD`, `CATEGORY_EDIT`, `CATEGORY_DELETE` | ✓ ✓ ✓ | | |
+| Units | `MEASURE_UNIT_ADD`, `MEASURE_UNIT_EDIT`, `MEASURE_UNIT_DELETE` | ✓ ✓ ✓ | | |
+| Categories | `PRODUCT_CATEGORY_ADD`, `PRODUCT_CATEGORY_EDIT`, `PRODUCT_CATEGORY_DELETE` | ✓ ✓ ✓ | | |
 | Products | `PRODUCT_VIEW` | ✓ | ✓ | |
 | | `PRODUCT_ADD`, `PRODUCT_EDIT` | ✓ ✓ | | |
 | | `PRODUCT_ARCHIVE`, `PRODUCT_DELETE` | ✓ ✓ | | |
