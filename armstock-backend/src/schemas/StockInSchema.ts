@@ -1,29 +1,14 @@
 import { z } from "zod";
-import {
-    MONEY_DECIMALS,
-    MONEY_MAX,
-    QUANTITY_DECIMALS,
-    QUANTITY_MAX,
-    STOCK_DOCUMENT_MAX_LINES,
-    StockInReason,
-} from "armstock-shared";
+import { MONEY_DECIMALS, MONEY_MAX, STOCK_DOCUMENT_MAX_LINES, StockInReason } from "armstock-shared";
 import { optionalText, PaginatedSearchQuerySchema } from "./SharedSchema";
+import { StockDocumentFiltersSchema, DocumentDateSchema, hasMaxDecimals, isNotFuture, LineQuantitySchema } from "./StockDocumentSchema";
 
-// The browser sets "now" when the form opens; allow for its clock being a little ahead.
-const FUTURE_DATE_GRACE_MS = 5 * 60 * 1000;
-
-const hasMaxDecimals = (decimals: number) => (value: number) => {
-    const scaled = value * 10 ** decimals;
-    return Math.abs(scaled - Math.round(scaled)) < 1e-6;
-};
-
-const quantity = z.number().positive().max(QUANTITY_MAX).refine(hasMaxDecimals(QUANTITY_DECIMALS));
 const money = z.number().min(0).max(MONEY_MAX).refine(hasMaxDecimals(MONEY_DECIMALS));
 
 const StockInLineSchema = z
     .object({
         productUuid: z.uuid(),
-        quantity,
+        quantity: LineQuantitySchema,
         price: money,
         total: money,
     })
@@ -36,13 +21,13 @@ const StockInLineSchema = z
 export const StockInBodySchema = z
     .object({
         reason: z.enum(StockInReason),
-        date: z.iso.datetime().transform((value) => new Date(value)),
+        date: DocumentDateSchema,
         supplierUuid: z.uuid().nullish().transform((v) => v ?? null),
         invoiceNumber: optionalText(100),
         note: optionalText(1000),
         lines: z.array(StockInLineSchema).min(1).max(STOCK_DOCUMENT_MAX_LINES),
     })
-    .refine((body) => body.date.getTime() <= Date.now() + FUTURE_DATE_GRACE_MS, {
+    .refine((body) => isNotFuture(body.date), {
         path: ["date"],
         message: "date is in the future",
     })
@@ -57,11 +42,8 @@ export const StockInBodySchema = z
     // Supplier fields belong to a purchase only.
     .transform((body) => (body.reason === StockInReason.PURCHASE ? body : { ...body, supplierUuid: null, invoiceNumber: null }));
 
-export const StockInFiltersSchema = z.object({
+export const StockInFiltersSchema = StockDocumentFiltersSchema.extend({
     reason: z.coerce.number().pipe(z.enum(StockInReason)).optional(),
-    supplierUuid: z.uuid().optional(),
-    dateFrom: z.iso.datetime().optional(),
-    dateTo: z.iso.datetime().optional(),
 });
 
 export const StockInsQuerySchema = PaginatedSearchQuerySchema.omit({ search: true }).extend(StockInFiltersSchema.shape);

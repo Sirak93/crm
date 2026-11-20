@@ -98,7 +98,7 @@ from the route middleware.
   form. Negative stock stays blocked in the first version; a per-company "allow negative
   stock" setting is a later idea (see "Later" in tasks.md).
 - Two saves at the same time: each stock save first locks the rows of the products on
-  its document (`FOR UPDATE`, sorted by uuid so no deadlock). A second save on the same
+  its document (`FOR NO KEY UPDATE`, sorted by uuid so no deadlock). A second save on the same
   product waits a few milliseconds, then its check sees the first save. No `lock_timeout`
   in MVP.
 - Stock value = quantity × average price. Average price = sum of all stock-in line

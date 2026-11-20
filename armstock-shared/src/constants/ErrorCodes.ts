@@ -132,6 +132,16 @@ export const ErrorCodes = {
             STATUS: 403,
         },
     },
+    STOCK_OUT: {
+        NOT_FOUND: {
+            CODE: "STOCK_OUT_NOT_FOUND",
+            STATUS: 404,
+        },
+        NOT_CREATOR: {
+            CODE: "STOCK_OUT_NOT_CREATOR",
+            STATUS: 403,
+        },
+    },
     STOCK: {
         NOT_ENOUGH: {
             CODE: "STOCK_NOT_ENOUGH",

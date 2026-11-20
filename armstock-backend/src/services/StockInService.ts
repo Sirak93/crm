@@ -16,21 +16,18 @@ import { Product } from "../models/Product";
 import { Supplier } from "../models/Supplier";
 import { User } from "../models/User";
 import { AppError } from "../utils/AppError";
-import { formatDocumentNumber, isUniqueViolation } from "../utils/documentNumber";
+import { formatDocumentNumber, saveNumberedDocument } from "../utils/documentNumber";
+import { userName } from "../utils/userName";
 import { StockService } from "./StockService";
 import type { StockInBody, StockInFilters, StockInsQuery } from "../schemas/StockInSchema";
 
 const NUMBER_PREFIX = "IN";
-const NUMBER_ATTEMPTS = 3;
 
 /** What the document had before an edit - archived products and supplier may stay. */
 interface IExistingRefs {
     supplierUuid: string | null;
     productUuids: Set<string>;
 }
-
-const userName = (user: User | undefined): string =>
-    [user?.firstName, user?.lastName].filter(Boolean).join(" ") || user?.email || "";
 
 export class StockInService {
     private repo = AppDataSource.getRepository(StockIn);
@@ -68,9 +65,7 @@ export class StockInService {
             if (product.status === ProductStatus.ARCHIVED && !existing?.productUuids.has(product.uuid)) {
                 throw new AppError(ErrorCodes.PRODUCT.ARCHIVED, undefined, undefined, { uuid: product.uuid });
             }
-            if (!product.measureUnit!.allowsDecimals && !Number.isInteger(line.quantity)) {
-                throw new AppError(ErrorCodes.PRODUCT.QUANTITY_NOT_WHOLE, undefined, undefined, { uuid: product.uuid, quantity: line.quantity });
-            }
+            StockService.assertQuantityFitsUnit(product, line.quantity);
         }
 
         if (body.supplierUuid) {
@@ -214,35 +209,21 @@ export class StockInService {
         };
     }
 
-    /** The number is the company's biggest this year + 1; a clash with a parallel save retries. */
     async create(companyUuid: string, userUuid: string, body: StockInBody): Promise<IStockInDetails> {
         await this.assertReferences(companyUuid, body, null);
 
-        for (let attempt = 1; ; attempt++) {
-            try {
-                const uuid = await AppDataSource.transaction(async (manager) => {
-                    const year = new Date().getFullYear();
-                    const { max } = await manager.createQueryBuilder(StockIn, "doc")
-                        .select("MAX(doc.number)", "max")
-                        .where("doc.companyUuid = :companyUuid AND doc.year = :year", { companyUuid, year })
-                        .getRawOne<{ max: number | null }>() ?? { max: null };
-
-                    const doc = await manager.save(manager.create(StockIn, {
-                        ...StockInService.headerFields(body),
-                        companyUuid,
-                        year,
-                        number: (max ?? 0) + 1,
-                        createdByUuid: userUuid,
-                    }));
-                    await StockInService.saveLines(manager, doc, body);
-                    return doc.uuid;
-                });
-                return this.get(companyUuid, uuid);
-            } catch (error) {
-                if (attempt < NUMBER_ATTEMPTS && isUniqueViolation(error)) continue;
-                throw error;
-            }
-        }
+        const uuid = await saveNumberedDocument(StockIn, companyUuid, async (manager, year, number) => {
+            const doc = await manager.save(manager.create(StockIn, {
+                ...StockInService.headerFields(body),
+                companyUuid,
+                year,
+                number,
+                createdByUuid: userUuid,
+            }));
+            await StockInService.saveLines(manager, doc, body);
+            return doc.uuid;
+        });
+        return this.get(companyUuid, uuid);
     }
 
     /** Lines are replaced as a whole; stock of every product touched before or after must stay at zero or more. */

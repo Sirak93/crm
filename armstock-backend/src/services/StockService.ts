@@ -39,6 +39,26 @@ interface IBalanceRow {
 export class StockService {
     private productRepo = AppDataSource.getRepository(Product);
 
+    /** Needs the product's measureUnit loaded. */
+    static assertQuantityFitsUnit(product: Product, quantity: number): void {
+        if (!product.measureUnit!.allowsDecimals && !Number.isInteger(quantity)) {
+            throw new AppError(ErrorCodes.PRODUCT.QUANTITY_NOT_WHOLE, undefined, undefined, { uuid: product.uuid, quantity });
+        }
+    }
+
+    /** Active products, plus archived ones that still have stock - what a stock-out may pick. */
+    static whereActiveOrInStock(qb: SelectQueryBuilder<Product>): SelectQueryBuilder<Product> {
+        const sum = (entity: typeof StockInLine | typeof StockOutLine) => qb.subQuery()
+            .select("COALESCE(SUM(line.quantity), 0)")
+            .from(entity, "line")
+            .where("line.companyUuid = product.companyUuid")
+            .andWhere("line.productUuid = product.uuid")
+            .getQuery();
+        return qb.andWhere(`(product.status = :activeStatus OR ${sum(StockInLine)} - ${sum(StockOutLine)} > 0)`, {
+            activeStatus: ProductStatus.ACTIVE,
+        });
+    }
+
     /** Adds each line's quantity × sign to its product - builds the add-back map for assertNotNegative. */
     static addQuantities(map: Map<string, number>, lines: { productUuid: string; quantity: number }[], sign: 1 | -1): Map<string, number> {
         for (const line of lines) map.set(line.productUuid, (map.get(line.productUuid) ?? 0) + sign * line.quantity);
@@ -48,6 +68,8 @@ export class StockService {
     /**
      * First step of every stock save: a second save on the same products waits until this one ends,
      * so its check sees this one's lines. Sorted so two saves never wait on each other (deadlock).
+     * NO KEY UPDATE, not UPDATE: inserting lines takes a KEY SHARE lock on the product (foreign key),
+     * which UPDATE would block - a stock-in create could then deadlock with a stock save.
      */
     static async lockProducts(manager: EntityManager, companyUuid: string, productUuids: string[]): Promise<void> {
         if (!productUuids.length) return;
@@ -57,7 +79,7 @@ export class StockService {
             .where("product.companyUuid = :companyUuid", { companyUuid })
             .andWhere("product.uuid IN (:...productUuids)", { productUuids })
             .orderBy("product.uuid", "ASC")
-            .setLock("pessimistic_write")
+            .setLock("for_no_key_update")
             .getMany();
     }
 

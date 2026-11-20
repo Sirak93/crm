@@ -353,28 +353,28 @@ Each is its own top-level menu item.
   - [x] `StockOut` (header): company, number (`OUT-2026-0015`, same rule as stock-in),
         reason, date, supplier, department, receiver (user), note, created by
   - [x] `StockOutLine`: document, product, quantity. No price.
-- [ ] Rules
-  - [ ] Returned → supplier required (active suppliers only)
-  - [ ] Issued → department required (form fills in Kitchen); receiver optional
-  - [ ] Damaged / Expired / Spoiled → no supplier, department, or receiver
-  - [ ] Other → note required; note optional for every other reason
+- [x] Rules
+  - [x] Returned → supplier required (active suppliers only)
+  - [x] Issued → department required (form fills in Kitchen); receiver optional
+  - [x] Damaged / Expired / Spoiled → no supplier, department, or receiver
+  - [x] Other → note required; note optional for every other reason
   - [ ] Receiver picker: active users first, then blocked and archived ones with their
         tag (goods may be entered days later, after the person left)
-  - [ ] Same line rules as stock-in (quantity above 0, decimals by unit)
-  - [ ] Blocked if not enough stock — the error names each product with its available
+  - [x] Same line rules as stock-in (quantity above 0, decimals by unit)
+  - [x] Blocked if not enough stock — the error names each product with its available
         quantity and unit ("Not enough stock: Meat — available 2 kg"); stock-in edit and
         delete show the same message
-  - [ ] Lock the products on the document at the start of every stock save (stock-out
+  - [x] Lock the products on the document at the start of every stock save (stock-out
         create/edit/delete, stock-in edit/delete), sorted by uuid, so two saves at the
         same time can't push stock below zero
   - [x] `AppError`: optional client-safe data, separate from `details` (which stays
         logs-only)
   - [ ] Archived products can be picked while they still have stock ("Archived" tag in
         the picker); stock-in still blocks them
-  - [ ] Only the creator can edit or delete
-- [ ] API
-  - [ ] Company Owner and Storekeeper create
-  - [ ] Accountant only sees
+  - [x] Only the creator can edit or delete
+- [x] API
+  - [x] Company Owner and Storekeeper create
+  - [x] Accountant only sees
 - [ ] Frontend (menu "Stock" → "Out"): list, form, and view pages — same layout as stock-in
 - [ ] Lint and build pass
 - [ ] Checked in browser: issue goods to the Kitchen with the Chef (Staff) as receiver,
