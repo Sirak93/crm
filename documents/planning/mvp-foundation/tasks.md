@@ -358,7 +358,7 @@ Each is its own top-level menu item.
   - [x] Issued → department required (form fills in Kitchen); receiver optional
   - [x] Damaged / Expired / Spoiled → no supplier, department, or receiver
   - [x] Other → note required; note optional for every other reason
-  - [ ] Receiver picker: active users first, then blocked and archived ones with their
+  - [x] Receiver picker: active users first, then blocked and archived ones with their
         tag (goods may be entered days later, after the person left)
   - [x] Same line rules as stock-in (quantity above 0, decimals by unit)
   - [x] Blocked if not enough stock — the error names each product with its available
@@ -369,14 +369,14 @@ Each is its own top-level menu item.
         same time can't push stock below zero
   - [x] `AppError`: optional client-safe data, separate from `details` (which stays
         logs-only)
-  - [ ] Archived products can be picked while they still have stock ("Archived" tag in
+  - [x] Archived products can be picked while they still have stock ("Archived" tag in
         the picker); stock-in still blocks them
   - [x] Only the creator can edit or delete
 - [x] API
   - [x] Company Owner and Storekeeper create
   - [x] Accountant only sees
-- [ ] Frontend (menu "Stock" → "Out"): list, form, and view pages — same layout as stock-in
-- [ ] Lint and build pass
+- [x] Frontend (menu "Stock" → "Out"): list, form, and view pages — same layout as stock-in
+- [x] Lint and build pass
 - [ ] Checked in browser: issue goods to the Kitchen with the Chef (Staff) as receiver,
       write off spoiled goods, return goods to a supplier, stock goes down; issuing too
       much shows an error

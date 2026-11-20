@@ -4,7 +4,7 @@ import { ProductStatus, type IStockLineProduct } from 'armstock-shared';
 import { Plus } from 'lucide-vue-next';
 import CodeBadge from '../CodeBadge.vue';
 import { ProductService } from '../../services/ProductService';
-import { toLineProduct } from '../../utils/stockInLines';
+import { toLineProduct } from '../../utils/stockLines';
 import { PICKER_PAGE_SIZE } from '../../constants/constants';
 import { AppLogger } from '../../utils/AppLogger';
 
@@ -14,6 +14,8 @@ const props = defineProps<{
   placeholder: string;
   /** Shows "+ New product" at the bottom of the dropdown. */
   canCreate?: boolean;
+  /** Stock-out: archived products that still have stock can be picked too. */
+  forStockOut?: boolean;
 }>();
 
 const emit = defineEmits<{
@@ -35,14 +37,18 @@ const shownOptions = computed(() => {
   return current && !options.value.some((o) => o.uuid === current.uuid) ? [current, ...options.value] : options.value;
 });
 
-// Only active products can be picked; an archived one already on the row stays through `selected`.
+// Only active products can be picked (stock-out: also archived ones with stock); an archived one already
+// on the row stays through `selected`.
 // Element Plus calls this itself when the dropdown opens, so no extra call on open.
 const search = async (text: string) => {
   query.value = text.trim();
   const request = ++lastRequest;
   isLoading.value = true;
   try {
-    const { items } = await ProductService.list(1, PICKER_PAGE_SIZE, { search: query.value || undefined, status: ProductStatus.ACTIVE });
+    const { items } = await ProductService.list(1, PICKER_PAGE_SIZE, {
+      search: query.value || undefined,
+      ...(props.forStockOut ? { forStockOut: true } : { status: ProductStatus.ACTIVE }),
+    });
     // An older, slower answer must not replace a newer one.
     if (request === lastRequest) options.value = items.map(toLineProduct);
   } catch (error) {
@@ -80,7 +86,10 @@ defineExpose({ focus: () => selectRef.value?.focus() });
     <el-option v-for="option in shownOptions" :key="option.uuid" :label="option.name" :value="option.uuid">
       <div class="product-option">
         <span class="product-option__name">{{ option.name }}</span>
-        <CodeBadge v-if="option.code" :code="option.code" />
+        <span class="product-option__meta">
+          <el-tag v-if="option.status === ProductStatus.ARCHIVED" size="small" type="info" round>{{ $t('status.archived') }}</el-tag>
+          <CodeBadge v-if="option.code" :code="option.code" />
+        </span>
       </div>
     </el-option>
 
@@ -109,5 +118,12 @@ defineExpose({ focus: () => selectRef.value?.focus() });
 .product-option__name {
   overflow: hidden;
   text-overflow: ellipsis;
+}
+
+.product-option__meta {
+  display: inline-flex;
+  flex-shrink: 0;
+  align-items: center;
+  gap: 0.5rem;
 }
 </style>

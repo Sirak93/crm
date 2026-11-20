@@ -1,0 +1,118 @@
+<script setup lang="ts">
+import { useI18n } from 'vue-i18n';
+import type { IStockOut } from 'armstock-shared';
+import { Pencil, Trash2 } from 'lucide-vue-next';
+import RowActionsMenu from '../RowActionsMenu.vue';
+import { ROUTE_NAME } from '../../constants/constants';
+import { STOCK_OUT_DEPARTMENT_LABEL, STOCK_OUT_REASON_LABEL } from '../../constants/stockOutReasons';
+import { formatDateTimeShort, formatNumber } from '../../utils/format';
+
+defineProps<{
+  stockOuts: IStockOut[];
+  /** Only the creator may edit or delete a document. */
+  currentUserUuid: string | null;
+  /** uuid of the document being deleted. */
+  busyUuid: string | null;
+}>();
+
+const emit = defineEmits<{
+  open: [stockOut: IStockOut];
+  edit: [stockOut: IStockOut];
+  delete: [stockOut: IStockOut];
+}>();
+
+const { t } = useI18n();
+
+const ACTION = { EDIT: 'edit', DELETE: 'delete' } as const;
+type Action = typeof ACTION[keyof typeof ACTION];
+
+const onAction = (stockOut: IStockOut, action: Action) => {
+  if (action === ACTION.EDIT) emit('edit', stockOut);
+  else emit('delete', stockOut);
+};
+
+/** The supplier for a return, the department (and receiver) for an issue; empty for a loss. */
+const destination = (doc: IStockOut): string => {
+  if (doc.supplier) return doc.supplier.name;
+  if (doc.department) {
+    const department = t(STOCK_OUT_DEPARTMENT_LABEL[doc.department]);
+    return doc.receiver ? `${department} · ${doc.receiver.name}` : department;
+  }
+  return '';
+};
+</script>
+
+<template>
+  <el-table :data="stockOuts" class="app-table app-table--nowrap stock-outs-table" row-key="uuid" @row-click="(row: IStockOut) => emit('open', row)">
+    <el-table-column :label="$t('stockOut.table.number')" min-width="150">
+      <template #default="{ row }">
+        <router-link
+          :to="{ name: ROUTE_NAME.COMPANY_STOCK_OUT, params: { uuid: row.uuid } }"
+          class="cell-text cell-text--strong stock-outs-table__link"
+          @click.stop
+        >
+          {{ row.number }}
+        </router-link>
+      </template>
+    </el-table-column>
+    <el-table-column :label="$t('stockOut.table.date')" min-width="140">
+      <template #default="{ row }"><span class="cell-text">{{ formatDateTimeShort(row.date) }}</span></template>
+    </el-table-column>
+    <el-table-column :label="$t('stockOut.table.reason')" min-width="120">
+      <template #default="{ row }"><span class="cell-text">{{ $t(STOCK_OUT_REASON_LABEL[(row as IStockOut).reason]) }}</span></template>
+    </el-table-column>
+    <el-table-column :label="$t('stockOut.table.destination')" min-width="200" show-overflow-tooltip>
+      <template #default="{ row }">
+        <span :class="['cell-text', { 'cell-text--muted': !destination(row as IStockOut) }]">{{ destination(row as IStockOut) || '—' }}</span>
+      </template>
+    </el-table-column>
+    <el-table-column :label="$t('stockOut.table.products')" min-width="100" align="right">
+      <template #default="{ row }"><span class="cell-text">{{ formatNumber(row.productCount) }}</span></template>
+    </el-table-column>
+    <el-table-column :label="$t('stockOut.table.createdBy')" min-width="150" show-overflow-tooltip>
+      <template #default="{ row }"><span class="cell-text">{{ row.createdBy.name }}</span></template>
+    </el-table-column>
+    <el-table-column min-width="70" align="center">
+      <template #default="{ row }">
+        <div @click.stop>
+          <RowActionsMenu
+            v-if="row.createdBy.uuid === currentUserUuid"
+            :label="$t('stockOut.actionsFor', { number: row.number })"
+            :disabled="busyUuid === row.uuid"
+            @command="(action) => onAction(row as IStockOut, action as Action)"
+          >
+            <el-dropdown-item :command="ACTION.EDIT">
+              <Pencil :size="16" aria-hidden="true" />
+              <span>{{ $t('stockOut.actions.edit') }}</span>
+            </el-dropdown-item>
+            <el-dropdown-item :command="ACTION.DELETE" class="dropdown-item--danger">
+              <Trash2 :size="16" aria-hidden="true" />
+              <span>{{ $t('stockOut.actions.delete') }}</span>
+            </el-dropdown-item>
+          </RowActionsMenu>
+        </div>
+      </template>
+    </el-table-column>
+  </el-table>
+</template>
+
+<style scoped>
+.stock-outs-table :deep(.el-table__row) {
+  cursor: pointer;
+}
+
+.stock-outs-table__link {
+  color: var(--primary-dark);
+  text-decoration: none;
+}
+
+.stock-outs-table__link:hover {
+  text-decoration: underline;
+}
+
+.stock-outs-table__link:focus-visible {
+  outline: 2px solid var(--primary);
+  outline-offset: 2px;
+  border-radius: 4px;
+}
+</style>

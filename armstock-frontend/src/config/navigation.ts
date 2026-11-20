@@ -1,5 +1,6 @@
 import {
   ArrowDownToLine,
+  ArrowUpFromLine,
   Boxes,
   Building,
   Building2,
@@ -65,6 +66,13 @@ export const NAV_ITEMS: (INavItem | INavGroup)[] = [
         labelKey: 'nav.stockIn',
         icon: ArrowDownToLine,
         routeName: ROUTE_NAME.COMPANY_STOCK_INS,
+        roles: [...COMPANY_LOGIN_ROLES],
+      },
+      {
+        id: 'company-stock-out',
+        labelKey: 'nav.stockOut',
+        icon: ArrowUpFromLine,
+        routeName: ROUTE_NAME.COMPANY_STOCK_OUTS,
         roles: [...COMPANY_LOGIN_ROLES],
       },
       {

@@ -22,7 +22,8 @@ import { useAuthStore } from '../../stores/auth';
 import { AppLogger } from '../../utils/AppLogger';
 import type { IStockInLineForm } from '../../interfaces/IStockInLineForm';
 import { roundTo } from '../../utils/format';
-import { emptyLine, toLineProduct } from '../../utils/stockInLines';
+import { emptyLine } from '../../utils/stockInLines';
+import { toLineProduct } from '../../utils/stockLines';
 
 defineProps<{
   /** Highlight rows that are not filled in correctly - set after a failed save. */

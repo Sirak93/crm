@@ -106,6 +106,32 @@ const routes: RouteRecordRaw[] = [
         meta: { roles: [...STOCK_MANAGER_ROLES] },
       },
       {
+        path: 'stock/out',
+        name: ROUTE_NAME.COMPANY_STOCK_OUTS,
+        component: () => import('../views/company/CompanyStockOuts.vue'),
+        meta: { roles: [...COMPANY_LOGIN_ROLES] },
+      },
+      {
+        path: 'stock/out/new',
+        name: ROUTE_NAME.COMPANY_STOCK_OUT_NEW,
+        component: () => import('../views/company/CompanyStockOutForm.vue'),
+        meta: { roles: [...STOCK_MANAGER_ROLES] },
+      },
+      {
+        path: 'stock/out/:uuid',
+        name: ROUTE_NAME.COMPANY_STOCK_OUT,
+        component: () => import('../views/company/CompanyStockOutView.vue'),
+        props: true,
+        meta: { roles: [...COMPANY_LOGIN_ROLES] },
+      },
+      {
+        path: 'stock/out/:uuid/edit',
+        name: ROUTE_NAME.COMPANY_STOCK_OUT_EDIT,
+        component: () => import('../views/company/CompanyStockOutForm.vue'),
+        props: true,
+        meta: { roles: [...STOCK_MANAGER_ROLES] },
+      },
+      {
         path: 'stock/balance',
         name: ROUTE_NAME.COMPANY_STOCK_BALANCE,
         component: () => import('../views/company/CompanyStockBalance.vue'),
