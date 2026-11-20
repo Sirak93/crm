@@ -30,11 +30,10 @@ Decisions behind these steps: [decisions.md](decisions.md).
 - [x] Step 10 — Stock-in documents
 - [x] Step 11 — Stock view
 - [x] Step 12 — Archived users
-- [ ] Step 13 — Stock-out documents
+- [x] Step 13 — Stock-out documents
 - [ ] Step 14 — User permissions
 - [ ] Step 15 — Redis cache
-- [ ] Step 16 — Role check pass
-- [ ] Step 17 — Backend tester
+- [ ] Step 16 — Backend tester
 
 ---
 
@@ -386,7 +385,7 @@ Each is its own top-level menu item.
   - [x] Accountant only sees
 - [x] Frontend (menu "Stock" → "Out"): list, form, and view pages — same layout as stock-in
 - [x] Lint and build pass
-- [ ] Checked in browser: issue goods to the Kitchen with the Chef (Staff) as receiver,
+- [x] Checked in browser: issue goods to the Kitchen with the Chef (Staff) as receiver,
       write off spoiled goods, return goods to a supplier, stock goes down; issuing too
       much shows an error
 
@@ -395,14 +394,15 @@ Each is its own top-level menu item.
 Company roles become editable templates, and every user has their own permission list.
 Full rules: "Permissions (from Step 14)" in [decisions.md](decisions.md).
 
-- [ ] **To confirm:** the exact permission list (grouped by area) and the starting
-      permissions of Storekeeper, Accountant, and HR
-- [ ] **To confirm:** what the company dashboard shows - blocks shown by permission
-      (e.g. stock value cards need "view stock values")
-- [ ] **To confirm:** how existing users move over (old role → account type + role +
-      permissions; Staff → member without login)
+- [x] **Confirmed:** the permission list and the starting permissions of Storekeeper,
+      Accountant, and HR - table in decisions.md
+- [x] **Confirmed:** the company dashboard cards - table in decisions.md
+- [x] **Confirmed:** no move-over of old users - the local database is dropped and
+      recreated, and the dev seeder below fills it again
 - [ ] Shared
-  - [ ] `Permission` enum, one value per valuable action
+  - [ ] `Permission` enum - the 29 permissions from the table in decisions.md
+  - [ ] Permission groups for the panel (Company, Users, Units, Categories, Products,
+        Suppliers, Supplier contacts, Stock)
   - [ ] `AccountType` enum: `PLATFORM_OWNER`, `COMPANY_OWNER`, `COMPANY_MEMBER` (replaces
         `UserRole`)
   - [ ] `DefaultRole` enum + `DEFAULT_ROLE_PERMISSIONS` map: Storekeeper, Accountant, HR
@@ -414,6 +414,16 @@ Full rules: "Permissions (from Step 14)" in [decisions.md](decisions.md).
   - [ ] `users`: `account_type`, `role_uuid` (members only), `permissions int[]`,
         "can log in"
   - [ ] New company: Owner account + the three default roles seeded from the map
+  - [ ] Old `role` column and `UserRole` enum removed (database recreated, no migration)
+- [ ] Dev seeder (`npm run seed:dev -w armstock-backend`) - replaces the old "Role check
+      pass" seeder
+  - [ ] Recreates a demo company: the Owner, a Storekeeper, an Accountant, an HR user, and
+        a user without login, with the default roles and their permissions
+  - [ ] Emails and the shared password from `.env` (`DEV_SEED_*`), placeholders in
+        `.env.example`; stops with a clear message when one is missing
+  - [ ] Refuses to run unless `NODE_ENV` is `development`
+  - [ ] Local `.env` filled with the current local emails and the dev password - only
+        after asking the user
 - [ ] Rules
   - [ ] Exactly one Company Owner; only the Platform Owner can touch that account
   - [ ] Role permissions copied to the user on create and on role change
@@ -427,15 +437,38 @@ Full rules: "Permissions (from Step 14)" in [decisions.md](decisions.md).
         `MANAGE_USER_PERMISSIONS` (Platform Owner: later)
   - [ ] Default role templates stay compact - only the basics for each job
   - [ ] Nobody can change their own permissions or role
+  - [ ] Product delete (new): only while the product is in no stock-in or stock-out line;
+        otherwise "archive it instead"
+  - [ ] Every delete checks the permission first, then the "not in use" rule
+  - [ ] A role in use can't be deleted - the error says how many users have it (active,
+        blocked, and archived count)
   - [ ] Owner-only permissions can't be granted to anyone
   - [ ] "Can log in" per user: no = no email, no password, no permissions; still a
         stock-out receiver
+- [ ] Users - create and edit (backend and frontend)
+  - [ ] Schemas and service: `role_uuid` (company role), "can log in", `permissions`;
+        account type set by the server, never from the request
+  - [ ] Can log in = yes: email and password required (password only on create or when
+        turning login on); no: email and password cleared, permissions emptied
+  - [ ] Role picker lists the company's roles; picking one fills the permission panel with
+        its set (create) - on edit only with `MANAGE_USER_PERMISSIONS`
+  - [ ] Each part of the dialog follows its permission: basic data `USER_EDIT`, role and
+        permissions `MANAGE_USER_PERMISSIONS`; your own account and the Owner account
+        are read-only where the rules say so
+  - [ ] Users list: role name column, "No login" tag, role filter next to the status filter
+  - [ ] Platform Owner's company users page keeps working through the shared service
+        (managing roles and permissions there: later)
 - [ ] Backend
   - [ ] Roles API: list, create, edit (with "apply to users"), delete - Owner or
         `MANAGE_USER_PERMISSIONS`
   - [ ] `PermissionMiddleware(Permission.X)` replaces the role lists on company routes
   - [ ] Permissions in the auth cache; a change applies on the user's next request
 - [ ] Frontend
+  - [ ] Products: Delete action (with `PRODUCT_DELETE`), refused while in use
+  - [ ] Company dashboard: the cards from decisions.md, each shown by its permission and
+        loading on its own; empty state when no card applies; open to every member who can
+        log in
+  - [ ] Permission panel: groups with a group switch, every permission its own switch
   - [ ] Roles page (Owner or `MANAGE_USER_PERMISSIONS`): list, add, edit permissions,
         delete
   - [ ] User dialog: role picker (on create with `USER_ADD`; on edit only with
@@ -455,12 +488,17 @@ Full rules: "Permissions (from Step 14)" in [decisions.md](decisions.md).
         disappear and the API refuses; the other still has it
   - [ ] Edit a role and apply to its users - their lists change; edit again without
         applying - they stay
+  - [ ] Delete a role that 3 users have - refused with "3 users have this role"; move
+        them, then it deletes
   - [ ] An HR intern with only `USER_ADD` creates a user with a role but can't open
         existing users; an HR user with `USER_EDIT` changes a password but the role picker
         and permission panel are read-only; with `MANAGE_USER_PERMISSIONS` both open (but
         not on your own account); the Owner account has no edit actions
   - [ ] A user without login has no email, password, or permissions, and can still be a
         stock-out receiver
+  - [ ] Dashboard as Storekeeper, Accountant, HR, and a user with no permissions - each
+        sees only their cards (or the empty state); turning a permission off removes its
+        card after the next load
   - [ ] A Storekeeper on the new stock-in form loses "create stock-in" - Save shows the
         popup and OK opens the dashboard; reloading that form page shows the same popup
 
@@ -477,20 +515,7 @@ Full rules: "Permissions (from Step 14)" in [decisions.md](decisions.md).
 - [ ] Checked in browser: lists work the same, logs show cache hits, changes show up
       at once
 
-## Step 16 — Role check pass
-
-- [ ] Seeder adds a demo company with one user per role (emails and passwords from env)
-- [ ] Check every page and API for each role
-  - [ ] Platform Owner
-  - [ ] Company Owner
-  - [ ] Storekeeper
-  - [ ] Accountant
-- [ ] Fix anything that does not match the roles table and the permission defaults in
-      [decisions.md](decisions.md)
-- [ ] Lint and build pass
-- [ ] Checked in browser: each role sees only its own menus and actions
-
-## Step 17 — Backend tester
+## Step 16 — Backend tester
 
 A reusable end-to-end tester like armlytic's (`armlytic-backend/src/scripts/tester/`): it
 calls the real HTTP API with real logins and checks the responses and the database. No test
@@ -509,6 +534,9 @@ framework, no new package — runs with `ts-node`.
         creator-only edit/delete, roles (Accountant only sees)
   - [ ] Stock-in edit/delete: the same stock error
   - [ ] Two saves at the same time on the same product: only one goes through
+  - [ ] Permissions: every company route refuses a user without its permission and
+        allows one with it; own permissions and role can't be changed; the Owner account
+        can't be touched from the company side
   - [ ] Returns to a supplier (examples in decisions.md): return within what it brought;
         more than it brought; a product it never brought; two returns that together go
         over; editing a return doesn't count itself

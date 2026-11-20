@@ -59,6 +59,8 @@ company role:
 
 - A role is a group name plus a starting permission set - a template, nothing more.
 - Roles are added, edited, and deleted by the Owner or anyone with `MANAGE_USER_PERMISSIONS`.
+- A role can't be deleted while any user (active, blocked, or archived) has it; the error
+  says how many ("3 users have this role. Move them to another role first.").
 - New company: seeded from a code map `DEFAULT_ROLE_PERMISSIONS` keyed by a small
   `DefaultRole` enum - **Storekeeper, Accountant, HR**. After that the company edits its own
   copy; the code map only matters for new companies. There is no Staff role any more.
@@ -95,6 +97,65 @@ company role:
   the API refuses too). Anyone with `MANAGE_USER_PERMISSIONS` may grant any permission to
   others.
 
+**Permission list and default roles** (`✓` = on in that role's template). Every action is
+its own permission; the panel groups them, with a group switch, but each one can be turned
+on or off separately.
+
+| Group | Permission | Storekeeper | Accountant | HR |
+| --- | --- | :-: | :-: | :-: |
+| Company | `COMPANY_EDIT` | | | |
+| Users | `USER_VIEW` | | | ✓ |
+| | `USER_ADD` | | | ✓ |
+| | `USER_EDIT` (incl. email, password, login) | | | |
+| | `MANAGE_USER_PERMISSIONS` | | | |
+| Units | `UNIT_ADD`, `UNIT_EDIT`, `UNIT_DELETE` | ✓ ✓ ✓ | | |
+| Categories | `CATEGORY_ADD`, `CATEGORY_EDIT`, `CATEGORY_DELETE` | ✓ ✓ ✓ | | |
+| Products | `PRODUCT_VIEW` | ✓ | ✓ | |
+| | `PRODUCT_ADD`, `PRODUCT_EDIT` | ✓ ✓ | | |
+| | `PRODUCT_ARCHIVE`, `PRODUCT_DELETE` | ✓ ✓ | | |
+| Suppliers | `SUPPLIER_VIEW` | ✓ | ✓ | |
+| | `SUPPLIER_ADD`, `SUPPLIER_EDIT` | | ✓ ✓ | |
+| | `SUPPLIER_ARCHIVE`, `SUPPLIER_DELETE` | | ✓ ✓ | |
+| Supplier contacts | `SUPPLIER_CONTACT_ADD`, `SUPPLIER_CONTACT_EDIT`, `SUPPLIER_CONTACT_DELETE` | ✓ ✓ ✓ | ✓ ✓ ✓ | |
+| Stock | `STOCK_BALANCE_VIEW` | ✓ | ✓ | |
+| | `STOCK_IN_VIEW`, `STOCK_IN_CREATE` | ✓ ✓ | ✓ | |
+| | `STOCK_OUT_VIEW`, `STOCK_OUT_CREATE` | ✓ ✓ | ✓ | |
+
+- `USER_EDIT` is off for HR by default: with it someone can change another user's password
+  and log in as them, so the Owner gives it only to HR people they trust.
+- Units and categories have no view permission - they are reference data every logged-in
+  member reads (product form, filters). Their pages show for anyone with one of their
+  permissions.
+- Stock documents: edit and delete stay creator-only and need the matching `*_CREATE`.
+- Delete needs both the permission and the data rule: units, categories, products, and
+  suppliers can be deleted only while nothing uses them.
+- **Product delete** is new in Step 14: allowed only while the product is in no stock-in or
+  stock-out line (like supplier delete); otherwise archive it.
+
+**Company dashboard** (`/`, the home page of every company member who can log in - no
+permission needed to open it, so the "lost access" popup always lands safely). Cards use
+data the app already has; each shows only with its permission (the Owner sees all):
+
+| Card | Shows | Needs |
+| --- | --- | --- |
+| Quick actions | New stock-in, New stock-out, New product, New supplier, Add user - each button only with its permission | `STOCK_IN_CREATE`, `STOCK_OUT_CREATE`, `PRODUCT_ADD`, `SUPPLIER_ADD`, `USER_ADD` |
+| Stock value | ~Total stock value, products in stock (like the Balance page cards) | `STOCK_BALANCE_VIEW` |
+| Stock in, this month | Documents and ~total money | `STOCK_IN_VIEW` |
+| Stock out, this month | Documents and products | `STOCK_OUT_VIEW` |
+| Latest stock-ins | Last 5: number, date, supplier, total - each a link | `STOCK_IN_VIEW` |
+| Latest stock-outs | Last 5: number, date, reason, where to - each a link | `STOCK_OUT_VIEW` |
+| Users | Active / blocked counts, link to Users | `USER_VIEW` |
+
+- No card at all (no permissions yet): an empty state - "You have no access yet. Ask your
+  manager to give you permissions."
+- Each card loads on its own, with its own loading and error state; one failing card
+  doesn't hide the others.
+- Layout: quick actions on top, then the number cards in one row, then the two "latest"
+  lists side by side; everything stacks on small screens.
+- By default: Storekeeper sees quick actions (stock-in, stock-out, product), stock value,
+  both monthly cards, and both latest lists; Accountant the same with the "New supplier"
+  action instead; HR the "Add user" action and the Users card.
+
 **Login is per user**, not per role: whoever creates or edits the account chooses "Can log
 in". Yes = email and password required, permissions apply. No = no email, no password, no
 permissions (panel hidden); the person can still be a stock-out receiver. This replaces
@@ -114,6 +175,12 @@ the Staff role.
 into a `Set` once, so the many checks are direct lookups.
 `PermissionMiddleware(Permission.X)` on the API, `can(Permission.X)` and `meta.permission`
 on routes in the frontend. A change applies on the user's next request (auth cache).
+
+**Moving over.** No migration of old users: the old `role` column and `UserRole` enum are
+replaced, and the local database is dropped and recreated. A dev seeder
+(`npm run seed:dev`, development only) fills it again - a demo company with the Owner, a
+Storekeeper, an Accountant, an HR user, and a user without login. Emails and the shared
+password come from `.env`, never from code.
 
 **Losing access while using the app.** Frontend gets permissions with the user (login and
 app load). When a request is refused with 403, it reloads the user. If the open page is no
