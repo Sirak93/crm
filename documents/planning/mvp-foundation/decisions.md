@@ -94,7 +94,8 @@ from the route middleware.
   the stock on the document's date (a date-based check is not for MVP). The error names
   each product with its available quantity and unit ("Not enough stock: Meat — available
   2 kg"), for stock-out and for stock-in edit/delete alike. No live stock hint in the
-  form.
+  form. Negative stock stays blocked in the first version; a per-company "allow negative
+  stock" setting is a later idea (see "Later" in tasks.md).
 - Stock value = quantity × average price. Average price = sum of all stock-in line
   totals ÷ sum of all stock-in quantities for that product. Stock-out lines have no cost.
 - Stock quantity is not saved anywhere. It is counted in SQL each time: all stock-in lines

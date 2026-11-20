@@ -410,3 +410,6 @@ Ideas agreed for later. Not part of any step above.
       everything it owns (users, products, stock documents).
 - [ ] Armenian language: add an Armenian locale file (e.g. menu Պահեստ → Մուտք / Ելք /
       Մնացորդ for Stock → In / Out / Balance), and maybe make Armenian the default language.
+- [ ] Per-company setting "Allow negative stock" (like 1C), for places that take goods out
+      before the stock-in is entered. Needs a "negative stock" warning list, and a rule for
+      the value of negative quantities. Blocking stays the default.
