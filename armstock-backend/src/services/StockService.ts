@@ -6,6 +6,7 @@ import {
     type IPaginationMeta,
     type IStockBalance,
     type IStockBalanceSummary,
+    type IStockLineProduct,
     type IStockShortage,
 } from "armstock-shared";
 import { AppDataSource } from "../config/database";
@@ -38,6 +39,18 @@ interface IBalanceRow {
 /** Stock is never stored - it is summed from the document lines each time. */
 export class StockService {
     private productRepo = AppDataSource.getRepository(Product);
+
+    /** Needs the product's measureUnit loaded. */
+    static toLineProduct(product: Product): IStockLineProduct {
+        return {
+            uuid: product.uuid,
+            name: product.name,
+            code: product.code,
+            status: product.status,
+            unitShortName: product.measureUnit!.shortName,
+            allowsDecimals: product.measureUnit!.allowsDecimals,
+        };
+    }
 
     /** Needs the product's measureUnit loaded. */
     static assertQuantityFitsUnit(product: Product, quantity: number): void {

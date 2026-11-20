@@ -29,7 +29,7 @@ const isLoading = ref(true);
 const hasError = ref(false);
 const isDeleting = ref(false);
 
-const isCreator = computed(() => !!doc.value && doc.value.createdByUuid === authStore.user?.uuid);
+const isCreator = computed(() => !!doc.value && doc.value.createdBy.uuid === authStore.user?.uuid);
 
 const load = async () => {
   isLoading.value = true;
@@ -86,9 +86,9 @@ const onDelete = async () => {
             <dt>{{ $t('stockIn.form.date') }}</dt>
             <dd>{{ formatDateTimeShort(doc.date) }}</dd>
           </div>
-          <div v-if="doc.supplierName" class="doc-info__item">
+          <div v-if="doc.supplier" class="doc-info__item">
             <dt>{{ $t('stockIn.form.supplier') }}</dt>
-            <dd>{{ doc.supplierName }}</dd>
+            <dd>{{ doc.supplier.name }}</dd>
           </div>
           <div v-if="doc.invoiceNumber" class="doc-info__item">
             <dt>{{ $t('stockIn.form.invoiceNumber') }}</dt>
@@ -96,7 +96,7 @@ const onDelete = async () => {
           </div>
           <div class="doc-info__item">
             <dt>{{ $t('stockIn.table.createdBy') }}</dt>
-            <dd>{{ doc.createdByName }}</dd>
+            <dd>{{ doc.createdBy.name }}</dd>
           </div>
           <div v-if="doc.note" class="doc-info__item doc-info__item--wide">
             <dt>{{ $t('stockIn.form.note') }}</dt>

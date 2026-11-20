@@ -122,14 +122,12 @@ export class StockInService {
             number: formatDocumentNumber(NUMBER_PREFIX, doc.year, doc.number),
             reason: doc.reason,
             date: doc.date.toISOString(),
-            supplierUuid: doc.supplierUuid,
-            supplierName: doc.supplierUuid ? supplierMap.get(doc.supplierUuid) ?? null : null,
+            supplier: doc.supplierUuid ? { uuid: doc.supplierUuid, name: supplierMap.get(doc.supplierUuid) ?? "" } : null,
             invoiceNumber: doc.invoiceNumber,
             note: doc.note,
             total: Number(totalMap.get(doc.uuid)?.total ?? 0),
             productCount: Number(totalMap.get(doc.uuid)?.productCount ?? 0),
-            createdByUuid: doc.createdByUuid,
-            createdByName: userName(userMap.get(doc.createdByUuid)),
+            createdBy: { uuid: doc.createdByUuid, name: userName(userMap.get(doc.createdByUuid)) },
             createdAt: doc.createdAt.toISOString(),
         }));
     }
@@ -192,15 +190,9 @@ export class StockInService {
         return {
             ...header!,
             lines: lines.map((line): IStockInLine => {
-                const product = productMap.get(line.productUuid)!;
                 return {
                     uuid: line.uuid,
-                    productUuid: product.uuid,
-                    productName: product.name,
-                    productCode: product.code,
-                    productStatus: product.status,
-                    unitShortName: product.measureUnit!.shortName,
-                    allowsDecimals: product.measureUnit!.allowsDecimals,
+                    product: StockService.toLineProduct(productMap.get(line.productUuid)!),
                     quantity: line.quantity,
                     price: line.price,
                     total: line.total,

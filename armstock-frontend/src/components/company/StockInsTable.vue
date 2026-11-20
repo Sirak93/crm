@@ -50,7 +50,7 @@ const onAction = (stockIn: IStockIn, action: Action) => {
     </el-table-column>
     <el-table-column :label="$t('stockIn.table.supplier')" min-width="180" show-overflow-tooltip>
       <template #default="{ row }">
-        <span :class="['cell-text', { 'cell-text--muted': !row.supplierName }]">{{ row.supplierName || '—' }}</span>
+        <span :class="['cell-text', { 'cell-text--muted': !row.supplier }]">{{ row.supplier?.name || '—' }}</span>
       </template>
     </el-table-column>
     <el-table-column :label="$t('stockIn.table.products')" min-width="100" align="right">
@@ -60,13 +60,13 @@ const onAction = (stockIn: IStockIn, action: Action) => {
       <template #default="{ row }"><span class="cell-text cell-text--strong">{{ formatMoney(row.total) }}</span></template>
     </el-table-column>
     <el-table-column :label="$t('stockIn.table.createdBy')" min-width="150" show-overflow-tooltip>
-      <template #default="{ row }"><span class="cell-text">{{ row.createdByName }}</span></template>
+      <template #default="{ row }"><span class="cell-text">{{ row.createdBy.name }}</span></template>
     </el-table-column>
     <el-table-column min-width="70" align="center">
       <template #default="{ row }">
         <div @click.stop>
           <RowActionsMenu
-            v-if="row.createdByUuid === currentUserUuid"
+            v-if="row.createdBy.uuid === currentUserUuid"
             :label="$t('stockIn.actionsFor', { number: row.number })"
             :disabled="busyUuid === row.uuid"
             @command="(action) => onAction(row as IStockIn, action as Action)"

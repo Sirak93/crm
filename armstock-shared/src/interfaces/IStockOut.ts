@@ -1,5 +1,6 @@
 import type { StockOutDepartment } from "../enums/StockOutDepartment";
 import type { StockOutReason } from "../enums/StockOutReason";
+import type { INamedRef } from "./INamedRef";
 
 /** A stock-out document header, as shown in the list. */
 export interface IStockOut {
@@ -8,15 +9,12 @@ export interface IStockOut {
     number: string;
     reason: StockOutReason;
     date: string;
-    supplierUuid: string | null;
-    supplierName: string | null;
+    supplier: INamedRef | null;
     department: StockOutDepartment | null;
-    receiverUuid: string | null;
-    receiverName: string | null;
+    receiver: INamedRef | null;
     note: string | null;
     /** Different products in the document - one product on two rows counts once. */
     productCount: number;
-    createdByUuid: string;
-    createdByName: string;
+    createdBy: INamedRef;
     createdAt: string;
 }

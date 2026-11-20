@@ -24,15 +24,8 @@ export const emptyLine = (): IStockInLineForm => ({
 
 export const toLineForm = (line: IStockInLine): IStockInLineForm => ({
   key: nextKey++,
-  productUuid: line.productUuid,
-  product: {
-    uuid: line.productUuid,
-    name: line.productName,
-    code: line.productCode,
-    status: line.productStatus,
-    unitShortName: line.unitShortName,
-    allowsDecimals: line.allowsDecimals,
-  },
+  productUuid: line.product.uuid,
+  product: line.product,
   quantity: line.quantity,
   price: line.price,
   total: line.total,

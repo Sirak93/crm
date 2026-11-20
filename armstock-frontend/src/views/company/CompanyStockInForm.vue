@@ -101,7 +101,7 @@ const load = async () => {
   try {
     const doc = await StockInService.get(props.uuid);
     // Only the creator edits; the API refuses anyone else too.
-    if (doc.createdByUuid !== authStore.user?.uuid) {
+    if (doc.createdBy.uuid !== authStore.user?.uuid) {
       await router.replace(backRoute.value);
       return;
     }
@@ -109,11 +109,11 @@ const load = async () => {
     form.value = {
       reason: doc.reason,
       date: new Date(doc.date),
-      supplierUuid: doc.supplierUuid ?? '',
+      supplierUuid: doc.supplier?.uuid ?? '',
       invoiceNumber: doc.invoiceNumber ?? '',
       note: doc.note ?? '',
     };
-    selectedSupplier.value = doc.supplierUuid ? { uuid: doc.supplierUuid, name: doc.supplierName ?? '' } : null;
+    selectedSupplier.value = doc.supplier;
     lines.value = doc.lines.map(toLineForm);
     savedSnapshot.value = snapshotOf();
   } catch (error) {

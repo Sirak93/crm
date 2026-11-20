@@ -1,13 +1,8 @@
-import type { ProductStatus } from "../enums/ProductStatus";
+import type { IStockLineProduct } from "./IStockLineProduct";
 
 export interface IStockInLine {
     uuid: string;
-    productUuid: string;
-    productName: string;
-    productCode: string | null;
-    productStatus: ProductStatus;
-    unitShortName: string;
-    allowsDecimals: boolean;
+    product: IStockLineProduct;
     quantity: number;
     /** Price per unit. */
     price: number;

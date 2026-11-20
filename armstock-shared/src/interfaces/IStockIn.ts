@@ -1,4 +1,5 @@
 import type { StockInReason } from "../enums/StockInReason";
+import type { INamedRef } from "./INamedRef";
 
 /** A stock-in document header, as shown in the list. */
 export interface IStockIn {
@@ -7,8 +8,7 @@ export interface IStockIn {
     number: string;
     reason: StockInReason;
     date: string;
-    supplierUuid: string | null;
-    supplierName: string | null;
+    supplier: INamedRef | null;
     /** The supplier's own invoice number. */
     invoiceNumber: string | null;
     note: string | null;
@@ -16,7 +16,6 @@ export interface IStockIn {
     total: number;
     /** Different products in the document - one product on two rows counts once. */
     productCount: number;
-    createdByUuid: string;
-    createdByName: string;
+    createdBy: INamedRef;
     createdAt: string;
 }
