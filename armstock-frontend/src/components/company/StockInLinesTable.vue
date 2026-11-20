@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { ProductStatus, type IStockInLine } from 'armstock-shared';
+import CodeBadge from '../CodeBadge.vue';
 import { formatMoney, formatQuantity } from '../../utils/format';
 
 defineProps<{
@@ -13,10 +14,15 @@ defineProps<{
     <el-table-column :label="$t('stockIn.lines.product')" min-width="220" show-overflow-tooltip>
       <template #default="{ row }">
         <span class="cell-text cell-text--strong">{{ row.productName }}</span>
-        <span v-if="row.productCode" class="cell-text cell-text--muted lines-table__code">{{ row.productCode }}</span>
         <el-tag v-if="row.productStatus === ProductStatus.ARCHIVED" size="small" type="info" round class="lines-table__tag">
           {{ $t('status.archived') }}
         </el-tag>
+      </template>
+    </el-table-column>
+    <el-table-column :label="$t('stockIn.lines.code')" min-width="120">
+      <template #default="{ row }">
+        <CodeBadge v-if="row.productCode" :code="row.productCode" />
+        <span v-else class="cell-text cell-text--muted">—</span>
       </template>
     </el-table-column>
     <el-table-column :label="$t('stockIn.lines.quantity')" min-width="110" align="right">
@@ -35,10 +41,6 @@ defineProps<{
 </template>
 
 <style scoped>
-.lines-table__code {
-  margin-left: 0.5rem;
-}
-
 .lines-table__tag {
   margin-left: 0.5rem;
 }

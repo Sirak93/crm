@@ -28,7 +28,7 @@ Decisions behind these steps: [decisions.md](decisions.md).
 - [x] Step 8 — Products
 - [x] Step 9 — Suppliers
 - [x] Step 10 — Stock-in documents
-- [ ] Step 11 — Stock view
+- [x] Step 11 — Stock view
 - [ ] Step 12 — Stock-out documents
 - [ ] Step 13 — Redis cache
 - [ ] Step 14 — Role check pass
@@ -325,7 +325,7 @@ Each is its own top-level menu item.
   - [x] Archived products: shown with an "Archived" tag while they still have stock (they
         count in the total value); never shown at 0, even with the switch off
 - [x] Lint and build pass
-- [ ] Checked in browser: stock page shows what was added in step 10, with values
+- [x] Checked in browser: stock page shows what was added in step 10, with values
 
 ## Step 12 — Stock-out documents
 

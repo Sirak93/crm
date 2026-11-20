@@ -476,6 +476,7 @@ export default {
     },
     table: {
       product: 'Product',
+      code: 'Code',
       category: 'Category',
       quantity: 'Quantity',
       unit: 'Unit',

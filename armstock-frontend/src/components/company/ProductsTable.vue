@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { ProductStatus, type IProduct } from 'armstock-shared';
 import { Archive, ArchiveRestore, Pencil } from 'lucide-vue-next';
+import CodeBadge from '../CodeBadge.vue';
 import RowActionsMenu from '../RowActionsMenu.vue';
 import { PRODUCT_STATUS_TAG } from '../../constants/statusTags';
 
@@ -31,8 +32,11 @@ const onAction = (product: IProduct, action: Action) => {
     <el-table-column prop="name" :label="$t('products.table.name')" min-width="240" show-overflow-tooltip>
       <template #default="{ row }"><span class="cell-text cell-text--strong">{{ row.name }}</span></template>
     </el-table-column>
-    <el-table-column prop="code" :label="$t('products.table.code')" min-width="130" show-overflow-tooltip>
-      <template #default="{ row }"><span :class="['cell-text', { 'cell-text--muted': !row.code }]">{{ row.code || '—' }}</span></template>
+    <el-table-column prop="code" :label="$t('products.table.code')" min-width="130">
+      <template #default="{ row }">
+        <CodeBadge v-if="row.code" :code="row.code" />
+        <span v-else class="cell-text cell-text--muted">—</span>
+      </template>
     </el-table-column>
     <el-table-column :label="$t('products.table.category')" min-width="170" show-overflow-tooltip>
       <template #default="{ row }"><span class="cell-text">{{ row.category.name }}</span></template>
