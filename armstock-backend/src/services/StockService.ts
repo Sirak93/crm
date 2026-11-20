@@ -1,17 +1,27 @@
-import { Brackets, In, type EntityManager, type SelectQueryBuilder } from "typeorm";
-import { ErrorCodes, ProductStatus, type IPaginationMeta, type IStockBalance, type IStockBalanceSummary } from "armstock-shared";
+import { Brackets, In, type EntityManager, type ObjectLiteral, type SelectQueryBuilder } from "typeorm";
+import {
+    ErrorCodes,
+    ProductStatus,
+    QUANTITY_DECIMALS,
+    type IPaginationMeta,
+    type IStockBalance,
+    type IStockBalanceSummary,
+    type IStockShortage,
+} from "armstock-shared";
 import { AppDataSource } from "../config/database";
 import { MeasureUnit } from "../models/MeasureUnit";
 import { Product } from "../models/Product";
 import { ProductCategory } from "../models/ProductCategory";
 import { StockInLine } from "../models/StockInLine";
+import { StockOutLine } from "../models/StockOutLine";
 import { AppError } from "../utils/AppError";
 import type { StockBalanceFilters, StockBalanceQuery } from "../schemas/StockSchema";
 
-// Built on the "stock" subquery from balanceQuery. Step 13 subtracts the stock-out lines from QUANTITY.
-const QUANTITY = "COALESCE(stock.in_quantity, 0)";
-const AVG_PRICE = "stock.in_total / NULLIF(stock.in_quantity, 0)";
+// Built on the "stock_in" and "stock_out" subqueries from joinStock.
+const QUANTITY = "(COALESCE(stock_in.quantity, 0) - COALESCE(stock_out.quantity, 0))";
+const AVG_PRICE = "stock_in.total / NULLIF(stock_in.quantity, 0)";
 const VALUE = `COALESCE(ROUND(${QUANTITY} * ${AVG_PRICE}, 2), 0)`;
+const QUANTITY_SCALE = 10 ** QUANTITY_DECIMALS;
 
 interface IBalanceRow {
     uuid: string;
@@ -29,41 +39,82 @@ interface IBalanceRow {
 export class StockService {
     private productRepo = AppDataSource.getRepository(Product);
 
-    /** Runs inside the caller's transaction, after its changes, so a failure rolls them back. */
-    static async assertNotNegative(manager: EntityManager, companyUuid: string, productUuids: string[]): Promise<void> {
+    /** Adds each line's quantity × sign to its product - builds the add-back map for assertNotNegative. */
+    static addQuantities(map: Map<string, number>, lines: { productUuid: string; quantity: number }[], sign: 1 | -1): Map<string, number> {
+        for (const line of lines) map.set(line.productUuid, (map.get(line.productUuid) ?? 0) + sign * line.quantity);
+        return map;
+    }
+
+    /**
+     * First step of every stock save: a second save on the same products waits until this one ends,
+     * so its check sees this one's lines. Sorted so two saves never wait on each other (deadlock).
+     */
+    static async lockProducts(manager: EntityManager, companyUuid: string, productUuids: string[]): Promise<void> {
+        if (!productUuids.length) return;
+        await manager
+            .createQueryBuilder(Product, "product")
+            .select("product.uuid")
+            .where("product.companyUuid = :companyUuid", { companyUuid })
+            .andWhere("product.uuid IN (:...productUuids)", { productUuids })
+            .orderBy("product.uuid", "ASC")
+            .setLock("pessimistic_write")
+            .getMany();
+    }
+
+    /**
+     * Runs inside the caller's transaction, after its changes, so a failure rolls them back.
+     * `addBack` keys are the products to check; the value turns the new total into what was
+     * available to this document (e.g. the document's own stock-out quantity).
+     */
+    static async assertNotNegative(manager: EntityManager, companyUuid: string, addBack: Map<string, number>): Promise<void> {
+        const productUuids = [...addBack.keys()];
         if (!productUuids.length) return;
 
-        // Step 13 subtracts the stock-out lines here.
-        const negative = await manager
-            .createQueryBuilder(StockInLine, "line")
-            .select("line.productUuid", "productUuid")
-            .where("line.companyUuid = :companyUuid", { companyUuid })
-            .andWhere("line.productUuid IN (:...productUuids)", { productUuids })
-            .groupBy("line.productUuid")
-            .having("SUM(line.quantity) < 0")
-            .getRawMany<{ productUuid: string }>();
+        const qb = manager
+            .createQueryBuilder(Product, "product")
+            .innerJoin("product.measureUnit", "unit")
+            .select("product.uuid", "uuid")
+            .addSelect("product.name", "name")
+            .addSelect("unit.shortName", "unitShortName")
+            .addSelect(QUANTITY, "quantity")
+            .where("product.companyUuid = :companyUuid", { companyUuid })
+            .andWhere("product.uuid IN (:...productUuids)", { productUuids })
+            .andWhere(`${QUANTITY} < 0`)
+            .orderBy("product.name", "ASC");
+        const negative = await StockService.joinStock(qb, "line.productUuid IN (:...productUuids)")
+            .getRawMany<{ uuid: string; name: string; unitShortName: string; quantity: string }>();
 
         if (negative.length) {
-            throw new AppError(ErrorCodes.STOCK.NOT_ENOUGH, undefined, undefined, { productUuids: negative.map((r) => r.productUuid) });
+            const shortages: IStockShortage[] = negative.map((row) => ({
+                name: row.name,
+                unitShortName: row.unitShortName,
+                available: Math.round((Number(row.quantity) + addBack.get(row.uuid)!) * QUANTITY_SCALE) / QUANTITY_SCALE,
+            }));
+            throw new AppError(ErrorCodes.STOCK.NOT_ENOUGH, undefined, undefined, { productUuids: negative.map((r) => r.uuid) }, shortages);
         }
     }
 
-    /** Products with their stock-in sums; the list and its summary share it, so the two always match. */
+    /** Adds the "stock_in" and "stock_out" line sums per product; `lineFilter` narrows the lines summed. */
+    private static joinStock<T extends Product>(qb: SelectQueryBuilder<T>, lineFilter?: string): SelectQueryBuilder<T> {
+        const sums = (entity: typeof StockInLine | typeof StockOutLine, withTotal: boolean) => (sub: SelectQueryBuilder<ObjectLiteral>) => {
+            sub.from(entity, "line")
+                .select("line.productUuid", "product_uuid")
+                .addSelect("SUM(line.quantity)", "quantity")
+                .where("line.companyUuid = :companyUuid")
+                .groupBy("line.productUuid");
+            if (withTotal) sub.addSelect("SUM(line.total)", "total");
+            if (lineFilter) sub.andWhere(lineFilter);
+            return sub;
+        };
+        return qb
+            .leftJoin(sums(StockInLine, true), "stock_in", "stock_in.product_uuid = product.uuid")
+            .leftJoin(sums(StockOutLine, false), "stock_out", "stock_out.product_uuid = product.uuid");
+    }
+
+    /** Products with their stock sums; the list and its summary share it, so the two always match. */
     private balanceQuery(companyUuid: string, filters: StockBalanceFilters, inStockOnly: boolean): SelectQueryBuilder<Product> {
         const { search, categoryUuid } = filters;
-        const qb = this.productRepo
-            .createQueryBuilder("product")
-            .leftJoin(
-                (sub) => sub
-                    .from(StockInLine, "line")
-                    .select("line.productUuid", "product_uuid")
-                    .addSelect("SUM(line.quantity)", "in_quantity")
-                    .addSelect("SUM(line.total)", "in_total")
-                    .where("line.companyUuid = :companyUuid")
-                    .groupBy("line.productUuid"),
-                "stock",
-                "stock.product_uuid = product.uuid",
-            )
+        const qb = StockService.joinStock(this.productRepo.createQueryBuilder("product"))
             .where("product.companyUuid = :companyUuid", { companyUuid })
             // Archived products show only while they still have stock.
             .andWhere(`(product.status = :active OR ${QUANTITY} > 0)`, { active: ProductStatus.ACTIVE });

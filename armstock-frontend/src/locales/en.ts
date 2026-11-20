@@ -607,6 +607,10 @@ export default {
     loadError: 'Could not reach the server.',
     retry: 'Try again',
   },
+  stockShortage: {
+    message: 'Not enough stock: {items}',
+    item: '{name} — available {quantity} {unit}',
+  },
   errors: {
     AUTH_INVALID_CREDENTIALS: 'Wrong email or password.',
     AUTH_UNAUTHORIZED: 'Your session has ended. Please sign in again.',

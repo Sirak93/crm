@@ -253,14 +253,16 @@ export class StockInService {
 
         await this.assertReferences(companyUuid, body, { supplierUuid: doc.supplierUuid, productUuids: oldProductUuids });
 
+        // Old minus new quantity turns the new total back into the stock before this edit.
+        const addBack = StockService.addQuantities(StockService.addQuantities(new Map(), oldLines, 1), body.lines, -1);
+
         await AppDataSource.transaction(async (manager) => {
+            await StockService.lockProducts(manager, companyUuid, [...addBack.keys()]);
             Object.assign(doc, StockInService.headerFields(body));
             await manager.save(doc);
             await manager.delete(StockInLine, { stockInUuid: doc.uuid });
             await StockInService.saveLines(manager, doc, body);
-
-            const touched = new Set([...oldProductUuids, ...body.lines.map((l) => l.productUuid)]);
-            await StockService.assertNotNegative(manager, companyUuid, [...touched]);
+            await StockService.assertNotNegative(manager, companyUuid, addBack);
         });
 
         return this.get(companyUuid, uuid);
@@ -270,9 +272,12 @@ export class StockInService {
         const doc = await this.findOwnOrFail(companyUuid, uuid, userUuid);
         const lines = await this.lineRepo.find({ where: { stockInUuid: doc.uuid } });
 
+        const addBack = StockService.addQuantities(new Map(), lines, 1);
+
         await AppDataSource.transaction(async (manager) => {
+            await StockService.lockProducts(manager, companyUuid, [...addBack.keys()]);
             await manager.remove(doc);
-            await StockService.assertNotNegative(manager, companyUuid, [...new Set(lines.map((l) => l.productUuid))]);
+            await StockService.assertNotNegative(manager, companyUuid, addBack);
         });
     }
 }
