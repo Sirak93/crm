@@ -161,7 +161,7 @@ class ApiService {
     }
     const { meta } = router.currentRoute.value;
     if (!authStore.user || canOpen(authStore.user, meta.accountTypes, meta.permissions)) return false;
-    showLostAccess();
+    void showLostAccess();
     return true;
   }
 

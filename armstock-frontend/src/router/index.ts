@@ -197,7 +197,7 @@ router.beforeEach((to, from) => {
     if (to.path !== '/') {
       RouterLogger.warn(`Access denied to ${to.fullPath}`);
       // A reload of a page the user can no longer open (permissions changed meanwhile).
-      if (from.matched.length === 0) showLostAccess();
+      if (from.matched.length === 0) void showLostAccess();
     }
     return { name: homeRoute };
   }
