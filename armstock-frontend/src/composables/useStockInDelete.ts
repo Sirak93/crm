@@ -7,7 +7,7 @@ import { useApiErrorMessage } from './useApiErrorMessage';
 /** Confirm, delete, and tell the user. Resolves true when the document is gone. */
 export const useStockInDelete = () => {
   const { t } = useI18n();
-  const { parseError } = useApiErrorMessage();
+  const { showError } = useApiErrorMessage();
 
   const deleteStockIn = async (stockIn: IStockIn): Promise<boolean> => {
     const confirmed = await NotificationService.confirm(
@@ -22,7 +22,7 @@ export const useStockInDelete = () => {
       NotificationService.success(t('stockIn.deleted'));
       return true;
     } catch (error) {
-      NotificationService.error(parseError(error, 'stockIn.deleteError'));
+      showError(error, 'stockIn.deleteError');
       return false;
     }
   };

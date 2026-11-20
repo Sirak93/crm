@@ -6,6 +6,7 @@ export default {
     refresh: 'Refresh',
     save: 'Save',
     close: 'Close',
+    ok: 'OK',
     yes: 'Yes',
     no: 'No',
   },
@@ -695,8 +696,9 @@ export default {
     retry: 'Try again',
   },
   stockShortage: {
-    message: 'Not enough stock: {items}',
-    item: '{name} — available {quantity} {unit}',
+    title: 'Not enough stock',
+    text: 'This change would take more than is in stock. Lower the quantity or add stock first.',
+    available: 'available {quantity} {unit}',
   },
   errors: {
     AUTH_INVALID_CREDENTIALS: 'Wrong email or password.',

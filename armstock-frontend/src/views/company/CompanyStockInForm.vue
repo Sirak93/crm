@@ -30,7 +30,7 @@ const props = defineProps<{
 
 const router = useRouter();
 const { t } = useI18n();
-const { parseError } = useApiErrorMessage();
+const { showError } = useApiErrorMessage();
 const authStore = useAuthStore();
 
 const isEdit = computed(() => !!props.uuid);
@@ -158,7 +158,7 @@ const save = async () => {
     NotificationService.success(t(isEdit.value ? 'stockIn.updated' : 'stockIn.created', { number: saved.number }));
     await router.replace({ name: ROUTE_NAME.COMPANY_STOCK_IN, params: { uuid: saved.uuid } });
   } catch (error) {
-    NotificationService.error(parseError(error, 'stockIn.saveError'));
+    showError(error, 'stockIn.saveError');
   } finally {
     isSaving.value = false;
   }

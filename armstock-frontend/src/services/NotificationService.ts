@@ -26,22 +26,24 @@ const toastStyle = (accent: string) => ({
   boxShadow: 'var(--shadow-md)',
 });
 
+const SWAL_CLASSES = {
+  popup: 'app-swal-popup',
+  title: 'app-swal-title',
+  htmlContainer: 'app-swal-text',
+  actions: 'app-swal-actions',
+  icon: 'app-swal-icon',
+  confirmButton: 'app-swal-btn app-swal-btn--danger',
+  cancelButton: 'app-swal-btn app-swal-btn--cancel',
+};
+
 const AppSwal = Swal.mixin({
-  customClass: {
-    popup: 'app-swal-popup',
-    title: 'app-swal-title',
-    htmlContainer: 'app-swal-text',
-    actions: 'app-swal-actions',
-    icon: 'app-swal-icon',
-    confirmButton: 'app-swal-btn app-swal-btn--danger',
-    cancelButton: 'app-swal-btn app-swal-btn--cancel',
-  },
+  customClass: SWAL_CLASSES,
   buttonsStyling: false,
   reverseButtons: true,
 });
 
 // iziToast inserts title and message as HTML, so both are escaped.
-// SweetAlert's `title` and `text` are set as text, so they need no escaping.
+// SweetAlert's `title` and `text` are set as text, so they need no escaping; its `html` is escaped here.
 export const NotificationService = {
   success: (title: string, message = '') =>
     iziToast.success({ title: escapeHtml(title), message: escapeHtml(message), ...toastStyle('var(--primary)') }),
@@ -60,5 +62,20 @@ export const NotificationService = {
       focusCancel: true,
     });
     return result.isConfirmed;
+  },
+
+  /** An info popup with a list of rows, for a message too long to read in a toast. */
+  alertList: async (title: string, text: string, rows: { label: string; value: string }[]): Promise<void> => {
+    const items = rows
+      .map((row) => `<li><span class="app-swal-list__label">${escapeHtml(row.label)}</span><span class="app-swal-list__value">${escapeHtml(row.value)}</span></li>`)
+      .join('');
+    await AppSwal.fire({
+      title,
+      html: `<p>${escapeHtml(text)}</p><ul class="app-swal-list">${items}</ul>`,
+      icon: 'warning',
+      confirmButtonText: i18n.global.t('common.ok'),
+      // The mixin's customClass is replaced, not merged, so the shared classes are spread in.
+      customClass: { ...SWAL_CLASSES, confirmButton: 'app-swal-btn app-swal-btn--primary' },
+    });
   },
 };

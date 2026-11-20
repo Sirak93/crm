@@ -75,3 +75,44 @@
 .app-swal-btn--cancel:hover {
     background-color: var(--border-dark);
 }
+
+.app-swal-btn--primary {
+    background: linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%);
+    color: var(--text-inverse);
+}
+
+/* Rows in an alertList popup - scrolls when there are many. */
+.app-swal-list {
+    max-height: 40vh;
+    margin: 1rem 0 0;
+    padding: 0;
+    overflow-y: auto;
+    list-style: none;
+    text-align: left;
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+}
+
+.app-swal-list li {
+    display: flex;
+    justify-content: space-between;
+    gap: 1rem;
+    padding: 0.5rem 0.75rem;
+    font-size: var(--text-sm);
+}
+
+.app-swal-list li + li {
+    border-top: 1px solid var(--border);
+}
+
+.app-swal-list__label {
+    min-width: 0;
+    overflow-wrap: anywhere;
+    font-weight: 700;
+    color: var(--text-main);
+}
+
+.app-swal-list__value {
+    flex-shrink: 0;
+    color: var(--danger);
+}
