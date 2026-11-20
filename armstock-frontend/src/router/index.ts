@@ -106,6 +106,12 @@ const routes: RouteRecordRaw[] = [
         meta: { roles: [...STOCK_MANAGER_ROLES] },
       },
       {
+        path: 'stock/balance',
+        name: ROUTE_NAME.COMPANY_STOCK_BALANCE,
+        component: () => import('../views/company/CompanyStockBalance.vue'),
+        meta: { roles: [...COMPANY_LOGIN_ROLES] },
+      },
+      {
         path: 'measure-units',
         name: ROUTE_NAME.COMPANY_MEASURE_UNITS,
         component: () => import('../views/company/CompanyMeasureUnits.vue'),

@@ -309,22 +309,22 @@ Each is its own top-level menu item.
 
 ## Step 11 — Stock view
 
-- [ ] API
-  - [ ] Per product: quantity, unit, average price, value (quantity × average price)
-  - [ ] Total value of all stock
-  - [ ] Calculated in SQL
-  - [ ] All company roles can see it
-- [ ] Frontend: Stock balance page (menu "Stock" → "Balance")
-  - [ ] Average price marked with "~" before the number (e.g. ~360.00), column header
+- [x] API
+  - [x] Per product: quantity, unit, average price, value (quantity × average price)
+  - [x] Total value of all stock
+  - [x] Calculated in SQL
+  - [x] All company roles can see it
+- [x] Frontend: Stock balance page (menu "Stock" → "Balance")
+  - [x] Average price marked with "~" before the number (e.g. ~360.00), column header
         "Avg price", tooltip "Average of all stock-in prices"; value and total value get
         "~" too
-  - [ ] Total value on top as compact stat cards, like Stock → In (`StatCard compact`):
+  - [x] Total value on top as compact stat cards, like Stock → In (`StatCard compact`):
         total value ~, products in stock
-  - [ ] Table with search and category filter
-  - [ ] "Only in stock" switch, on by default; off also shows products at 0
-  - [ ] Archived products: shown with an "Archived" tag while they still have stock (they
+  - [x] Table with search and category filter
+  - [x] "Only in stock" switch, on by default; off also shows products at 0
+  - [x] Archived products: shown with an "Archived" tag while they still have stock (they
         count in the total value); never shown at 0, even with the switch off
-- [ ] Lint and build pass
+- [x] Lint and build pass
 - [ ] Checked in browser: stock page shows what was added in step 10, with values
 
 ## Step 12 — Stock-out documents

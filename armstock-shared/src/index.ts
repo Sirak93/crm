@@ -34,6 +34,8 @@ export type * from "./interfaces/IProductCategoryPayload";
 export type * from "./interfaces/IProductCreatePayload";
 export type * from "./interfaces/IProductPayload";
 export type * from "./interfaces/IRefreshResponse";
+export type * from "./interfaces/IStockBalance";
+export type * from "./interfaces/IStockBalanceSummary";
 export type * from "./interfaces/IStockIn";
 export type * from "./interfaces/IStockInDetails";
 export type * from "./interfaces/IStockInLine";

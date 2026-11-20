@@ -9,6 +9,7 @@ import ProductCategoryRoutes from "./routes/ProductCategoryRoutes";
 import ProductRoutes from "./routes/ProductRoutes";
 import SupplierRoutes from "./routes/SupplierRoutes";
 import StockInRoutes from "./routes/StockInRoutes";
+import StockRoutes from "./routes/StockRoutes";
 import MeasureUnitRoutes from "./routes/MeasureUnitRoutes";
 import { ErrorHandler } from "./middlewares/ErrorHandler";
 import { ApiLogMiddleware } from "./middlewares/ApiLogMiddleware";
@@ -53,6 +54,7 @@ app.use(`${API_PATH}/product-categories`, ProductCategoryRoutes);
 app.use(`${API_PATH}/products`, ProductRoutes);
 app.use(`${API_PATH}/suppliers`, SupplierRoutes);
 app.use(`${API_PATH}/stock-ins`, StockInRoutes);
+app.use(`${API_PATH}/stock`, StockRoutes);
 app.use(`${API_PATH}/measure-units`, MeasureUnitRoutes);
 
 // Must be last.

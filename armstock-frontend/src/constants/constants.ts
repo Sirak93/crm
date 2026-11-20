@@ -27,6 +27,7 @@ export const ROUTE_NAME = {
   COMPANY_STOCK_IN_NEW: 'company-stock-in-new',
   COMPANY_STOCK_IN: 'company-stock-in',
   COMPANY_STOCK_IN_EDIT: 'company-stock-in-edit',
+  COMPANY_STOCK_BALANCE: 'company-stock-balance',
   COMPANY_MEASURE_UNITS: 'company-measure-units',
   COMPANY_PRODUCT_CATEGORIES: 'company-product-categories',
   COMPANY_USERS: 'company-users',

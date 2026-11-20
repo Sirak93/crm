@@ -11,6 +11,9 @@ export const formatNumber = (value: number): string => new Intl.NumberFormat(loc
 export const formatMoney = (value: number): string =>
   new Intl.NumberFormat(locale(), { minimumFractionDigits: MONEY_DECIMALS, maximumFractionDigits: MONEY_DECIMALS }).format(value);
 
+/** Money built from the average price, e.g. ~360.00 */
+export const formatApproxMoney = (value: number): string => `~${formatMoney(value)}`;
+
 /** Decimals only when there are any, e.g. 100 or 1.25 */
 export const formatQuantity = (value: number): string =>
   new Intl.NumberFormat(locale(), { maximumFractionDigits: QUANTITY_DECIMALS }).format(value);
