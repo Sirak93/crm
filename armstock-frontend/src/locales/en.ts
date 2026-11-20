@@ -700,6 +700,8 @@ export default {
     title: 'Not enough stock',
     text: 'This change would take more than is in stock. Lower the quantity or add stock first.',
     available: 'available {quantity} {unit}',
+    stockInText: 'Some of these goods already went out, so this document cannot bring less than what is still in stock.',
+    inStock: 'in stock {quantity} {unit}',
   },
   supplierReturn: {
     exceedsTitle: 'Too much to return to {supplier}',

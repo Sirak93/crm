@@ -12,7 +12,7 @@ import SupplierSelect from '../../components/company/SupplierSelect.vue';
 import StockInLinesEditor from '../../components/company/StockInLinesEditor.vue';
 import { StockInService } from '../../services/StockInService';
 import { NotificationService } from '../../services/NotificationService';
-import { useApiErrorMessage } from '../../composables/useApiErrorMessage';
+import { STOCK_SHORTAGE_TEXT, useApiErrorMessage } from '../../composables/useApiErrorMessage';
 import { useUnsavedChanges } from '../../composables/useUnsavedChanges';
 import { useAuthStore } from '../../stores/auth';
 import { DATE_TIME_PICKER_FORMAT, REQUIRED_RULE_TRIGGER, ROUTE_NAME } from '../../constants/constants';
@@ -158,7 +158,7 @@ const save = async () => {
     NotificationService.success(t(isEdit.value ? 'stockIn.updated' : 'stockIn.created', { number: saved.number }));
     await router.replace({ name: ROUTE_NAME.COMPANY_STOCK_IN, params: { uuid: saved.uuid } });
   } catch (error) {
-    showError(error, 'stockIn.saveError');
+    showError(error, 'stockIn.saveError', STOCK_SHORTAGE_TEXT.STOCK_IN);
   } finally {
     isSaving.value = false;
   }

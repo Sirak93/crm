@@ -4,6 +4,14 @@ import { ErrorCodes, type IStockShortage, type ISupplierReturnError } from 'arms
 import { NotificationService } from '../services/NotificationService';
 import { formatQuantity } from '../utils/format';
 
+/** "Not enough stock" texts: a stock-out takes too much; a stock-in edit/delete takes back goods that already went out. */
+export const STOCK_SHORTAGE_TEXT = {
+  STOCK_OUT: { text: 'stockShortage.text', value: 'stockShortage.available' },
+  STOCK_IN: { text: 'stockShortage.stockInText', value: 'stockShortage.inStock' },
+} as const;
+
+type StockShortageText = typeof STOCK_SHORTAGE_TEXT[keyof typeof STOCK_SHORTAGE_TEXT];
+
 /** The translated message for an API error code (`errors.<CODE>`), or the fallback key's text. */
 export const useApiErrorMessage = () => {
   const { t, te } = useI18n();
@@ -15,15 +23,15 @@ export const useApiErrorMessage = () => {
   };
 
   /** A popup for each error that lists products; returns false when its `meta` is missing. */
-  const POPUPS: Record<string, (meta: unknown) => boolean> = {
-    [ErrorCodes.STOCK.NOT_ENOUGH.CODE]: (meta) => {
+  const POPUPS: Record<string, (meta: unknown, shortageText: StockShortageText) => boolean> = {
+    [ErrorCodes.STOCK.NOT_ENOUGH.CODE]: (meta, shortageText) => {
       if (!Array.isArray(meta) || !meta.length) return false;
       NotificationService.alertList(
         t('stockShortage.title'),
-        t('stockShortage.text'),
+        t(shortageText.text),
         (meta as IStockShortage[]).map((s) => ({
           label: s.name,
-          value: t('stockShortage.available', { quantity: formatQuantity(s.available), unit: s.unitShortName }),
+          value: t(shortageText.value, { quantity: formatQuantity(s.available), unit: s.unitShortName }),
         })),
       );
       return true;
@@ -47,10 +55,10 @@ export const useApiErrorMessage = () => {
   };
 
   /** Errors that list products open a popup (too long for a toast); every other error is a toast. */
-  const showError = (error: unknown, fallbackKey: string): void => {
+  const showError = (error: unknown, fallbackKey: string, shortageText: StockShortageText = STOCK_SHORTAGE_TEXT.STOCK_OUT): void => {
     const apiError = isAxiosError(error) ? error.response?.data?.error : undefined;
     const popup = apiError?.code ? POPUPS[apiError.code] : undefined;
-    if (popup?.(apiError.meta)) return;
+    if (popup?.(apiError.meta, shortageText)) return;
     NotificationService.error(parseError(error, fallbackKey));
   };
 

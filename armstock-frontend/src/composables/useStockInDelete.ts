@@ -2,7 +2,7 @@ import { useI18n } from 'vue-i18n';
 import type { IStockIn } from 'armstock-shared';
 import { StockInService } from '../services/StockInService';
 import { NotificationService } from '../services/NotificationService';
-import { useApiErrorMessage } from './useApiErrorMessage';
+import { STOCK_SHORTAGE_TEXT, useApiErrorMessage } from './useApiErrorMessage';
 
 /** Confirm, delete, and tell the user. Resolves true when the document is gone. */
 export const useStockInDelete = () => {
@@ -22,7 +22,7 @@ export const useStockInDelete = () => {
       NotificationService.success(t('stockIn.deleted'));
       return true;
     } catch (error) {
-      showError(error, 'stockIn.deleteError');
+      showError(error, 'stockIn.deleteError', STOCK_SHORTAGE_TEXT.STOCK_IN);
       return false;
     }
   };
