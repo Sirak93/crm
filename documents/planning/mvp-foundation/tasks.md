@@ -33,6 +33,7 @@ Decisions behind these steps: [decisions.md](decisions.md).
 - [ ] Step 13 — Stock-out documents
 - [ ] Step 14 — Redis cache
 - [ ] Step 15 — Role check pass
+- [ ] Step 16 — Backend tester
 
 ---
 
@@ -405,6 +406,28 @@ Each is its own top-level menu item.
 - [ ] Fix anything that does not match the roles table in [decisions.md](decisions.md)
 - [ ] Lint and build pass
 - [ ] Checked in browser: each role sees only its own menus and actions
+
+## Step 16 — Backend tester
+
+A reusable end-to-end tester like armlytic's (`armlytic-backend/src/scripts/tester/`): it
+calls the real HTTP API with real logins and checks the responses and the database. No test
+framework, no new package — runs with `ts-node`.
+
+- [ ] Copy the core from armlytic: runner, HTTP client, asserts, DB setup, server start,
+      reporter (JSON + HTML). Leave out armlytic-only parts (Polar, Telegram, surveys)
+- [ ] Each run: own scratch database built with `synchronize` (MVP), own backend on a free
+      port, own Redis index — the dev database and dev server stay untouched; the scratch
+      database is dropped at the end
+- [ ] Test logins and passwords from env only (placeholders in `.env.example`)
+- [ ] `npm test -w armstock-backend`; exit code 0 only when everything passed
+- [ ] README in the tester folder as the coverage map: what is tested, what is still open
+- [ ] First suites
+  - [ ] Stock-out: rules per reason, "Not enough stock" with the available quantity,
+        creator-only edit/delete, roles (Accountant only sees)
+  - [ ] Stock-in edit/delete: the same stock error
+  - [ ] Two saves at the same time on the same product: only one goes through
+- [ ] Lint and build pass
+- [ ] Tester run passes
 
 ---
 
