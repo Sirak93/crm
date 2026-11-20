@@ -16,10 +16,13 @@ type StockShortageText = typeof STOCK_SHORTAGE_TEXT[keyof typeof STOCK_SHORTAGE_
 export const useApiErrorMessage = () => {
   const { t, te } = useI18n();
 
+  /** An object `meta` fills the text's placeholders (e.g. `{userCount}`). */
   const parseError = (error: unknown, fallbackKey: string): string => {
-    const code = isAxiosError(error) ? error.response?.data?.error?.code : undefined;
-    const key = `errors.${code}`;
-    return code && te(key) ? t(key) : t(fallbackKey);
+    const apiError = isAxiosError(error) ? error.response?.data?.error : undefined;
+    const key = `errors.${apiError?.code}`;
+    if (!apiError?.code || !te(key)) return t(fallbackKey);
+    const meta = apiError.meta;
+    return meta && typeof meta === 'object' && !Array.isArray(meta) ? t(key, meta) : t(key);
   };
 
   /** A popup for each error that lists products; returns false when its `meta` is missing. */

@@ -10,6 +10,7 @@ import {
   Ruler,
   Scale,
   ScrollText,
+  ShieldCheck,
   Tags,
   Truck,
   Users,
@@ -104,6 +105,12 @@ export const NAV_ITEMS: (INavItem | INavGroup)[] = [
     labelKey: 'nav.users',
     icon: Users,
     routeName: ROUTE_NAME.COMPANY_USERS,
+  },
+  {
+    id: 'company-roles',
+    labelKey: 'nav.roles',
+    icon: ShieldCheck,
+    routeName: ROUTE_NAME.COMPANY_ROLES,
   },
   {
     id: 'company-profile',

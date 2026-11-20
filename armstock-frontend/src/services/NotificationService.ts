@@ -64,6 +64,28 @@ export const NotificationService = {
     return result.isConfirmed;
   },
 
+  /** A yes / no question with Cancel. Resolves true (yes), false (no), or null (cancelled). */
+  ask: async (title: string, text: string, yesText: string, noText: string): Promise<boolean | null> => {
+    const result = await AppSwal.fire({
+      title,
+      text,
+      icon: 'question',
+      showDenyButton: true,
+      showCancelButton: true,
+      confirmButtonText: yesText,
+      denyButtonText: noText,
+      cancelButtonText: i18n.global.t('common.cancel'),
+      customClass: {
+        ...SWAL_CLASSES,
+        confirmButton: 'app-swal-btn app-swal-btn--primary',
+        denyButton: 'app-swal-btn app-swal-btn--cancel',
+      },
+    });
+    if (result.isConfirmed) return true;
+    if (result.isDenied) return false;
+    return null;
+  },
+
   /** A notice with a single OK button. */
   notice: async (title: string, text: string): Promise<void> => {
     await AppSwal.fire({

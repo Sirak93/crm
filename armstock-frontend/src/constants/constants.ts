@@ -35,6 +35,7 @@ export const ROUTE_NAME = {
   COMPANY_MEASURE_UNITS: 'company-measure-units',
   COMPANY_PRODUCT_CATEGORIES: 'company-product-categories',
   COMPANY_USERS: 'company-users',
+  COMPANY_ROLES: 'company-roles',
   COMPANY_PROFILE: 'company-profile',
 } as const;
 

@@ -159,6 +159,12 @@ const routes: RouteRecordRaw[] = [
         meta: { accountTypes: COMPANY_ACCOUNT_TYPES, permissions: [Permission.USER_VIEW, Permission.USER_ADD] },
       },
       {
+        path: 'roles',
+        name: ROUTE_NAME.COMPANY_ROLES,
+        component: () => import('../views/company/CompanyRoles.vue'),
+        meta: { accountTypes: COMPANY_ACCOUNT_TYPES, permissions: [Permission.MANAGE_USER_PERMISSIONS] },
+      },
+      {
         path: 'company',
         name: ROUTE_NAME.COMPANY_PROFILE,
         component: () => import('../views/company/CompanyProfile.vue'),
