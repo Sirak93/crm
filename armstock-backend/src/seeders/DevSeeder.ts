@@ -70,7 +70,7 @@ export const seedDevCompany = async () => {
             canLogIn: email !== null,
             email: email?.toLowerCase() ?? null,
             password: email !== null ? password : null,
-        }, false);
+        }, false, []);
 
     await member("Գոռ", "Սարգսյան", "Պահեստապետ", DEFAULT_ROLE_NAMES[DefaultRole.STOREKEEPER], env("STOREKEEPER_EMAIL"));
     await member("Անի", "Հակոբյան", "Հաշվապահ", DEFAULT_ROLE_NAMES[DefaultRole.ACCOUNTANT], env("ACCOUNTANT_EMAIL"));

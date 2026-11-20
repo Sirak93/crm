@@ -14,11 +14,11 @@ export class RoleController {
     };
 
     create = async (req: AuthRequest, res: Response) => {
-        return AppResponse.send(res, await this.service.create(requireCompanyUuid(req), req.body as RoleBody));
+        return AppResponse.send(res, await this.service.create(requireCompanyUuid(req), req.user!, req.body as RoleBody));
     };
 
     update = async (req: AuthRequest, res: Response) => {
-        const result = await this.service.update(requireCompanyUuid(req), req.params.uuid as string, req.user!.userUUID, req.body as RoleBody);
+        const result = await this.service.update(requireCompanyUuid(req), req.params.uuid as string, req.user!, req.body as RoleBody);
         return AppResponse.send(res, result);
     };
 

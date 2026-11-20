@@ -2,7 +2,7 @@
 import { computed, ref, watch } from 'vue';
 import { useI18n } from 'vue-i18n';
 import type { FormInstance, FormItemRule } from 'element-plus';
-import { AccountType, PASSWORD_MIN_LENGTH, type ICompanyUser, type INamedRef, type IRole, type Permission } from 'armstock-shared';
+import { AccountType, PASSWORD_MIN_LENGTH, keepLocked, type ICompanyUser, type INamedRef, type IRole, type Permission } from 'armstock-shared';
 import { Briefcase, Lock, Mail, RotateCcw, User, UserRound } from 'lucide-vue-next';
 import AppDialog from '../AppDialog.vue';
 import RoleSelect from './RoleSelect.vue';
@@ -75,8 +75,9 @@ watch(open, (isOpen) => {
 
 const rolePermissions = (roleUuid: string): Permission[] => [...(props.roleTemplates.find((r) => r.uuid === roleUuid)?.permissions ?? [])];
 
+/** Owner-only permissions keep their current value - the server does the same. */
 const resetToRole = () => {
-  form.value.permissions = rolePermissions(form.value.roleUuid);
+  form.value.permissions = keepLocked(rolePermissions(form.value.roleUuid), form.value.permissions, props.access.lockedPermissions);
 };
 
 const onRoleChange = () => {
@@ -198,7 +199,7 @@ const save = async () => {
           </el-button>
         </div>
         <p v-if="!canEditPermissions" class="permissions-block__hint">{{ $t('permissions.ownAccountHint') }}</p>
-        <PermissionPanel v-model="form.permissions" :disabled="!canEditPermissions" />
+        <PermissionPanel v-model="form.permissions" :disabled="!canEditPermissions" :locked="access.lockedPermissions" />
       </div>
       <p v-if="!form.canLogIn" class="no-login-hint">{{ $t('forms.user.noLoginHint') }}</p>
 

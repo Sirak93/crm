@@ -1,6 +1,6 @@
 import bcrypt from "bcrypt";
 import { Brackets, In, Not } from "typeorm";
-import { AccountType, ErrorCodes, UserStatus, type ICompanyUser, type IPaginationMeta } from "armstock-shared";
+import { AccountType, ErrorCodes, UserStatus, keepLocked, lockedPermissions, type ICompanyUser, type IPaginationMeta, type Permission } from "armstock-shared";
 import { AppDataSource } from "../config/database";
 import { User } from "../models/User";
 import { Role } from "../models/Role";
@@ -106,10 +106,11 @@ export class CompanyUsersService {
     }
 
     /**
-     * Always a member. Permissions: the sent list when `canSetPermissions`, otherwise the role's set.
+     * Always a member. Permissions: the sent list when `canSetPermissions`, otherwise the role's set;
+     * `locked` (owner-only) ones start off - only the Owner grants them.
      * The schema already requires email + password with login.
      */
-    async create(companyUuid: string, body: CompanyUserCreateBody, canSetPermissions: boolean): Promise<ICompanyUser> {
+    async create(companyUuid: string, body: CompanyUserCreateBody, canSetPermissions: boolean, locked: readonly Permission[]): Promise<ICompanyUser> {
         const [role] = await Promise.all([
             this.roleService.findOrFail(companyUuid, body.roleUuid),
             body.canLogIn ? this.assertEmailFree(body.email) : undefined,
@@ -125,7 +126,7 @@ export class CompanyUsersService {
             canLogIn: body.canLogIn,
             email: body.canLogIn ? body.email : null,
             password: body.canLogIn && body.password ? await bcrypt.hash(body.password, BCRYPT_ROUNDS) : null,
-            permissions: body.canLogIn ? [...(canSetPermissions && body.permissions ? body.permissions : role.permissions)] : [],
+            permissions: body.canLogIn ? keepLocked(canSetPermissions && body.permissions ? body.permissions : role.permissions, [], locked) : [],
         }));
         return CompanyUsersService.toCompanyUser(user, role);
     }
@@ -157,7 +158,10 @@ export class CompanyUsersService {
         } else {
             if (body.password) user.password = await bcrypt.hash(body.password, BCRYPT_ROUNDS);
             // Permissions were emptied when login was turned off - start again from the role.
-            if (loginChanged && user.roleUuid) user.permissions = [...(await this.roleService.findOrFail(companyUuid, user.roleUuid)).permissions];
+            if (loginChanged && user.roleUuid) {
+                const role = await this.roleService.findOrFail(companyUuid, user.roleUuid);
+                user.permissions = keepLocked(role.permissions, [], lockedPermissions(actor.accountType));
+            }
         }
 
         await this.repo.save(user);
@@ -165,7 +169,7 @@ export class CompanyUsersService {
         return this.toResult(companyUuid, user);
     }
 
-    /** A member's role and own permission list (kept empty without login). */
+    /** A member's role and own permission list (kept empty without login). Owner-only permissions stay as they are unless the Owner saves. */
     async setAccess(companyUuid: string, uuid: string, actor: IRequestUser, body: CompanyUserAccessBody): Promise<ICompanyUser> {
         const user = await this.findOrFail(companyUuid, uuid);
         CompanyUsersService.assertNotOwnerFromCompany(user, actor);
@@ -175,7 +179,7 @@ export class CompanyUsersService {
 
         const role = await this.roleService.findOrFail(companyUuid, body.roleUuid);
         user.roleUuid = role.uuid;
-        user.permissions = user.canLogIn ? body.permissions : [];
+        user.permissions = user.canLogIn ? keepLocked(body.permissions, user.permissions, lockedPermissions(actor.accountType)) : [];
 
         await this.repo.save(user);
         await AuthCacheService.setUserAccess(user);

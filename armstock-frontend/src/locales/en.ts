@@ -702,6 +702,7 @@ export default {
     groupSwitch: 'All of {group}',
     resetToRole: 'Reset to role defaults',
     ownAccountHint: 'You can\'t change your own permissions.',
+    ownerOnlyHint: 'Only the company owner can change this',
     groups: {
       company: 'Company',
       users: 'Users',

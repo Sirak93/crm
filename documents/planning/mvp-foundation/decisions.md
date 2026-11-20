@@ -96,7 +96,12 @@ company role:
   someone with `MANAGE_USER_PERMISSIONS`.
 - **Nobody can change their own permissions or role** (read-only panel on your own account;
   the API refuses too). Anyone with `MANAGE_USER_PERMISSIONS` may grant any permission to
-  others.
+  others, except the owner-only ones.
+- **Owner-only permissions** (`OWNER_ONLY_PERMISSIONS`: `MANAGE_USER_PERMISSIONS`): only the
+  Company Owner turns them on or off, for a user or a role. When anyone else saves, they keep
+  their current value (off for a new user or role); "apply to users" keeps each user's own
+  value. In the panel these switches are disabled with "Only the company owner can change
+  this".
 - **Without `MANAGE_USER_PERMISSIONS` the permission panel is hidden** (e.g. HR with only
   `USER_ADD`): they pick a role and the server copies its set; any list they send is ignored.
 

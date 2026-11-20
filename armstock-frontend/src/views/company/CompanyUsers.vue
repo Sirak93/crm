@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { computed } from 'vue';
-import { Permission } from 'armstock-shared';
+import { lockedPermissions, Permission } from 'armstock-shared';
 import CompanyUsersManager from '../../components/company/CompanyUsersManager.vue';
 import { CompanyUsersService } from '../../services/company/CompanyUsersService';
 import { useAuthStore } from '../../stores/auth';
@@ -14,6 +14,7 @@ const access = computed<IUsersAccess>(() => ({
   canEdit: !!authStore.user?.can(Permission.USER_EDIT),
   canManageAccess: !!authStore.user?.can(Permission.MANAGE_USER_PERMISSIONS),
   canEditOwner: false,
+  lockedPermissions: authStore.user ? lockedPermissions(authStore.user.accountType) : [],
 }));
 </script>
 

@@ -19,6 +19,7 @@ export * from "./enums/SupplierStatus";
 export * from "./enums/UserStatus";
 
 export * from "./helpers/can";
+export * from "./helpers/lockedPermissions";
 
 export type * from "./interfaces/IApiLog";
 export type * from "./interfaces/IApiLogCompany";

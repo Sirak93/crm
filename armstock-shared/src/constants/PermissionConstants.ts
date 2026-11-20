@@ -110,3 +110,6 @@ export const DEFAULT_ROLE_PERMISSIONS: Readonly<Record<DefaultRole, readonly Per
     [DefaultRole.HR]: [Permission.USER_VIEW, Permission.USER_ADD],
     [DefaultRole.STAFF]: [],
 };
+
+/** Only the Company Owner turns these on or off - for a user or a role. */
+export const OWNER_ONLY_PERMISSIONS: readonly Permission[] = [Permission.MANAGE_USER_PERMISSIONS];

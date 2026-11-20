@@ -24,7 +24,7 @@ const api: ICompanyUsersApi = {
 };
 
 // Roles and permissions from the platform side come later; the Owner account is managed only here.
-const access: IUsersAccess = { canView: true, canAdd: true, canEdit: true, canManageAccess: false, canEditOwner: true };
+const access: IUsersAccess = { canView: true, canAdd: true, canEdit: true, canManageAccess: false, canEditOwner: true, lockedPermissions: [] };
 
 const loadCompany = async () => {
   hasError.value = false;

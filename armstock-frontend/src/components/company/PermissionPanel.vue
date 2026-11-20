@@ -2,11 +2,19 @@
 import { PERMISSION_GROUPS, type Permission } from 'armstock-shared';
 import { PERMISSION_GROUP_LABEL, PERMISSION_LABEL } from '../../constants/permissionLabels';
 
-defineProps<{ disabled?: boolean }>();
+const props = withDefaults(defineProps<{
+  disabled?: boolean;
+  /** Shown but not changeable (owner-only permissions for a member). */
+  locked?: readonly Permission[];
+}>(), { locked: () => [] });
 
 const permissions = defineModel<Permission[]>({ required: true });
 
 const has = (permission: Permission) => permissions.value.includes(permission);
+
+const isLocked = (permission: Permission) => props.locked.includes(permission);
+
+const changeable = (list: readonly Permission[]) => list.filter((p) => !isLocked(p));
 
 const onCount = (list: readonly Permission[]) => list.filter(has).length;
 
@@ -15,10 +23,13 @@ const setOne = (permission: Permission, isOn: boolean) => {
   permissions.value = isOn ? [...rest, permission] : rest;
 };
 
-/** The group switch turns every permission of the group on or off. */
+/** The group switch turns every changeable permission of the group on or off; it is on when all of them are. */
+const isGroupOn = (list: readonly Permission[]) => changeable(list).every(has);
+
 const setGroup = (list: readonly Permission[], isOn: boolean) => {
-  const rest = permissions.value.filter((p) => !list.includes(p));
-  permissions.value = isOn ? [...rest, ...list] : rest;
+  const targets = changeable(list);
+  const rest = permissions.value.filter((p) => !targets.includes(p));
+  permissions.value = isOn ? [...rest, ...targets] : rest;
 };
 </script>
 
@@ -29,19 +40,22 @@ const setGroup = (list: readonly Permission[], isOn: boolean) => {
         <span class="permission-group__title">{{ $t(PERMISSION_GROUP_LABEL[group]) }}</span>
         <span class="permission-group__count">{{ $t('permissions.count', { on: onCount(list), total: list.length }) }}</span>
         <el-switch
-          :model-value="onCount(list) === list.length"
-          :disabled="disabled"
+          :model-value="isGroupOn(list)"
+          :disabled="disabled || !changeable(list).length"
           :aria-label="$t('permissions.groupSwitch', { group: $t(PERMISSION_GROUP_LABEL[group]) })"
           @update:model-value="(isOn) => setGroup(list, !!isOn)"
         />
       </header>
       <ul class="permission-group__list">
         <li v-for="permission in list" :key="permission" class="permission-item">
-          <span>{{ $t(PERMISSION_LABEL[permission]) }}</span>
+          <span class="permission-item__label">
+            <span>{{ $t(PERMISSION_LABEL[permission]) }}</span>
+            <small v-if="isLocked(permission)" class="permission-item__hint">{{ $t('permissions.ownerOnlyHint') }}</small>
+          </span>
           <el-switch
             size="small"
             :model-value="has(permission)"
-            :disabled="disabled"
+            :disabled="disabled || isLocked(permission)"
             :aria-label="$t(PERMISSION_LABEL[permission])"
             @update:model-value="(isOn) => setOne(permission, !!isOn)"
           />
@@ -106,5 +120,15 @@ const setGroup = (list: readonly Permission[], isOn: boolean) => {
   gap: 0.5rem;
   font-size: var(--text-sm);
   color: var(--text-main);
+}
+
+.permission-item__label {
+  display: flex;
+  flex-direction: column;
+}
+
+.permission-item__hint {
+  font-size: var(--text-xs);
+  color: var(--text-muted);
 }
 </style>

@@ -1,11 +1,22 @@
 import type { EntityManager } from "typeorm";
-import { DEFAULT_ROLE_PERMISSIONS, DefaultRole, ErrorCodes, type INamedRef, type IRole, type IRoleInUse } from "armstock-shared";
+import {
+    DEFAULT_ROLE_PERMISSIONS,
+    DefaultRole,
+    ErrorCodes,
+    keepLocked,
+    lockedPermissions,
+    type INamedRef,
+    type IRole,
+    type IRoleInUse,
+    type Permission,
+} from "armstock-shared";
 import { AppDataSource } from "../config/database";
 import { Role } from "../models/Role";
 import { User } from "../models/User";
 import { AppError } from "../utils/AppError";
 import { DEFAULT_ROLE_NAMES } from "../constants/DefaultRoles";
 import { AuthCacheService } from "./AuthCacheService";
+import type { IRequestUser } from "../interfaces/IRequestUser";
 import type { RoleBody } from "../schemas/RoleSchema";
 
 export class RoleService {
@@ -70,36 +81,43 @@ export class RoleService {
         return roles.map((role) => RoleService.toRole(role, counts.get(role.uuid) ?? 0));
     }
 
-    async create(companyUuid: string, body: RoleBody): Promise<IRole> {
+    /** Owner-only permissions start off unless the Owner creates the role. */
+    async create(companyUuid: string, actor: IRequestUser, body: RoleBody): Promise<IRole> {
         await this.assertNameFree(companyUuid, body.name);
-        const role = await this.repo.save(this.repo.create({ companyUuid, name: body.name, permissions: body.permissions }));
+        const permissions = keepLocked(body.permissions, [], lockedPermissions(actor.accountType));
+        const role = await this.repo.save(this.repo.create({ companyUuid, name: body.name, permissions }));
         return RoleService.toRole(role, 0);
     }
 
     /**
      * With `applyToUsers`, the role's users who log in get its new permissions, replacing their own changes.
-     * The acting user is skipped - nobody changes their own permissions.
+     * The acting user is skipped - nobody changes their own permissions. Unless the Owner saves, owner-only
+     * permissions stay as they are - in the role and in each user.
      */
-    async update(companyUuid: string, uuid: string, actorUuid: string, body: RoleBody): Promise<IRole> {
+    async update(companyUuid: string, uuid: string, actor: IRequestUser, body: RoleBody): Promise<IRole> {
         const [role] = await Promise.all([this.findOrFail(companyUuid, uuid), this.assertNameFree(companyUuid, body.name, uuid)]);
+        const locked = lockedPermissions(actor.accountType);
         role.name = body.name;
-        role.permissions = body.permissions;
+        role.permissions = keepLocked(body.permissions, role.permissions, locked);
+        const shared = role.permissions.filter((p) => !locked.includes(p));
 
-        const updatedUuids = await AppDataSource.transaction(async (manager) => {
+        const updated = await AppDataSource.transaction(async (manager) => {
             await manager.getRepository(Role).save(role);
             if (!body.applyToUsers) return [];
             const result = await manager.getRepository(User).createQueryBuilder()
                 .update()
-                .set({ permissions: role.permissions })
+                // Each user keeps their own locked permissions.
+                .set({ permissions: () => "CAST(:shared AS int[]) || ARRAY(SELECT unnest(permissions) INTERSECT SELECT unnest(CAST(:locked AS int[])))" })
+                .setParameters({ shared, locked })
                 .where("company_uuid = :companyUuid", { companyUuid })
                 .andWhere("role_uuid = :uuid", { uuid })
                 .andWhere("can_log_in = true")
-                .andWhere("uuid != :actorUuid", { actorUuid })
-                .returning(["uuid"])
+                .andWhere("uuid != :actorUuid", { actorUuid: actor.userUUID })
+                .returning(["uuid", "permissions"])
                 .execute();
-            return (result.raw as { uuid: string }[]).map((row) => row.uuid);
+            return result.raw as { uuid: string; permissions: Permission[] }[];
         });
-        if (updatedUuids.length) await AuthCacheService.setPermissions(updatedUuids, role.permissions);
+        await Promise.all(updated.map((row) => AuthCacheService.setPermissions([row.uuid], row.permissions)));
 
         return RoleService.toRole(role, await this.countUsers(companyUuid, uuid));
     }

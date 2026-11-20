@@ -1,5 +1,5 @@
 import { Response } from "express";
-import { can, Permission } from "armstock-shared";
+import { can, lockedPermissions, Permission } from "armstock-shared";
 import { AuthRequest } from "../../middlewares/AuthMiddleware";
 import { CompanyUsersService } from "../../services/CompanyUsersService";
 import type {
@@ -26,6 +26,7 @@ export class CompanyUsersController {
             requireCompanyUuid(req),
             req.body as CompanyUserCreateBody,
             can(req.user!.accountType, req.user!.permissions, Permission.MANAGE_USER_PERMISSIONS),
+            lockedPermissions(req.user!.accountType),
         ));
     };
 
