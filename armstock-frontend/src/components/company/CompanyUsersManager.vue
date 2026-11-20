@@ -18,6 +18,7 @@ import { AppLogger } from '../../utils/AppLogger';
 import type { ICompanyUsersApi } from '../../interfaces/ICompanyUsersApi';
 import type { IUserFilters } from '../../interfaces/IUserFilters';
 import type { IUsersAccess } from '../../interfaces/IUsersAccess';
+import { useOpenAddFromQuery } from '../../composables/useOpenAddFromQuery';
 
 /** A company's users page body - the company page and the Platform Owner's page pass their own `api` and `access`. */
 const props = defineProps<{
@@ -94,6 +95,8 @@ const openAdd = () => {
   editingUser.value = null;
   isDialogOpen.value = true;
 };
+
+useOpenAddFromQuery(() => props.access.canAdd, openAdd);
 
 const openEdit = (user: ICompanyUser) => {
   editingUser.value = user;

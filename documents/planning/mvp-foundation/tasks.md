@@ -440,7 +440,7 @@ Suggested chunks (each: notes → OK → build → lint/build):
   - [x] Refuses to run unless `NODE_ENV` is `development`
   - [x] Local `.env` filled with the current local emails and the dev password - only
         after asking the user
-- [ ] Rules
+- [x] Rules
   - [x] Exactly one Company Owner; only the Platform Owner can touch that account
   - [x] Role permissions copied to the user on create and on role change
   - [x] Role edit asks whether to also apply to that role's users (replacing their own
@@ -460,7 +460,7 @@ Suggested chunks (each: notes → OK → build → lint/build):
         blocked, and archived count)
   - [x] "Can log in" per user: no = no email, no password, no permissions; still a
         stock-out receiver
-- [ ] Users - create and edit (backend and frontend)
+- [x] Users - create and edit (backend and frontend)
   - [x] Schemas and service: `role_uuid` (company role), "can log in", `permissions`;
         account type set by the server, never from the request
   - [x] Can log in = yes: email and password required (password only on create or when
@@ -492,9 +492,9 @@ Suggested chunks (each: notes → OK → build → lint/build):
         `MANAGE_USER_PERMISSIONS`
   - [x] `PermissionMiddleware(Permission.X)` replaces the role lists on company routes
   - [x] Permissions in the auth cache; a change applies on the user's next request
-- [ ] Frontend
+- [x] Frontend
   - [x] Products: Delete action (with `PRODUCT_DELETE`), refused while in use
-  - [ ] Company dashboard: the cards from decisions.md, each shown by its permission and
+  - [x] Company dashboard: the cards from decisions.md, each shown by its permission and
         loading on its own; empty state when no card applies; open to every member who can
         log in
   - [x] Permission panel: groups with a group switch, every permission its own switch
@@ -512,7 +512,7 @@ Suggested chunks (each: notes → OK → build → lint/build):
         generic popup ("Your permissions have changed. You no longer have access to this
         page.") with OK. OK reloads the app at `/` (the user's dashboard). Same popup for
         both cases; the unsaved-changes dialog is skipped and typed data is lost (accepted)
-- [ ] Lint and build pass
+- [x] Lint and build pass
 - [ ] Checked in browser
   - [ ] Two Accountants: turn off supplier management for one - menu and buttons
         disappear and the API refuses; the other still has it

@@ -67,7 +67,7 @@ const routes: RouteRecordRaw[] = [
       {
         path: 'home',
         name: ROUTE_NAME.COMPANY_DASHBOARD,
-        component: () => import('../views/Dashboard.vue'),
+        component: () => import('../views/company/CompanyDashboard.vue'),
         meta: { accountTypes: COMPANY_ACCOUNT_TYPES },
       },
       {

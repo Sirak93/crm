@@ -21,6 +21,10 @@ export class CompanyUsersController {
         return AppResponse.send(res, items, meta);
     };
 
+    summary = async (req: AuthRequest, res: Response) => {
+        return AppResponse.send(res, await this.service.summary(requireCompanyUuid(req)));
+    };
+
     create = async (req: AuthRequest, res: Response) => {
         return AppResponse.send(res, await this.service.create(
             requireCompanyUuid(req),

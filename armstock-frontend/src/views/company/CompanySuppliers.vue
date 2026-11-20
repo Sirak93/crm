@@ -18,6 +18,7 @@ import { DEFAULT_PAGE_SIZE } from '../../constants/constants';
 import type { ISupplierFilters } from '../../interfaces/ISupplierFilters';
 import { formatNumber } from '../../utils/format';
 import { AppLogger } from '../../utils/AppLogger';
+import { useOpenAddFromQuery } from '../../composables/useOpenAddFromQuery';
 
 const { t } = useI18n();
 const { parseError } = useApiErrorMessage();
@@ -71,6 +72,8 @@ const openAdd = () => {
   editingSupplier.value = null;
   isDialogOpen.value = true;
 };
+
+useOpenAddFromQuery(() => canAdd.value, openAdd);
 
 const openEdit = (supplier: ISupplier) => {
   editingSupplier.value = supplier;

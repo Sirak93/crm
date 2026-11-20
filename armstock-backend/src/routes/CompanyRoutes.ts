@@ -34,6 +34,7 @@ router.get(
     validate(CompanyUsersQuerySchema, "query"),
     asyncHandler(usersController.list),
 );
+router.get("/users/summary", PermissionMiddleware(Permission.USER_VIEW), asyncHandler(usersController.summary));
 router.post("/users", PermissionMiddleware(Permission.USER_ADD), validate(CompanyUserCreateSchema), asyncHandler(usersController.create));
 router.put("/users/:uuid", canEditUser, uuidParams, validate(CompanyUserUpdateSchema), asyncHandler(usersController.update));
 router.put(

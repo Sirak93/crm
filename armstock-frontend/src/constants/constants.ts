@@ -54,3 +54,6 @@ export const DATE_PICKER_FORMAT = 'DD/MM/YYYY';
 export const DATE_TIME_PICKER_FORMAT = 'DD/MM/YYYY HH:mm';
 
 export type RouteName = typeof ROUTE_NAME[keyof typeof ROUTE_NAME];
+
+/** `?add=1` on a list page opens its "add" dialog - used by the dashboard quick actions. */
+export const ADD_QUERY = { add: '1' } as const;

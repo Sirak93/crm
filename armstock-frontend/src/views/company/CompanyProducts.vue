@@ -19,6 +19,7 @@ import { DEFAULT_PAGE_SIZE } from '../../constants/constants';
 import type { IProductFilters } from '../../interfaces/IProductFilters';
 import { formatNumber } from '../../utils/format';
 import { AppLogger } from '../../utils/AppLogger';
+import { useOpenAddFromQuery } from '../../composables/useOpenAddFromQuery';
 
 const { t } = useI18n();
 const { parseError } = useApiErrorMessage();
@@ -80,6 +81,8 @@ const openAdd = () => {
   editingProduct.value = null;
   isDialogOpen.value = true;
 };
+
+useOpenAddFromQuery(() => canAdd.value, openAdd);
 
 const openEdit = (product: IProduct) => {
   editingProduct.value = product;

@@ -4,7 +4,8 @@ import type { IStockOut } from 'armstock-shared';
 import { Pencil, Trash2 } from 'lucide-vue-next';
 import RowActionsMenu from '../RowActionsMenu.vue';
 import { ROUTE_NAME } from '../../constants/constants';
-import { STOCK_OUT_DEPARTMENT_LABEL, STOCK_OUT_REASON_LABEL } from '../../constants/stockOutReasons';
+import { STOCK_OUT_REASON_LABEL } from '../../constants/stockOutReasons';
+import { stockOutDestination } from '../../utils/stockOutDestination';
 import { formatDateTimeShort, formatNumber } from '../../utils/format';
 import { ROW_ACTION, type RowAction } from '../../constants/rowActions';
 
@@ -31,15 +32,7 @@ const onAction = (stockOut: IStockOut, action: RowAction) => {
   else emit('delete', stockOut);
 };
 
-/** The supplier for a return, the department (and receiver) for an issue; empty for a loss. */
-const destination = (doc: IStockOut): string => {
-  if (doc.supplier) return doc.supplier.name;
-  if (doc.department) {
-    const department = t(STOCK_OUT_DEPARTMENT_LABEL[doc.department]);
-    return doc.receiver ? `${department} · ${doc.receiver.name}` : department;
-  }
-  return '';
-};
+const destination = (doc: IStockOut): string => stockOutDestination(doc, t);
 </script>
 
 <template>

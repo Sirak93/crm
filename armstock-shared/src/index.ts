@@ -49,6 +49,7 @@ export type * from "./interfaces/IProductCreatePayload";
 export type * from "./interfaces/IProductPayload";
 export type * from "./interfaces/IProductQuantity";
 export type * from "./interfaces/IRefreshResponse";
+export type * from "./interfaces/ICompanyUsersSummary";
 export type * from "./interfaces/IRole";
 export type * from "./interfaces/IRoleInUse";
 export type * from "./interfaces/IRolePayload";
