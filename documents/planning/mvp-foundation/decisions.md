@@ -62,8 +62,9 @@ company role:
 - A role can't be deleted while any user (active, blocked, or archived) has it; the error
   says how many ("3 users have this role. Move them to another role first.").
 - New company: seeded from a code map `DEFAULT_ROLE_PERMISSIONS` keyed by a small
-  `DefaultRole` enum - **Storekeeper, Accountant, HR**. After that the company edits its own
-  copy; the code map only matters for new companies. There is no Staff role any more.
+  `DefaultRole` enum - **Storekeeper, Accountant, HR, Staff**. After that the company edits its own
+  copy; the code map only matters for new companies. Staff starts with no permissions - for
+  people who get stock but don't use the app (e.g. a Chef without login).
 - Editing a role's permissions asks: "Also apply to the N users with this role? Their own
   changes will be replaced." Yes overwrites their lists; No leaves them as they are.
 
@@ -189,7 +190,7 @@ breaks because its user lacks a view permission of another area.
 **Moving over.** No migration of old users: the old `role` column and `UserRole` enum are
 replaced, and the local database is dropped and recreated. A dev seeder
 (`npm run seed:dev`, development only) fills it again - a demo company with the Owner, a
-Storekeeper, an Accountant, an HR user, and a user without login. Emails and the shared
+Storekeeper, an Accountant, an HR user, and a Staff user without login. Emails and the shared
 password come from `.env`, never from code.
 
 **Losing access while using the app.** Frontend gets permissions with the user (login and

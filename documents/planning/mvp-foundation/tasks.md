@@ -416,7 +416,7 @@ Suggested chunks (each: notes → OK → build → lint/build):
         Company, Users, Units, Categories, Products, Suppliers, Supplier contacts, Stock
   - [x] `AccountType` enum: `PLATFORM_OWNER`, `COMPANY_OWNER`, `COMPANY_MEMBER` (replaces
         `UserRole`)
-  - [x] `DefaultRole` enum + `DEFAULT_ROLE_PERMISSIONS` map: Storekeeper, Accountant, HR
+  - [x] `DefaultRole` enum + `DEFAULT_ROLE_PERMISSIONS` map: Storekeeper, Accountant, HR, Staff (empty)
   - [x] One `can(accountType, permissions, permission)` helper used by backend and
         frontend; it takes a `ReadonlySet<Permission>` - the API sends an array, the
         frontend `UserModel` and the backend auth snapshot turn it into a `Set` once
@@ -424,7 +424,7 @@ Suggested chunks (each: notes → OK → build → lint/build):
   - [x] `roles` table: company, name, `permissions int[]`
   - [x] `users`: `account_type`, `role_uuid` (members only), `permissions int[]`,
         "can log in"
-  - [x] New company: the three default roles seeded from the map
+  - [x] New company: the four default roles seeded from the map
   - [x] New company: one Owner account - the "New company" dialog takes the Owner's first
         name, last name, email, and password; company and Owner saved in one transaction.
         Every user added later is a `COMPANY_MEMBER`
@@ -433,7 +433,7 @@ Suggested chunks (each: notes → OK → build → lint/build):
 - [ ] Dev seeder (`npm run seed:dev -w armstock-backend`) - replaces the old "Role check
       pass" seeder
   - [x] Creates a demo company: the Owner, a Storekeeper, an Accountant, an HR user, and
-        a user without login, with the default roles and their permissions, plus the seed
+        a Staff user without login, with the default roles and their permissions, plus the seed
         data; when the demo company already exists it stops - drop the database to reseed
   - [x] Emails and the shared password from `.env` (`DEV_SEED_*`), placeholders in
         `.env.example`; stops with a clear message when one is missing

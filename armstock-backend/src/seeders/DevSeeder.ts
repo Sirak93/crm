@@ -75,7 +75,7 @@ export const seedDevCompany = async () => {
     await member("Գոռ", "Սարգսյան", "Պահեստապետ", DEFAULT_ROLE_NAMES[DefaultRole.STOREKEEPER], env("STOREKEEPER_EMAIL"));
     await member("Անի", "Հակոբյան", "Հաշվապահ", DEFAULT_ROLE_NAMES[DefaultRole.ACCOUNTANT], env("ACCOUNTANT_EMAIL"));
     await member("Լիլիթ", "Մարտիրոսյան", "Կադրերի մենեջեր", DEFAULT_ROLE_NAMES[DefaultRole.HR], env("HR_EMAIL"));
-    await member("Կարեն", "Գրիգորյան", "Խոհարար", DEFAULT_ROLE_NAMES[DefaultRole.STOREKEEPER], null);
+    await member("Կարեն", "Գրիգորյան", "Խոհարար", DEFAULT_ROLE_NAMES[DefaultRole.STAFF], null);
 
     const unitService = new MeasureUnitService();
     for (const unit of extraUnits) await unitService.create(companyUuid, unit);

@@ -5,4 +5,5 @@ export const DEFAULT_ROLE_NAMES: Readonly<Record<DefaultRole, string>> = {
     [DefaultRole.STOREKEEPER]: "Storekeeper",
     [DefaultRole.ACCOUNTANT]: "Accountant",
     [DefaultRole.HR]: "HR",
+    [DefaultRole.STAFF]: "Staff",
 };

@@ -100,4 +100,5 @@ export const DEFAULT_ROLE_PERMISSIONS: Readonly<Record<DefaultRole, readonly Per
         Permission.STOCK_OUT_VIEW,
     ],
     [DefaultRole.HR]: [Permission.USER_VIEW, Permission.USER_ADD],
+    [DefaultRole.STAFF]: [],
 };
