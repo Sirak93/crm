@@ -394,6 +394,18 @@ Each is its own top-level menu item.
 Company roles become editable templates, and every user has their own permission list.
 Full rules: "Permissions (from Step 14)" in [decisions.md](decisions.md).
 
+Suggested chunks (each: notes → OK → build → lint/build):
+
+1. Shared enums and `can()`, `roles` table, user columns, database recreated, dev seeder
+2. Backend: `PermissionMiddleware` on every company route, auth cache, roles API, user
+   create/edit rules, picker endpoints, product delete
+3. Frontend base: `UserModel` with a `Set`, `can()`, route `meta.permission`, menu and
+   buttons, pickers on the new endpoints, lost-access popup
+4. Frontend screens: user dialog with the permission panel, roles page, users list,
+   product delete
+5. Dashboard cards
+6. Browser check
+
 - [x] **Confirmed:** the permission list and the starting permissions of Storekeeper,
       Accountant, and HR - table in decisions.md
 - [x] **Confirmed:** the company dashboard cards - table in decisions.md
@@ -458,6 +470,17 @@ Full rules: "Permissions (from Step 14)" in [decisions.md](decisions.md).
   - [ ] Users list: role name column, "No login" tag, role filter next to the status filter
   - [ ] Platform Owner's company users page keeps working through the shared service
         (managing roles and permissions there: later)
+- [ ] Picker endpoints - open to every logged-in company member (no permission), minimal
+      data only, never prices, stock amounts, or emails
+  - [ ] `GET /options/products` → `IStockLineProduct` (uuid, name, code, status, unit,
+        allows decimals); search, `forStockOut`, `suppliedBy` (both move here from
+        `GET /products`)
+  - [ ] `GET /options/suppliers` → uuid, name, status; search, active only or all
+  - [ ] `GET /options/receivers` → uuid, name, position, status (moves from
+        `/stock-outs/receivers`)
+  - [ ] `GET /options/roles` → uuid, name
+  - [ ] Every picker and picker-style filter in the frontend uses these (product and
+        supplier pickers, supplier filters, receiver picker, role picker and filter)
 - [ ] Backend
   - [ ] Roles API: list, create, edit (with "apply to users"), delete - Owner or
         `MANAGE_USER_PERMISSIONS`

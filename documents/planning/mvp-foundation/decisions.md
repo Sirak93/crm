@@ -176,6 +176,13 @@ into a `Set` once, so the many checks are direct lookups.
 `PermissionMiddleware(Permission.X)` on the API, `can(Permission.X)` and `meta.permission`
 on routes in the frontend. A change applies on the user's next request (auth cache).
 
+**Pages vs pickers.** Pages and actions need their permission. Picker lists (product,
+supplier, receiver, role pickers, and the supplier filters) use small `/options/*`
+endpoints open to every logged-in member of the company. They return only what a picker
+needs - for products the `IStockLineProduct` shape, so a picked row knows its unit and
+whether decimals are allowed - and never prices, stock amounts, or emails. So a form never
+breaks because its user lacks a view permission of another area.
+
 **Moving over.** No migration of old users: the old `role` column and `UserRole` enum are
 replaced, and the local database is dropped and recreated. A dev seeder
 (`npm run seed:dev`, development only) fills it again - a demo company with the Owner, a
