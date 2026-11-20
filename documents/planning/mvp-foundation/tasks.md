@@ -403,7 +403,6 @@ Full rules: "Permissions (from Step 14)" in [decisions.md](decisions.md).
       permissions; Staff → member without login)
 - [ ] Shared
   - [ ] `Permission` enum, one value per valuable action
-  - [ ] `OWNER_ONLY_PERMISSIONS` (e.g. `MANAGE_ROLES`)
   - [ ] `AccountType` enum: `PLATFORM_OWNER`, `COMPANY_OWNER`, `COMPANY_MEMBER` (replaces
         `UserRole`)
   - [ ] `DefaultRole` enum + `DEFAULT_ROLE_PERMISSIONS` map: Storekeeper, Accountant, HR
@@ -420,18 +419,27 @@ Full rules: "Permissions (from Step 14)" in [decisions.md](decisions.md).
   - [ ] Role permissions copied to the user on create and on role change
   - [ ] Role edit asks whether to also apply to that role's users (replacing their own
         changes)
-  - [ ] `MANAGE_USERS` and `MANAGE_USER_PERMISSIONS` are separate permissions
-  - [ ] Nobody can change their own permissions
+  - [ ] User permissions split: `USER_ADD` (create + pick role), `USER_EDIT` (name,
+        position, login, email, password, block, archive - never role or permissions),
+        `MANAGE_USER_PERMISSIONS` (everything about rights: roles, role permissions,
+        others' permissions, changing an existing user's role)
+  - [ ] Anything that touches roles or permissions = Company Owner ||
+        `MANAGE_USER_PERMISSIONS` (Platform Owner: later)
+  - [ ] Default role templates stay compact - only the basics for each job
+  - [ ] Nobody can change their own permissions or role
   - [ ] Owner-only permissions can't be granted to anyone
   - [ ] "Can log in" per user: no = no email, no password, no permissions; still a
         stock-out receiver
 - [ ] Backend
-  - [ ] Roles API: list, create, edit (with "apply to users"), delete - Owner only
+  - [ ] Roles API: list, create, edit (with "apply to users"), delete - Owner or
+        `MANAGE_USER_PERMISSIONS`
   - [ ] `PermissionMiddleware(Permission.X)` replaces the role lists on company routes
   - [ ] Permissions in the auth cache; a change applies on the user's next request
 - [ ] Frontend
-  - [ ] Roles page (Owner only): list, add, edit permissions, delete
-  - [ ] User dialog: role picker, "Can log in", permission panel grouped by area with
+  - [ ] Roles page (Owner or `MANAGE_USER_PERMISSIONS`): list, add, edit permissions,
+        delete
+  - [ ] User dialog: role picker (on create with `USER_ADD`; on edit only with
+        `MANAGE_USER_PERMISSIONS`), "Can log in", permission panel grouped by area with
         switches and "Reset to role defaults"; read-only without
         `MANAGE_USER_PERMISSIONS` and on your own account; hidden without login
   - [ ] `can(Permission.X)` replaces the `canManage…` flags in menu and buttons; routes use
@@ -447,8 +455,10 @@ Full rules: "Permissions (from Step 14)" in [decisions.md](decisions.md).
         disappear and the API refuses; the other still has it
   - [ ] Edit a role and apply to its users - their lists change; edit again without
         applying - they stay
-  - [ ] An HR user with `MANAGE_USERS` only sees the permission panel read-only; your own
-        account is always read-only; the Owner account has no edit actions
+  - [ ] An HR intern with only `USER_ADD` creates a user with a role but can't open
+        existing users; an HR user with `USER_EDIT` changes a password but the role picker
+        and permission panel are read-only; with `MANAGE_USER_PERMISSIONS` both open (but
+        not on your own account); the Owner account has no edit actions
   - [ ] A user without login has no email, password, or permissions, and can still be a
         stock-out receiver
   - [ ] A Storekeeper on the new stock-in form loses "create stock-in" - Save shows the
@@ -513,6 +523,8 @@ framework, no new package — runs with `ts-node`.
 
 Ideas agreed for later. Not part of any step above.
 
+- [ ] Platform Owner manages a company's roles and user permissions (same rules as
+      `MANAGE_USER_PERMISSIONS`).
 - [ ] Transfer company ownership - Platform Owner action only: move the Owner account type to
       another user and give the old Owner a normal role in the same step.
 - [ ] Delete a company. To decide: delete only a company with no users yet, or also

@@ -58,7 +58,7 @@ company role:
 **Company roles** (`roles`: company, name, `permissions int[]`)
 
 - A role is a group name plus a starting permission set - a template, nothing more.
-- Only the Owner adds, edits, and deletes roles (`MANAGE_ROLES`, owner-only).
+- Roles are added, edited, and deleted by the Owner or anyone with `MANAGE_USER_PERMISSIONS`.
 - New company: seeded from a code map `DEFAULT_ROLE_PERMISSIONS` keyed by a small
   `DefaultRole` enum - **Storekeeper, Accountant, HR**. After that the company edits its own
   copy; the code map only matters for new companies. There is no Staff role any more.
@@ -68,17 +68,32 @@ company role:
 **User permissions** (`users.permissions`, Postgres `int[]`, the full list)
 
 - Copied from the role on user create and on role change; then edited per user (e.g. an HR
-  specialist gets "Manage users", the HR intern only "Add user").
+  lead gets "Edit user" and "Manage user permissions", the HR intern only "Add user").
 - No separate table - the list is small and always read together with the user. A history
   of who changed what can come later as a separate log table.
-- `MANAGE_USERS` (create/edit users, login, email, password, role, block, archive) and
-  `MANAGE_USER_PERMISSIONS` (turn single permissions on/off for others) are separate. At
-  first only the Owner has them; the Owner decides who else gets them.
-- **Nobody can change their own permissions** (read-only panel on your own account; the API
-  refuses too). Anyone with `MANAGE_USER_PERMISSIONS` may grant any permission to others,
-  except owner-only ones.
-- **Owner-only permissions** (`OWNER_ONLY_PERMISSIONS`, e.g. `MANAGE_ROLES`) never appear in a
-  role or a permission panel, and the API refuses to grant them.
+- **Who may raise someone's rights.** Every way to give rights goes through
+  `MANAGE_USER_PERMISSIONS`; the other user permissions never do:
+
+  | Permission | Allows | Does not allow |
+  | --- | --- | --- |
+  | `USER_ADD` | Create a user and pick their role (gets the role's compact defaults) | Anything on existing users |
+  | `USER_EDIT` | Name, position, login, email, password, block, archive | Changing the role, the user's permissions, or role permissions |
+  | `MANAGE_USER_PERMISSIONS` | Everything about rights: roles and their permissions, others' permissions, changing an existing user's role (it copies the role's set) | Own permissions and own role |
+
+  **Rule:** anything that touches roles, role permissions, a user's role, or a user's
+  permissions = Company Owner || `MANAGE_USER_PERMISSIONS` (|| Platform Owner, later). No
+  permission is owner-only.
+
+  At first only the Owner has these. `MANAGE_USER_PERMISSIONS` can be granted, so the Owner
+  hands the day-to-day work to trusted people (e.g. an HR lead) instead of granting every
+  access personally. Password and login changes sit in `USER_EDIT`, which the Owner gives
+  only to trusted people - with it, someone could log in as another user.
+- **Role templates stay compact**: each default role starts with only the basics for its
+  job, so creating a user with `USER_ADD` never hands out much. More is added per user by
+  someone with `MANAGE_USER_PERMISSIONS`.
+- **Nobody can change their own permissions or role** (read-only panel on your own account;
+  the API refuses too). Anyone with `MANAGE_USER_PERMISSIONS` may grant any permission to
+  others.
 
 **Login is per user**, not per role: whoever creates or edits the account chooses "Can log
 in". Yes = email and password required, permissions apply. No = no email, no password, no
