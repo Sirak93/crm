@@ -58,6 +58,7 @@ const save = async () => {
   const payload = {
     name: form.value.name.trim(),
     code: form.value.code.trim() || null,
+    barcode: props.product?.barcode ?? null,
     categoryUuid: form.value.categoryUuid,
   };
 

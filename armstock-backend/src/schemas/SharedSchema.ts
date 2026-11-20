@@ -1,5 +1,5 @@
 import { z } from "zod";
-import { PASSWORD_MIN_LENGTH, Permission } from "armstock-shared";
+import { BARCODE_MAX_LENGTH, PASSWORD_MIN_LENGTH, Permission } from "armstock-shared";
 
 /** Trimmed; an empty value is stored as null. */
 export const optionalText = (max: number) => z.string().trim().max(max).nullish().transform((v) => v || null);
@@ -9,6 +9,9 @@ export const PaginatedSearchQuerySchema = z.object({
     pageSize: z.coerce.number().int().positive().max(100).default(20),
     search: z.string().trim().max(255).optional(),
 });
+
+/** Exact barcode match (a scan), not a text search. */
+export const BarcodeQuerySchema = z.string().trim().min(1).max(BARCODE_MAX_LENGTH).optional();
 
 export const UuidParamsSchema = z.object({
     uuid: z.uuid(),

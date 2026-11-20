@@ -25,6 +25,7 @@ export class ProductService {
             uuid: product.uuid,
             name: product.name,
             code: product.code,
+            barcode: product.barcode,
             status: product.status,
             measureUnit: MeasureUnitService.toUnit(unit),
             category: ProductCategoryService.toCategory(category),
@@ -48,6 +49,16 @@ export class ProductService {
         if (await qb.getExists()) throw new AppError(ErrorCodes.PRODUCT.CODE_TAKEN);
     }
 
+    /** Barcode is optional, but unique inside the company when set (the unique index backs this up). */
+    private async assertBarcodeFree(companyUuid: string, barcode: string | null, exceptUuid?: string): Promise<void> {
+        if (!barcode) return;
+        const qb = this.repo.createQueryBuilder("product")
+            .where("product.companyUuid = :companyUuid", { companyUuid })
+            .andWhere("product.barcode = :barcode", { barcode });
+        if (exceptUuid) qb.andWhere("product.uuid != :exceptUuid", { exceptUuid });
+        if (await qb.getExists()) throw new AppError(ErrorCodes.PRODUCT.BARCODE_TAKEN);
+    }
+
     /** Units and categories of one page, by bounded `uuid IN (...)` lookups instead of joins on the paginated query. */
     private async withRelations(companyUuid: string, products: Product[]): Promise<IProduct[]> {
         const unitUuids = [...new Set(products.map((p) => p.measureUnitUuid))];
@@ -61,9 +72,10 @@ export class ProductService {
         return products.map((p) => ProductService.toProduct(p, unitMap.get(p.measureUnitUuid)!, categoryMap.get(p.categoryUuid)!));
     }
 
-    /** The company's products matching the search by name or code. */
-    private searchQuery(companyUuid: string, search: string | undefined) {
+    /** The company's products matching the search by name or code, or exactly the scanned barcode. */
+    private searchQuery(companyUuid: string, search: string | undefined, barcode: string | undefined) {
         const qb = this.repo.createQueryBuilder("product").where("product.companyUuid = :companyUuid", { companyUuid });
+        if (barcode) qb.andWhere("product.barcode = :barcode", { barcode });
         if (search) {
             qb.andWhere(new Brackets((w) => {
                 w.where("product.name ILIKE :search", { search: `%${search}%` }).orWhere("product.code ILIKE :search");
@@ -73,9 +85,9 @@ export class ProductService {
     }
 
     async list(companyUuid: string, query: ProductsQuery): Promise<{ items: IProduct[]; meta: IPaginationMeta }> {
-        const { page, pageSize, search, categoryUuid, status } = query;
+        const { page, pageSize, search, categoryUuid, status, barcode } = query;
 
-        const qb = this.searchQuery(companyUuid, search);
+        const qb = this.searchQuery(companyUuid, search, barcode);
         if (categoryUuid) qb.andWhere("product.categoryUuid = :categoryUuid", { categoryUuid });
         if (status) qb.andWhere("product.status = :status", { status });
 
@@ -97,6 +109,7 @@ export class ProductService {
             this.unitService.findOrFail(companyUuid, body.measureUnitUuid),
             this.categoryService.findOrFail(companyUuid, body.categoryUuid),
             this.assertCodeFree(companyUuid, body.code),
+            this.assertBarcodeFree(companyUuid, body.barcode),
         ]);
         const product = await this.repo.save(this.repo.create({ ...body, companyUuid }));
         return ProductService.toProduct(product, unit, category);
@@ -109,6 +122,7 @@ export class ProductService {
             this.unitService.findOrFail(companyUuid, product.measureUnitUuid),
             this.categoryService.findOrFail(companyUuid, body.categoryUuid),
             this.assertCodeFree(companyUuid, body.code, uuid),
+            this.assertBarcodeFree(companyUuid, body.barcode, uuid),
         ]);
         Object.assign(product, body);
         await this.repo.save(product);
@@ -128,7 +142,7 @@ export class ProductService {
      * Active products only, unless `forStockOut` (archived ones with stock too).
      */
     async options(companyUuid: string, query: ProductOptionsQuery): Promise<IStockLineProduct[]> {
-        const qb = this.searchQuery(companyUuid, query.search);
+        const qb = this.searchQuery(companyUuid, query.search, query.barcode);
         if (query.forStockOut) StockService.whereActiveOrInStock(qb);
         else qb.andWhere("product.status = :status", { status: ProductStatus.ACTIVE });
         if (query.suppliedBy) SupplierReturnService.whereSuppliedBy(qb, query.suppliedBy);

@@ -91,6 +91,7 @@ export const seedDevCompany = async () => {
         await productService.create(companyUuid, {
             name: product.name,
             code: null,
+            barcode: null,
             measureUnitUuid: findByName(units, product.unit),
             categoryUuid: findByName(categories, product.category),
         });

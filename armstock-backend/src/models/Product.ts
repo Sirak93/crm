@@ -18,6 +18,7 @@ import { ProductCategory } from "./ProductCategory";
 @Index("IDX_products_company_uuid", ["companyUuid"])
 @Index("IDX_products_measure_unit_uuid", ["measureUnitUuid"])
 @Index("IDX_products_category_uuid", ["categoryUuid"])
+@Index("UQ_products_company_barcode", ["companyUuid", "barcode"], { unique: true })
 export class Product {
     @PrimaryGeneratedColumn("uuid")
     uuid!: string;
@@ -34,6 +35,10 @@ export class Product {
 
     @Column({ type: "varchar", nullable: true })
     code!: string | null;
+
+    /** Factory barcode, separate from the company's own code/SKU. */
+    @Column({ type: "varchar", nullable: true })
+    barcode!: string | null;
 
     /** Fixed after create - stock and prices are counted in this unit. */
     @Column({ name: "measure_unit_uuid", type: "uuid" })

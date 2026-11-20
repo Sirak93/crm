@@ -2,5 +2,6 @@
 export interface IProductPayload {
     name: string;
     code: string | null;
+    barcode: string | null;
     categoryUuid: string;
 }

@@ -7,6 +7,8 @@ export interface IProduct {
     name: string;
     /** Optional code/SKU, unique inside the company. */
     code: string | null;
+    /** Optional factory barcode, unique inside the company. */
+    barcode: string | null;
     status: ProductStatus;
     measureUnit: IMeasureUnit;
     category: IProductCategory;

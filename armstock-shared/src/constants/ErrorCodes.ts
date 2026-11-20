@@ -114,6 +114,10 @@ export const ErrorCodes = {
             CODE: "PRODUCT_CODE_TAKEN",
             STATUS: 409,
         },
+        BARCODE_TAKEN: {
+            CODE: "PRODUCT_BARCODE_TAKEN",
+            STATUS: 409,
+        },
         ARCHIVED: {
             CODE: "PRODUCT_ARCHIVED",
             STATUS: 422,

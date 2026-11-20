@@ -1,4 +1,5 @@
 import { z } from "zod";
+import { BarcodeQuerySchema } from "./SharedSchema";
 
 const search = z.string().trim().max(255).optional();
 
@@ -8,6 +9,7 @@ export const ProductOptionsQuerySchema = z.object({
     forStockOut: z.stringbool().optional(),
     // Return picker: only products that came in from this supplier.
     suppliedBy: z.uuid().optional(),
+    barcode: BarcodeQuerySchema,
 });
 
 export const SupplierOptionsQuerySchema = z.object({
