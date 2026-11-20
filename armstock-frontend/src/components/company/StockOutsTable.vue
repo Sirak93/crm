@@ -10,8 +10,9 @@ import { ROW_ACTION, type RowAction } from '../../constants/rowActions';
 
 defineProps<{
   stockOuts: IStockOut[];
-  /** Only the creator may edit or delete a document. */
+  /** Only the creator may edit or delete a document, and only with the create permission. */
   currentUserUuid: string | null;
+  canEdit: boolean;
   /** uuid of the document being deleted. */
   busyUuid: string | null;
 }>();
@@ -74,7 +75,7 @@ const destination = (doc: IStockOut): string => {
       <template #default="{ row }">
         <div @click.stop>
           <RowActionsMenu
-            v-if="row.createdBy.uuid === currentUserUuid"
+            v-if="canEdit && row.createdBy.uuid === currentUserUuid"
             :label="$t('stockOut.actionsFor', { number: row.number })"
             :disabled="busyUuid === row.uuid"
             @command="(action) => onAction(row as IStockOut, action as RowAction)"

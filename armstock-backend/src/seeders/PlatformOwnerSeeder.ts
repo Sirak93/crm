@@ -1,5 +1,5 @@
 import bcrypt from "bcrypt";
-import { UserRole } from "armstock-shared";
+import { AccountType } from "armstock-shared";
 import { AppDataSource } from "../config/database";
 import { User } from "../models/User";
 import { BCRYPT_ROUNDS } from "../constants/AuthConstants";
@@ -13,7 +13,7 @@ export const seedPlatformOwner = async () => {
     }
 
     const userRepo = AppDataSource.getRepository(User);
-    const existing = await userRepo.findOne({ where: { role: UserRole.PLATFORM_OWNER } });
+    const existing = await userRepo.findOne({ where: { accountType: AccountType.PLATFORM_OWNER } });
 
     if (existing) {
         console.log(`Platform owner already exists: ${existing.email}`);
@@ -23,7 +23,7 @@ export const seedPlatformOwner = async () => {
     const owner = userRepo.create({
         email,
         password: await bcrypt.hash(password, BCRYPT_ROUNDS),
-        role: UserRole.PLATFORM_OWNER,
+        accountType: AccountType.PLATFORM_OWNER,
     });
     await userRepo.save(owner);
     console.log(`Platform owner created: ${owner.email}`);

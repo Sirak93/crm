@@ -1,7 +1,7 @@
 import { Router } from "express";
-import { CATALOG_MANAGER_ROLES, COMPANY_LOGIN_ROLES } from "armstock-shared";
-import { AuthMiddleware } from "../middlewares/AuthMiddleware";
-import { RoleMiddleware } from "../middlewares/RoleMiddleware";
+import { Permission } from "armstock-shared";
+import { CompanyMemberMiddleware } from "../middlewares/CompanyMemberMiddleware";
+import { PermissionMiddleware } from "../middlewares/PermissionMiddleware";
 import { validate } from "../middlewares/Validate";
 import { asyncHandler } from "../utils/asyncHandler";
 import { ProductController } from "../controllers/ProductController";
@@ -10,20 +10,26 @@ import { UuidParamsSchema } from "../schemas/SharedSchema";
 
 const router = Router();
 const productController = new ProductController();
-const canManage = RoleMiddleware([...CATALOG_MANAGER_ROLES]);
+const uuidParams = validate(UuidParamsSchema, "params");
 
-router.use(AuthMiddleware);
+router.use(CompanyMemberMiddleware);
 
-router.get("/", RoleMiddleware([...COMPANY_LOGIN_ROLES]), validate(ProductsQuerySchema, "query"), asyncHandler(productController.list));
-router.post("/", canManage, validate(ProductCreateBodySchema), asyncHandler(productController.create));
-router.put("/:uuid", canManage, validate(UuidParamsSchema, "params"), validate(ProductBodySchema), asyncHandler(productController.update));
+router.get("/", PermissionMiddleware(Permission.PRODUCT_VIEW), validate(ProductsQuerySchema, "query"), asyncHandler(productController.list));
+router.post("/", PermissionMiddleware(Permission.PRODUCT_ADD), validate(ProductCreateBodySchema), asyncHandler(productController.create));
+router.put(
+    "/:uuid",
+    PermissionMiddleware(Permission.PRODUCT_EDIT),
+    uuidParams,
+    validate(ProductBodySchema),
+    asyncHandler(productController.update),
+);
 router.patch(
     "/:uuid/status",
-    canManage,
-    validate(UuidParamsSchema, "params"),
+    PermissionMiddleware(Permission.PRODUCT_ARCHIVE),
+    uuidParams,
     validate(ProductStatusBodySchema),
     asyncHandler(productController.setStatus),
 );
-router.delete("/:uuid", canManage, validate(UuidParamsSchema, "params"), asyncHandler(productController.delete));
+router.delete("/:uuid", PermissionMiddleware(Permission.PRODUCT_DELETE), uuidParams, asyncHandler(productController.delete));
 
 export default router;

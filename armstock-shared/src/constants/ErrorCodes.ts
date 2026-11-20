@@ -46,6 +46,25 @@ export const ErrorCodes = {
             CODE: "USER_OWN_ACCOUNT",
             STATUS: 403,
         },
+        /** Only the Platform Owner can change the Company Owner account. */
+        OWNER_LOCKED: {
+            CODE: "USER_OWNER_LOCKED",
+            STATUS: 403,
+        },
+    },
+    ROLE: {
+        NOT_FOUND: {
+            CODE: "ROLE_NOT_FOUND",
+            STATUS: 404,
+        },
+        NAME_TAKEN: {
+            CODE: "ROLE_NAME_TAKEN",
+            STATUS: 409,
+        },
+        IN_USE: {
+            CODE: "ROLE_IN_USE",
+            STATUS: 409,
+        },
     },
     COMPANY: {
         NOT_FOUND: {

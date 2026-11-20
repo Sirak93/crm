@@ -1,10 +1,12 @@
 <script setup lang="ts">
 import { onMounted, reactive, watch } from 'vue';
-import { UserStatus } from 'armstock-shared';
+import { UserStatus, type INamedRef } from 'armstock-shared';
 import { Search } from 'lucide-vue-next';
 import { SEARCH_DEBOUNCE_MS } from '../../constants/constants';
 import { USER_STATUS_TAG } from '../../constants/statusTags';
 import type { IUserFilters } from '../../interfaces/IUserFilters';
+
+defineProps<{ roles: INamedRef[] }>();
 
 const emit = defineEmits<{ change: [filters: IUserFilters] }>();
 
@@ -14,11 +16,13 @@ const STATUSES = [UserStatus.ACTIVE, UserStatus.BLOCKED, UserStatus.ARCHIVED];
 const form = reactive({
   search: '',
   status: '' as UserStatus | '',
+  roleUuid: '',
 });
 
 const toFilters = (): IUserFilters => ({
   search: form.search.trim() || undefined,
   status: form.status || undefined,
+  roleUuid: form.roleUuid || undefined,
 });
 
 const emitChange = () => emit('change', toFilters());
@@ -29,7 +33,7 @@ watch(() => form.search, () => {
   debounceTimer = setTimeout(emitChange, SEARCH_DEBOUNCE_MS);
 });
 
-watch(() => form.status, emitChange);
+watch(() => [form.status, form.roleUuid], emitChange);
 
 // The page loads from this first emit, so both start from the same filters.
 onMounted(emitChange);
@@ -55,6 +59,16 @@ onMounted(emitChange);
       class="user-filters__select"
     >
       <el-option v-for="status in STATUSES" :key="status" :label="$t(USER_STATUS_TAG[status].labelKey)" :value="status" />
+    </el-select>
+
+    <el-select
+      v-model="form.roleUuid"
+      :placeholder="$t('companyUsers.filters.role')"
+      :aria-label="$t('companyUsers.filters.role')"
+      clearable
+      class="user-filters__select"
+    >
+      <el-option v-for="role in roles" :key="role.uuid" :label="role.name" :value="role.uuid" />
     </el-select>
   </div>
 </template>

@@ -8,8 +8,9 @@ import { ROW_ACTION, type RowAction } from '../../constants/rowActions';
 
 defineProps<{
   products: IProduct[];
-  /** False for read-only roles - no actions column. */
-  canManage: boolean;
+  canEdit: boolean;
+  canArchive: boolean;
+  canDelete: boolean;
   /** uuid of the product being saved or deleted. */
   updatingUuid: string | null;
 }>();
@@ -51,26 +52,26 @@ const onAction = (product: IProduct, action: RowAction) => {
         </el-tag>
       </template>
     </el-table-column>
-    <el-table-column v-if="canManage" min-width="70" align="center">
+    <el-table-column v-if="canEdit || canArchive || canDelete" min-width="70" align="center">
       <template #default="{ row }">
         <RowActionsMenu
           :label="$t('products.actionsFor', { name: row.name })"
           :disabled="updatingUuid === row.uuid"
           @command="(action) => onAction(row as IProduct, action as RowAction)"
         >
-          <el-dropdown-item :command="ROW_ACTION.EDIT">
+          <el-dropdown-item v-if="canEdit" :command="ROW_ACTION.EDIT">
             <Pencil :size="16" aria-hidden="true" />
             <span>{{ $t('products.actions.edit') }}</span>
           </el-dropdown-item>
-          <el-dropdown-item v-if="row.status === ProductStatus.ACTIVE" :command="ROW_ACTION.ARCHIVE">
+          <el-dropdown-item v-if="canArchive && row.status === ProductStatus.ACTIVE" :command="ROW_ACTION.ARCHIVE">
             <Archive :size="16" aria-hidden="true" />
             <span>{{ $t('products.actions.archive') }}</span>
           </el-dropdown-item>
-          <el-dropdown-item v-else :command="ROW_ACTION.RESTORE">
+          <el-dropdown-item v-else-if="canArchive" :command="ROW_ACTION.RESTORE">
             <ArchiveRestore :size="16" aria-hidden="true" />
             <span>{{ $t('products.actions.restore') }}</span>
           </el-dropdown-item>
-          <el-dropdown-item :command="ROW_ACTION.DELETE" class="dropdown-item--danger">
+          <el-dropdown-item v-if="canDelete" :command="ROW_ACTION.DELETE" class="dropdown-item--danger">
             <Trash2 :size="16" aria-hidden="true" />
             <span>{{ $t('products.actions.delete') }}</span>
           </el-dropdown-item>

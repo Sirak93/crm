@@ -13,6 +13,9 @@ defineProps<{
   busyUuid: string | null;
   /** uuid of the contact being deleted. */
   deletingContactUuid: string | null;
+  canEdit: boolean;
+  canArchive: boolean;
+  canDelete: boolean;
 }>();
 
 const emit = defineEmits<{
@@ -78,26 +81,26 @@ const onAction = (supplier: ISupplier, action: RowAction) => {
         </el-tag>
       </template>
     </el-table-column>
-    <el-table-column min-width="70" align="center">
+    <el-table-column v-if="canEdit || canArchive || canDelete" min-width="70" align="center">
       <template #default="{ row }">
         <RowActionsMenu
           :label="$t('suppliers.actionsFor', { name: row.name })"
           :disabled="busyUuid === row.uuid"
           @command="(action) => onAction(row as ISupplier, action as RowAction)"
         >
-          <el-dropdown-item :command="ROW_ACTION.EDIT">
+          <el-dropdown-item v-if="canEdit" :command="ROW_ACTION.EDIT">
             <Pencil :size="16" aria-hidden="true" />
             <span>{{ $t('suppliers.actions.edit') }}</span>
           </el-dropdown-item>
-          <el-dropdown-item v-if="row.status === SupplierStatus.ACTIVE" :command="ROW_ACTION.ARCHIVE">
+          <el-dropdown-item v-if="canArchive && row.status === SupplierStatus.ACTIVE" :command="ROW_ACTION.ARCHIVE">
             <Archive :size="16" aria-hidden="true" />
             <span>{{ $t('suppliers.actions.archive') }}</span>
           </el-dropdown-item>
-          <el-dropdown-item v-else :command="ROW_ACTION.RESTORE">
+          <el-dropdown-item v-else-if="canArchive" :command="ROW_ACTION.RESTORE">
             <ArchiveRestore :size="16" aria-hidden="true" />
             <span>{{ $t('suppliers.actions.restore') }}</span>
           </el-dropdown-item>
-          <el-dropdown-item :command="ROW_ACTION.DELETE" class="dropdown-item--danger">
+          <el-dropdown-item v-if="canDelete" :command="ROW_ACTION.DELETE" class="dropdown-item--danger">
             <Trash2 :size="16" aria-hidden="true" />
             <span>{{ $t('suppliers.actions.delete') }}</span>
           </el-dropdown-item>

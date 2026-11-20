@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { computed, onMounted, ref } from 'vue';
 import { useI18n } from 'vue-i18n';
-import type { IProductCategory } from 'armstock-shared';
+import { Permission, type IProductCategory } from 'armstock-shared';
 import { Plus, Search, Tags } from 'lucide-vue-next';
 import PageHeader from '../../components/PageHeader.vue';
 import AppCard from '../../components/AppCard.vue';
@@ -18,7 +18,9 @@ import { AppLogger } from '../../utils/AppLogger';
 const { t } = useI18n();
 const { parseError } = useApiErrorMessage();
 const authStore = useAuthStore();
-const canManage = computed(() => !!authStore.user?.canManageCatalog);
+const canAdd = computed(() => !!authStore.user?.can(Permission.PRODUCT_CATEGORY_ADD));
+const canEdit = computed(() => !!authStore.user?.can(Permission.PRODUCT_CATEGORY_EDIT));
+const canDelete = computed(() => !!authStore.user?.can(Permission.PRODUCT_CATEGORY_DELETE));
 
 const categories = ref<IProductCategory[]>([]);
 const search = ref('');
@@ -90,7 +92,7 @@ onMounted(load);
       :subtitle="$t('productCategories.subtitle')"
       :badge="hasLoaded ? formatNumber(categories.length) : undefined"
     >
-      <template v-if="canManage" #actions>
+      <template v-if="canAdd" #actions>
         <el-button type="primary" @click="openAdd">
           <Plus :size="16" aria-hidden="true" />
           <span>{{ $t('productCategories.add') }}</span>
@@ -124,14 +126,14 @@ onMounted(load);
         v-else
         v-loading="isLoading"
         :categories="filteredCategories"
-        :can-manage="canManage"
+        :can-edit="canEdit" :can-delete="canDelete"
         :deleting-uuid="deletingUuid"
         @edit="openEdit"
         @delete="deleteCategory"
       />
     </AppCard>
 
-    <ProductCategoryDialog v-if="canManage" v-model="isDialogOpen" :category="editingCategory" @saved="load" />
+    <ProductCategoryDialog v-if="canAdd || canEdit" v-model="isDialogOpen" :category="editingCategory" @saved="load" />
   </section>
 </template>
 

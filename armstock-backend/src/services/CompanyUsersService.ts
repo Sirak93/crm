@@ -1,34 +1,36 @@
 import bcrypt from "bcrypt";
-import { Brackets, Not } from "typeorm";
-import {
-    COMPANY_LOGIN_ROLES,
-    ErrorCodes,
-    UserStatus,
-    type ICompanyUser,
-    type IPaginationMeta,
-} from "armstock-shared";
+import { Brackets, In, Not } from "typeorm";
+import { AccountType, ErrorCodes, UserStatus, type ICompanyUser, type IPaginationMeta } from "armstock-shared";
 import { AppDataSource } from "../config/database";
 import { User } from "../models/User";
+import { Role } from "../models/Role";
 import { AppError } from "../utils/AppError";
 import { BCRYPT_ROUNDS } from "../constants/AuthConstants";
 import { AuthCacheService } from "./AuthCacheService";
-import type { CompanyUserBody, CompanyUsersQuery } from "../schemas/CompanyUserSchema";
+import { RoleService } from "./RoleService";
+import type { IRequestUser } from "../interfaces/IRequestUser";
+import type { CompanyUserBody, CompanyUserCreateBody, CompanyUsersQuery } from "../schemas/CompanyUserSchema";
 
 /**
- * A company's users, managed by the Platform Owner and the Company Owner through their own
- * routes. `actorUuid` is the user making the change - nobody changes their own role or status.
+ * A company's users, managed by the Platform Owner and by company members through their own
+ * routes. `actor` is the user making the change - nobody changes their own role, login, or status,
+ * and only the Platform Owner changes the Company Owner account.
  */
 export class CompanyUsersService {
     private repo = AppDataSource.getRepository(User);
+    private roleService = new RoleService();
 
-    private static toCompanyUser(user: User): ICompanyUser {
+    private static toCompanyUser(user: User, role: Role | null): ICompanyUser {
         return {
             uuid: user.uuid,
             firstName: user.firstName ?? "",
             lastName: user.lastName ?? "",
             position: user.position,
             email: user.email,
-            role: user.role,
+            accountType: user.accountType,
+            role: role ? { uuid: role.uuid, name: role.name } : null,
+            canLogIn: user.canLogIn,
+            permissions: user.permissions,
             status: user.status,
             hasPassword: !!user.password,
             lastLoginAt: user.lastLoginAt?.toISOString() ?? null,
@@ -36,10 +38,35 @@ export class CompanyUsersService {
         };
     }
 
+    /** Roles of one page, by a bounded `uuid IN (...)` lookup instead of a join on the paginated query. */
+    private async withRoles(companyUuid: string, users: User[]): Promise<ICompanyUser[]> {
+        const roleUuids = [...new Set(users.map((u) => u.roleUuid).filter((uuid): uuid is string => !!uuid))];
+        const roles = roleUuids.length
+            ? await AppDataSource.getRepository(Role).find({ where: { uuid: In(roleUuids), companyUuid } })
+            : [];
+        const roleMap = new Map(roles.map((r) => [r.uuid, r]));
+        return users.map((u) => CompanyUsersService.toCompanyUser(u, u.roleUuid ? roleMap.get(u.roleUuid) ?? null : null));
+    }
+
+    private async toResult(companyUuid: string, user: User): Promise<ICompanyUser> {
+        const [item] = await this.withRoles(companyUuid, [user]);
+        return item!;
+    }
+
     private async findOrFail(companyUuid: string, uuid: string): Promise<User> {
         const user = await this.repo.findOne({ where: { uuid, companyUuid } });
         if (!user) throw new AppError(ErrorCodes.USER.NOT_FOUND, undefined, undefined, { uuid, companyUuid });
         return user;
+    }
+
+    private static assertNotOwnerFromCompany(user: User, actor: IRequestUser): void {
+        if (user.accountType === AccountType.COMPANY_OWNER && actor.accountType !== AccountType.PLATFORM_OWNER) {
+            throw new AppError(ErrorCodes.USER.OWNER_LOCKED, undefined, undefined, { uuid: user.uuid, actorUuid: actor.userUUID });
+        }
+    }
+
+    private static assertNotSelf(user: User, actor: IRequestUser): void {
+        if (user.uuid === actor.userUUID) throw new AppError(ErrorCodes.USER.OWN_ACCOUNT);
     }
 
     private async assertEmailFree(email: string | null, exceptUuid?: string): Promise<void> {
@@ -49,10 +76,11 @@ export class CompanyUsersService {
     }
 
     async list(companyUuid: string, query: CompanyUsersQuery): Promise<{ items: ICompanyUser[]; meta: IPaginationMeta }> {
-        const { page, pageSize, search, status } = query;
+        const { page, pageSize, search, status, roleUuid } = query;
 
         const qb = this.repo.createQueryBuilder("user").where("user.companyUuid = :companyUuid", { companyUuid });
         if (status) qb.andWhere("user.status = :status", { status });
+        if (roleUuid) qb.andWhere("user.roleUuid = :roleUuid", { roleUuid });
         if (search) {
             qb.andWhere(new Brackets((w) => {
                 w.where("user.firstName ILIKE :search", { search: `%${search}%` })
@@ -72,59 +100,93 @@ export class CompanyUsersService {
             .getManyAndCount();
 
         return {
-            items: rows.map(CompanyUsersService.toCompanyUser),
+            items: await this.withRoles(companyUuid, rows),
             meta: { page, pageSize, total, totalPages: Math.ceil(total / pageSize) },
         };
     }
 
-    /** The schema already requires email + password for a login role. */
-    async create(companyUuid: string, body: CompanyUserBody): Promise<ICompanyUser> {
-        await this.assertEmailFree(body.email);
+    /** Always a member; the role's permissions are copied in. The schema already requires email + password with login. */
+    async create(companyUuid: string, body: CompanyUserCreateBody): Promise<ICompanyUser> {
+        const [role] = await Promise.all([
+            this.roleService.findOrFail(companyUuid, body.roleUuid),
+            body.canLogIn ? this.assertEmailFree(body.email) : undefined,
+        ]);
 
-        const canLogIn = COMPANY_LOGIN_ROLES.includes(body.role);
         const user = await this.repo.save(this.repo.create({
-            ...body,
             companyUuid,
-            password: canLogIn && body.password ? await bcrypt.hash(body.password, BCRYPT_ROUNDS) : null,
+            accountType: AccountType.COMPANY_MEMBER,
+            roleUuid: role.uuid,
+            firstName: body.firstName,
+            lastName: body.lastName,
+            position: body.position,
+            canLogIn: body.canLogIn,
+            email: body.canLogIn ? body.email : null,
+            password: body.canLogIn && body.password ? await bcrypt.hash(body.password, BCRYPT_ROUNDS) : null,
+            permissions: body.canLogIn ? [...role.permissions] : [],
         }));
-        return CompanyUsersService.toCompanyUser(user);
+        return CompanyUsersService.toCompanyUser(user, role);
     }
 
-    async update(companyUuid: string, uuid: string, actorUuid: string, body: CompanyUserBody): Promise<ICompanyUser> {
+    /** Basic data and login - never the role or permissions. */
+    async update(companyUuid: string, uuid: string, actor: IRequestUser, body: CompanyUserBody): Promise<ICompanyUser> {
         const user = await this.findOrFail(companyUuid, uuid);
-        const roleChanged = body.role !== user.role;
-        if (roleChanged && user.uuid === actorUuid) throw new AppError(ErrorCodes.USER.OWN_ACCOUNT);
-        if (body.email !== user.email) await this.assertEmailFree(body.email, user.uuid);
+        CompanyUsersService.assertNotOwnerFromCompany(user, actor);
 
-        const canLogIn = COMPANY_LOGIN_ROLES.includes(body.role);
-        if (canLogIn && !body.password && !user.password) throw new AppError(ErrorCodes.USER.PASSWORD_REQUIRED);
+        const loginChanged = body.canLogIn !== user.canLogIn;
+        if (loginChanged && user.accountType === AccountType.COMPANY_OWNER) throw new AppError(ErrorCodes.USER.OWNER_LOCKED);
+        if (loginChanged) CompanyUsersService.assertNotSelf(user, actor);
+
+        const email = body.canLogIn ? body.email : null;
+        if (email !== user.email) await this.assertEmailFree(email, user.uuid);
+        if (body.canLogIn && !body.password && !user.password) throw new AppError(ErrorCodes.USER.PASSWORD_REQUIRED);
 
         Object.assign(user, {
             firstName: body.firstName,
             lastName: body.lastName,
             position: body.position,
-            email: body.email,
-            role: body.role,
+            canLogIn: body.canLogIn,
+            email,
         });
-        if (!canLogIn) {
+        if (!body.canLogIn) {
             user.password = null;
             user.refreshToken = null;
-        } else if (body.password) {
-            user.password = await bcrypt.hash(body.password, BCRYPT_ROUNDS);
+            user.permissions = [];
+        } else {
+            if (body.password) user.password = await bcrypt.hash(body.password, BCRYPT_ROUNDS);
+            // Permissions were emptied when login was turned off - start again from the role.
+            if (loginChanged && user.roleUuid) user.permissions = [...(await this.roleService.findOrFail(companyUuid, user.roleUuid)).permissions];
         }
 
         await this.repo.save(user);
-        if (roleChanged) await AuthCacheService.setUserAccess(user);
-        return CompanyUsersService.toCompanyUser(user);
+        if (loginChanged) await AuthCacheService.setUserAccess(user);
+        return this.toResult(companyUuid, user);
     }
 
-    async setStatus(companyUuid: string, uuid: string, actorUuid: string, status: UserStatus): Promise<ICompanyUser> {
+    /** Moves a member to another role; its permissions replace theirs. */
+    async setRole(companyUuid: string, uuid: string, actor: IRequestUser, roleUuid: string): Promise<ICompanyUser> {
         const user = await this.findOrFail(companyUuid, uuid);
-        if (user.uuid === actorUuid) throw new AppError(ErrorCodes.USER.OWN_ACCOUNT);
+        CompanyUsersService.assertNotOwnerFromCompany(user, actor);
+        CompanyUsersService.assertNotSelf(user, actor);
+        // The Owner has no role, and the account type is never changed here.
+        if (user.accountType !== AccountType.COMPANY_MEMBER) throw new AppError(ErrorCodes.USER.OWNER_LOCKED);
+
+        const role = await this.roleService.findOrFail(companyUuid, roleUuid);
+        user.roleUuid = role.uuid;
+        if (user.canLogIn) user.permissions = [...role.permissions];
+
+        await this.repo.save(user);
+        await AuthCacheService.setUserAccess(user);
+        return CompanyUsersService.toCompanyUser(user, role);
+    }
+
+    async setStatus(companyUuid: string, uuid: string, actor: IRequestUser, status: UserStatus): Promise<ICompanyUser> {
+        const user = await this.findOrFail(companyUuid, uuid);
+        CompanyUsersService.assertNotOwnerFromCompany(user, actor);
+        CompanyUsersService.assertNotSelf(user, actor);
 
         user.status = status;
         await this.repo.save(user);
         await AuthCacheService.setUserAccess(user);
-        return CompanyUsersService.toCompanyUser(user);
+        return this.toResult(companyUuid, user);
     }
 }

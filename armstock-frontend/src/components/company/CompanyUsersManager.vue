@@ -1,7 +1,7 @@
 <script setup lang="ts">
-import { computed, ref } from 'vue';
+import { computed, onMounted, ref } from 'vue';
 import { useI18n } from 'vue-i18n';
-import { UserStatus, type ICompanyUser, type IPaginationMeta } from 'armstock-shared';
+import { UserStatus, type ICompanyUser, type INamedRef, type IPaginationMeta } from 'armstock-shared';
 import { Plus, Users } from 'lucide-vue-next';
 import PageHeader from '../PageHeader.vue';
 import AppCard from '../AppCard.vue';
@@ -17,10 +17,12 @@ import { formatNumber } from '../../utils/format';
 import { AppLogger } from '../../utils/AppLogger';
 import type { ICompanyUsersApi } from '../../interfaces/ICompanyUsersApi';
 import type { IUserFilters } from '../../interfaces/IUserFilters';
+import type { IUsersAccess } from '../../interfaces/IUsersAccess';
 
-/** A company's users page body - the Platform Owner and the Company Owner pass their own `api`. */
+/** A company's users page body - the company page and the Platform Owner's page pass their own `api` and `access`. */
 const props = defineProps<{
   api: ICompanyUsersApi;
+  access: IUsersAccess;
   title: string;
   subtitle?: string;
 }>();
@@ -37,12 +39,15 @@ const hasLoaded = ref(false);
 const hasError = ref(false);
 const updatingUuid = ref<string | null>(null);
 const currentUserUuid = computed(() => authStore.user?.uuid ?? null);
-const hasFilters = computed(() => !!(filters.value.search || filters.value.status));
+const hasFilters = computed(() => !!(filters.value.search || filters.value.status || filters.value.roleUuid));
+const roles = ref<INamedRef[]>([]);
 
 const isDialogOpen = ref(false);
 const editingUser = ref<ICompanyUser | null>(null);
 
 const load = async (page = meta.value.page) => {
+  // With only "add user", the list stays closed.
+  if (!props.access.canView) return;
   isLoading.value = true;
   hasError.value = false;
   try {
@@ -57,6 +62,18 @@ const load = async (page = meta.value.page) => {
     isLoading.value = false;
   }
 };
+
+/** For the role picker and the role filter. */
+const loadRoles = async () => {
+  try {
+    roles.value = await props.api.roles();
+  } catch (error) {
+    AppLogger.error('Failed to load roles:', error);
+    hasError.value = true;
+  }
+};
+
+const retry = () => Promise.all([loadRoles(), load()]);
 
 const onFiltersChange = (newFilters: IUserFilters) => {
   filters.value = newFilters;
@@ -132,12 +149,13 @@ const setStatus = async (user: ICompanyUser, status: UserStatus) => {
   }
 };
 
+onMounted(loadRoles);
 </script>
 
 <template>
   <section class="users-page">
     <PageHeader :title="title" :subtitle="subtitle" :badge="hasLoaded ? formatNumber(meta.total) : undefined">
-      <template #actions>
+      <template v-if="access.canAdd" #actions>
         <el-button type="primary" @click="openAdd">
           <Plus :size="16" aria-hidden="true" />
           <span>{{ $t('companyUsers.add') }}</span>
@@ -145,9 +163,15 @@ const setStatus = async (user: ICompanyUser, status: UserStatus) => {
       </template>
     </PageHeader>
 
-    <UserFilters @change="onFiltersChange" />
+    <UserFilters v-if="access.canView" :roles="roles" @change="onFiltersChange" />
 
-    <LoadError v-if="hasError && !isLoading" :message="$t('companyUsers.loadError')" @retry="load()" />
+    <LoadError v-if="hasError && !isLoading" :message="$t('companyUsers.loadError')" @retry="retry" />
+
+    <AppCard v-else-if="!access.canView" class="table-card">
+      <el-empty :description="$t('companyUsers.addOnlyHint')">
+        <template #image><Users :size="40" aria-hidden="true" /></template>
+      </el-empty>
+    </AppCard>
 
     <AppCard v-else class="table-card">
       <el-skeleton v-if="isLoading && !hasLoaded" :rows="6" animated class="skeleton" />
@@ -162,6 +186,7 @@ const setStatus = async (user: ICompanyUser, status: UserStatus) => {
         :users="users"
         :current-user-uuid="currentUserUuid"
         :updating-uuid="updatingUuid"
+        :access="access"
         @edit="openEdit"
         @set-status="setStatus"
       />
@@ -178,7 +203,15 @@ const setStatus = async (user: ICompanyUser, status: UserStatus) => {
       @current-change="load"
     />
 
-    <UserDialog v-model="isDialogOpen" :api="api" :user="editingUser" :current-user-uuid="currentUserUuid" @saved="onSaved" />
+    <UserDialog
+      v-model="isDialogOpen"
+      :api="api"
+      :user="editingUser"
+      :current-user-uuid="currentUserUuid"
+      :roles="roles"
+      :access="access"
+      @saved="onSaved"
+    />
   </section>
 </template>
 

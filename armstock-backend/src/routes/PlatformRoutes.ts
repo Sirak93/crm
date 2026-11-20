@@ -1,14 +1,14 @@
 import { Router } from "express";
-import { UserRole } from "armstock-shared";
+import { AccountType } from "armstock-shared";
 import { AuthMiddleware } from "../middlewares/AuthMiddleware";
-import { RoleMiddleware } from "../middlewares/RoleMiddleware";
+import { AccountTypeMiddleware } from "../middlewares/AccountTypeMiddleware";
 import { validate } from "../middlewares/Validate";
 import { asyncHandler } from "../utils/asyncHandler";
 import { PlatformDatabaseController } from "../controllers/platform/PlatformDatabaseController";
 import { PlatformLogsController } from "../controllers/platform/PlatformLogsController";
 import { PlatformLogsQuerySchema } from "../schemas/platform/PlatformLogsSchema";
 import { PlatformCompaniesController } from "../controllers/platform/PlatformCompaniesController";
-import { CompanyBodySchema } from "../schemas/CompanySchema";
+import { CompanyBodySchema, CompanyCreateBodySchema } from "../schemas/CompanySchema";
 import { PaginatedSearchQuerySchema, UuidParamsSchema } from "../schemas/SharedSchema";
 import { CompanyStatusBodySchema, CompanyUserParamsSchema } from "../schemas/platform/PlatformCompaniesSchema";
 import {
@@ -23,10 +23,10 @@ const databaseController = new PlatformDatabaseController();
 const logsController = new PlatformLogsController();
 const companiesController = new PlatformCompaniesController();
 
-router.use(AuthMiddleware, RoleMiddleware([UserRole.PLATFORM_OWNER]));
+router.use(AuthMiddleware, AccountTypeMiddleware([AccountType.PLATFORM_OWNER]));
 
 router.get("/companies", validate(PaginatedSearchQuerySchema, "query"), asyncHandler(companiesController.list));
-router.post("/companies", validate(CompanyBodySchema), asyncHandler(companiesController.create));
+router.post("/companies", validate(CompanyCreateBodySchema), asyncHandler(companiesController.create));
 router.put(
     "/companies/:uuid",
     validate(UuidParamsSchema, "params"),
@@ -40,6 +40,7 @@ router.patch(
     asyncHandler(companiesController.setStatus),
 );
 router.get("/companies/:uuid", validate(UuidParamsSchema, "params"), asyncHandler(companiesController.get));
+router.get("/companies/:uuid/roles", validate(UuidParamsSchema, "params"), asyncHandler(companiesController.listRoles));
 
 router.get(
     "/companies/:uuid/users",

@@ -9,21 +9,23 @@ import {
     ManyToOne,
     JoinColumn,
 } from "typeorm";
-import { UserRole, UserStatus } from "armstock-shared";
+import { AccountType, UserStatus, type Permission } from "armstock-shared";
 import { Company } from "./Company";
+import { Role } from "./Role";
 
 @Entity("users")
 @Unique("UQ_users_email", ["email"])
 @Index("IDX_users_company_uuid", ["companyUuid"])
+@Index("IDX_users_role_uuid", ["roleUuid"])
 export class User {
     @PrimaryGeneratedColumn("uuid")
     uuid!: string;
 
-    /** Always stored lowercased - login looks it up in that form. Optional for STAFF. */
+    /** Always stored lowercased - login looks it up in that form. Null without login. */
     @Column({ type: "varchar", nullable: true })
     email!: string | null;
 
-    /** bcrypt hash; null for STAFF, who cannot log in. */
+    /** bcrypt hash; null without login. */
     @Column({ type: "varchar", nullable: true })
     password!: string | null;
 
@@ -37,8 +39,24 @@ export class User {
     @Column({ type: "varchar", nullable: true })
     position!: string | null;
 
-    @Column({ type: "int" })
-    role!: UserRole;
+    @Column({ name: "account_type", type: "int" })
+    accountType!: AccountType;
+
+    /** The company role - members only, null for owners. */
+    @Column({ name: "role_uuid", type: "uuid", nullable: true })
+    roleUuid!: string | null;
+
+    @ManyToOne(() => Role, { nullable: true, onDelete: "RESTRICT" })
+    @JoinColumn({ name: "role_uuid" })
+    companyRole?: Role | null;
+
+    /** The user's own full list, copied from the role and then edited. Empty for owners and without login. */
+    @Column({ type: "int", array: true, default: () => "'{}'" })
+    permissions!: Permission[];
+
+    /** No login = no email, no password, no permissions; can still be a stock-out receiver. */
+    @Column({ name: "can_log_in", type: "boolean", default: true })
+    canLogIn!: boolean;
 
     @Column({ type: "int", default: UserStatus.ACTIVE })
     status!: UserStatus;

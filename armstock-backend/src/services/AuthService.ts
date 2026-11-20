@@ -1,5 +1,5 @@
 import bcrypt from "bcrypt";
-import { CompanyStatus, ErrorCodes, UserRole, UserStatus, type IAuthUser, type ILoginResponse, type IRefreshResponse } from "armstock-shared";
+import { CompanyStatus, ErrorCodes, UserStatus, type IAuthUser, type ILoginResponse, type IRefreshResponse } from "armstock-shared";
 import { AppDataSource } from "../config/database";
 import { User } from "../models/User";
 import { AppError } from "../utils/AppError";
@@ -22,7 +22,8 @@ export class AuthService {
         return {
             uuid: user.uuid,
             email: user.email,
-            role: user.role,
+            accountType: user.accountType,
+            permissions: user.permissions,
             status: user.status,
             firstName: user.firstName,
             lastName: user.lastName,
@@ -38,15 +39,15 @@ export class AuthService {
 
     async login(email: string, password: string): Promise<ILoginResponse> {
         const user = await this.userRepo.findOne({ where: { email }, relations: { company: true } });
-        // No password = STAFF, who cannot log in.
-        if (!user?.password) throw new AppError(ErrorCodes.AUTH.INVALID_CREDENTIALS);
+        // A user without login has no password either.
+        if (!user?.password || !user.canLogIn) throw new AppError(ErrorCodes.AUTH.INVALID_CREDENTIALS);
 
         const match = await bcrypt.compare(password, user.password);
         if (!match) throw new AppError(ErrorCodes.AUTH.INVALID_CREDENTIALS);
 
         AuthService.assertCanSignIn(user);
 
-        const payload = { userUUID: user.uuid, role: user.role };
+        const payload = { userUUID: user.uuid };
         const token = generateToken(payload);
         const refreshToken = generateRefreshToken(payload);
 
@@ -74,7 +75,7 @@ export class AuthService {
 
         AuthService.assertCanSignIn(user);
 
-        const details = { userUuid: user.uuid, role: UserRole[user.role] };
+        const details = { userUuid: user.uuid };
         if (!user.refreshToken) {
             throw new AppError(ErrorCodes.AUTH.UNAUTHORIZED, undefined, undefined, { reason: "no refresh token in DB", ...details });
         }
@@ -82,8 +83,7 @@ export class AuthService {
             throw new AppError(ErrorCodes.AUTH.UNAUTHORIZED, undefined, undefined, { reason: "hash comparison failed", ...details });
         }
 
-        // Role from the freshly loaded user, not the old token's claim.
-        const token = generateToken({ userUUID: user.uuid, role: user.role });
+        const token = generateToken({ userUUID: user.uuid });
 
         await AuthCacheService.set(user);
 

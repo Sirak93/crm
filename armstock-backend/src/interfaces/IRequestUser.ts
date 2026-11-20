@@ -1,6 +1,9 @@
-import { AuthUserJwtPayload } from "../utils/JWT";
+import type { AccountType, Permission } from "armstock-shared";
 
-/** `req.user` after AuthMiddleware: the token's claims with the current role and company. */
-export interface IRequestUser extends AuthUserJwtPayload {
+/** `req.user` after AuthMiddleware: the current access rights from the auth snapshot. */
+export interface IRequestUser {
+    userUUID: string;
     companyUUID: string | null;
+    accountType: AccountType;
+    permissions: ReadonlySet<Permission>;
 }

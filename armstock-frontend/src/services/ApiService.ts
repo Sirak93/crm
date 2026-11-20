@@ -52,6 +52,12 @@ class ApiService {
           return Promise.reject(alreadyEnded ? new CanceledError('Session ended') : error);
         }
 
+        // A permission was taken away meanwhile (other 403 codes are business rules, shown by the page).
+        if (error.response?.data?.error?.code === ErrorCodes.AUTH.FORBIDDEN.CODE && await this.hasLostPageAccess()) {
+          // The app reloads at `/` after the popup - the page must not show its own error first.
+          return new Promise(() => {});
+        }
+
         if (error.response?.status === ErrorCodes.AUTH.UNAUTHORIZED.STATUS && !originalRequest._retry && !isRefreshRequest) {
           originalRequest._retry = true;
 
@@ -133,6 +139,30 @@ class ApiService {
     if (router.currentRoute.value.name !== ROUTE_NAME.LOGIN) {
       router.push({ name: ROUTE_NAME.LOGIN });
     }
+  }
+
+  /**
+   * After a 403: reloads the user (menu and buttons follow at once) and, when the open page is no
+   * longer allowed, shows the lost-access popup. False = the page stays; it shows the error itself.
+   */
+  private async hasLostPageAccess(): Promise<boolean> {
+    const [{ useAuthStore }, { default: router }, { canOpen }, { showLostAccess }] = await Promise.all([
+      import('../stores/auth'),
+      import('../router'),
+      import('../utils/canOpen'),
+      import('../utils/lostAccess'),
+    ]);
+    const authStore = useAuthStore();
+    try {
+      await authStore.reloadUser();
+    } catch (reloadError) {
+      this.logger.error('Could not reload the user after a 403:', reloadError);
+      return false;
+    }
+    const { meta } = router.currentRoute.value;
+    if (!authStore.user || canOpen(authStore.user, meta.accountTypes, meta.permissions)) return false;
+    showLostAccess();
+    return true;
   }
 
   /** Waits for one shared refresh when one is running or the token is about to expire. */

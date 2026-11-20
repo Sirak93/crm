@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { computed, ref } from 'vue';
 import { useI18n } from 'vue-i18n';
-import { SupplierStatus, type IPaginationMeta, type ISupplier, type ISupplierContact } from 'armstock-shared';
+import { Permission, SupplierStatus, type IPaginationMeta, type ISupplier, type ISupplierContact } from 'armstock-shared';
 import { Plus, Truck } from 'lucide-vue-next';
 import PageHeader from '../../components/PageHeader.vue';
 import AppCard from '../../components/AppCard.vue';
@@ -13,6 +13,7 @@ import SupplierContactDialog from '../../components/company/SupplierContactDialo
 import { SupplierService } from '../../services/SupplierService';
 import { NotificationService } from '../../services/NotificationService';
 import { useApiErrorMessage } from '../../composables/useApiErrorMessage';
+import { useAuthStore } from '../../stores/auth';
 import { DEFAULT_PAGE_SIZE } from '../../constants/constants';
 import type { ISupplierFilters } from '../../interfaces/ISupplierFilters';
 import { formatNumber } from '../../utils/format';
@@ -55,6 +56,12 @@ const load = async (page = meta.value.page) => {
   }
 };
 
+const authStore = useAuthStore();
+const canAdd = computed(() => !!authStore.user?.can(Permission.SUPPLIER_ADD));
+const canEdit = computed(() => !!authStore.user?.can(Permission.SUPPLIER_EDIT));
+const canArchive = computed(() => !!authStore.user?.can(Permission.SUPPLIER_ARCHIVE));
+const canDelete = computed(() => !!authStore.user?.can(Permission.SUPPLIER_DELETE));
+
 const onFiltersChange = (newFilters: ISupplierFilters) => {
   filters.value = newFilters;
   load(1);
@@ -80,7 +87,7 @@ const openContactDialog = (supplier: ISupplier, contact: ISupplierContact | null
 const onSaved = (saved: ISupplier) => {
   const isNew = !editingSupplier.value;
   load(isNew ? 1 : meta.value.page);
-  if (isNew) openContactDialog(saved, null);
+  if (isNew && authStore.user?.can(Permission.SUPPLIER_CONTACT_ADD)) openContactDialog(saved, null);
 };
 
 /** Contacts change in place, so the open row stays expanded. */
@@ -160,7 +167,7 @@ const deleteSupplier = async (supplier: ISupplier) => {
       :subtitle="$t('suppliers.subtitle')"
       :badge="hasLoaded ? formatNumber(meta.total) : undefined"
     >
-      <template #actions>
+      <template v-if="canAdd" #actions>
         <el-button type="primary" @click="openAdd">
           <Plus :size="16" aria-hidden="true" />
           <span>{{ $t('suppliers.add') }}</span>
@@ -185,6 +192,9 @@ const deleteSupplier = async (supplier: ISupplier) => {
         :suppliers="suppliers"
         :busy-uuid="busyUuid"
         :deleting-contact-uuid="deletingContactUuid"
+        :can-edit="canEdit"
+        :can-archive="canArchive"
+        :can-delete="canDelete"
         @edit="openEdit"
         @set-status="setStatus"
         @delete="deleteSupplier"
@@ -205,7 +215,7 @@ const deleteSupplier = async (supplier: ISupplier) => {
       @current-change="load"
     />
 
-    <SupplierDialog v-model="isDialogOpen" :supplier="editingSupplier" @saved="onSaved" />
+    <SupplierDialog v-if="canAdd || canEdit" v-model="isDialogOpen" :supplier="editingSupplier" @saved="onSaved" />
     <SupplierContactDialog
       v-model="isContactDialogOpen"
       :supplier="contactSupplier"

@@ -2,15 +2,17 @@ import { Response } from "express";
 import { AuthRequest } from "../../middlewares/AuthMiddleware";
 import { PlatformCompaniesService } from "../../services/platform/PlatformCompaniesService";
 import { CompanyUsersService } from "../../services/CompanyUsersService";
-import type { CompanyBody } from "../../schemas/CompanySchema";
+import { RoleService } from "../../services/RoleService";
+import type { CompanyBody, CompanyCreateBody } from "../../schemas/CompanySchema";
 import type { PaginatedSearchQuery } from "../../schemas/SharedSchema";
 import type { CompanyStatusBody } from "../../schemas/platform/PlatformCompaniesSchema";
-import type { CompanyUserBody, CompanyUserStatusBody, CompanyUsersQuery } from "../../schemas/CompanyUserSchema";
+import type { CompanyUserBody, CompanyUserCreateBody, CompanyUserStatusBody, CompanyUsersQuery } from "../../schemas/CompanyUserSchema";
 import { AppResponse } from "../../utils/AppResponse";
 
 export class PlatformCompaniesController {
     private service = new PlatformCompaniesService();
     private usersService = new CompanyUsersService();
+    private roleService = new RoleService();
 
     list = async (req: AuthRequest, res: Response) => {
         const { items, meta } = await this.service.list(req.query as unknown as PaginatedSearchQuery);
@@ -22,7 +24,7 @@ export class PlatformCompaniesController {
     };
 
     create = async (req: AuthRequest, res: Response) => {
-        return AppResponse.send(res, await this.service.create(req.body as CompanyBody));
+        return AppResponse.send(res, await this.service.create(req.body as CompanyCreateBody));
     };
 
     update = async (req: AuthRequest, res: Response) => {
@@ -34,20 +36,25 @@ export class PlatformCompaniesController {
         return AppResponse.send(res, await this.service.setStatus(req.params.uuid as string, status));
     };
 
+    /** The company's role picker on its users page. */
+    listRoles = async (req: AuthRequest, res: Response) => {
+        return AppResponse.send(res, await this.roleService.options(req.params.uuid as string));
+    };
+
     listUsers = async (req: AuthRequest, res: Response) => {
         const { items, meta } = await this.usersService.list(req.params.uuid as string, req.query as unknown as CompanyUsersQuery);
         return AppResponse.send(res, items, meta);
     };
 
     createUser = async (req: AuthRequest, res: Response) => {
-        return AppResponse.send(res, await this.usersService.create(req.params.uuid as string, req.body as CompanyUserBody));
+        return AppResponse.send(res, await this.usersService.create(req.params.uuid as string, req.body as CompanyUserCreateBody));
     };
 
     updateUser = async (req: AuthRequest, res: Response) => {
         return AppResponse.send(res, await this.usersService.update(
             req.params.uuid as string,
             req.params.userUuid as string,
-            req.user!.userUUID,
+            req.user!,
             req.body as CompanyUserBody,
         ));
     };
@@ -57,7 +64,7 @@ export class PlatformCompaniesController {
         return AppResponse.send(res, await this.usersService.setStatus(
             req.params.uuid as string,
             req.params.userUuid as string,
-            req.user!.userUUID,
+            req.user!,
             status,
         ));
     };

@@ -1,7 +1,7 @@
 import { Router } from "express";
-import { COMPANY_LOGIN_ROLES } from "armstock-shared";
-import { AuthMiddleware } from "../middlewares/AuthMiddleware";
-import { RoleMiddleware } from "../middlewares/RoleMiddleware";
+import { Permission } from "armstock-shared";
+import { CompanyMemberMiddleware } from "../middlewares/CompanyMemberMiddleware";
+import { PermissionMiddleware } from "../middlewares/PermissionMiddleware";
 import { validate } from "../middlewares/Validate";
 import { asyncHandler } from "../utils/asyncHandler";
 import { StockController } from "../controllers/StockController";
@@ -10,7 +10,7 @@ import { StockBalanceFiltersSchema, StockBalanceQuerySchema } from "../schemas/S
 const router = Router();
 const stockController = new StockController();
 
-router.use(AuthMiddleware, RoleMiddleware([...COMPANY_LOGIN_ROLES]));
+router.use(CompanyMemberMiddleware, PermissionMiddleware(Permission.STOCK_BALANCE_VIEW));
 
 router.get("/balance", validate(StockBalanceQuerySchema, "query"), asyncHandler(stockController.balance));
 router.get("/balance/summary", validate(StockBalanceFiltersSchema, "query"), asyncHandler(stockController.balanceSummary));

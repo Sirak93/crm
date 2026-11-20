@@ -1,10 +1,10 @@
 <script setup lang="ts">
-import { UserStatus, type ICompanyUser } from 'armstock-shared';
+import { AccountType, UserStatus, type ICompanyUser } from 'armstock-shared';
 import { Archive, ArchiveRestore, Ban, CircleCheck, Pencil } from 'lucide-vue-next';
 import RowActionsMenu from '../RowActionsMenu.vue';
 import { USER_STATUS_TAG } from '../../constants/statusTags';
-import { ROLE_LABEL_KEY } from '../../constants/roleLabels';
 import { ROW_ACTION, type RowAction } from '../../constants/rowActions';
+import type { IUsersAccess } from '../../interfaces/IUsersAccess';
 
 const props = defineProps<{
   users: ICompanyUser[];
@@ -12,6 +12,7 @@ const props = defineProps<{
   currentUserUuid: string | null;
   /** uuid of the user whose status is saving. */
   updatingUuid: string | null;
+  access: IUsersAccess;
 }>();
 
 const emit = defineEmits<{
@@ -27,6 +28,12 @@ const STATUS_BY_ACTION: Partial<Record<RowAction, UserStatus>> = {
 };
 
 const isSelf = (user: ICompanyUser) => user.uuid === props.currentUserUuid;
+const isOwner = (user: ICompanyUser) => user.accountType === AccountType.COMPANY_OWNER;
+
+/** Basic data, login, and status - the Owner account only from the platform side. */
+const canEditRow = (user: ICompanyUser) => (isOwner(user) ? props.access.canEditOwner : props.access.canEdit);
+const canOpenEdit = (user: ICompanyUser) => canEditRow(user) || (props.access.canChangeRole && !isOwner(user) && !isSelf(user));
+const canChangeStatus = (user: ICompanyUser) => canEditRow(user) && !isSelf(user);
 
 const onAction = (user: ICompanyUser, action: RowAction) => {
   const status = STATUS_BY_ACTION[action];
@@ -44,7 +51,13 @@ const onAction = (user: ICompanyUser, action: RowAction) => {
       <template #default="{ row }"><span :class="['cell-text', { 'cell-text--muted': !row.position }]">{{ row.position || '—' }}</span></template>
     </el-table-column>
     <el-table-column :label="$t('companyUsers.table.role')" min-width="150">
-      <template #default="{ row }"><span class="cell-text">{{ $t(ROLE_LABEL_KEY[(row as ICompanyUser).role]) }}</span></template>
+      <template #default="{ row }">
+        <span class="role-cell">
+          <el-tag v-if="isOwner(row as ICompanyUser)" size="small" type="primary" round>{{ $t('companyUsers.owner') }}</el-tag>
+          <span v-else class="cell-text">{{ row.role?.name ?? '—' }}</span>
+          <el-tag v-if="!row.canLogIn" size="small" type="info" round>{{ $t('companyUsers.noLogin') }}</el-tag>
+        </span>
+      </template>
     </el-table-column>
     <el-table-column prop="email" :label="$t('companyUsers.table.email')" min-width="220" show-overflow-tooltip>
       <template #default="{ row }"><span :class="['cell-text', { 'cell-text--muted': !row.email }]">{{ row.email || '—' }}</span></template>
@@ -59,15 +72,16 @@ const onAction = (user: ICompanyUser, action: RowAction) => {
     <el-table-column min-width="70" align="center">
       <template #default="{ row }">
         <RowActionsMenu
+          v-if="canOpenEdit(row as ICompanyUser) || canChangeStatus(row as ICompanyUser)"
           :label="$t('companyUsers.actionsFor', { name: `${row.firstName} ${row.lastName}` })"
           :disabled="updatingUuid === row.uuid"
           @command="(action) => onAction(row as ICompanyUser, action as RowAction)"
         >
-          <el-dropdown-item :command="ROW_ACTION.EDIT">
+          <el-dropdown-item v-if="canOpenEdit(row as ICompanyUser)" :command="ROW_ACTION.EDIT">
             <Pencil :size="16" aria-hidden="true" />
             <span>{{ $t('companyUsers.actions.edit') }}</span>
           </el-dropdown-item>
-          <template v-if="!isSelf(row as ICompanyUser)">
+          <template v-if="canChangeStatus(row as ICompanyUser)">
             <el-dropdown-item v-if="row.status === UserStatus.ARCHIVED" :command="ROW_ACTION.RESTORE">
               <ArchiveRestore :size="16" aria-hidden="true" />
               <span>{{ $t('companyUsers.actions.restore') }}</span>
@@ -92,3 +106,11 @@ const onAction = (user: ICompanyUser, action: RowAction) => {
     </el-table-column>
   </el-table>
 </template>
+
+<style scoped>
+.role-cell {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+</style>

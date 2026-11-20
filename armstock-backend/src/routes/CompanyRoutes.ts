@@ -1,7 +1,7 @@
 import { Router } from "express";
-import { UserRole } from "armstock-shared";
-import { AuthMiddleware } from "../middlewares/AuthMiddleware";
-import { RoleMiddleware } from "../middlewares/RoleMiddleware";
+import { Permission } from "armstock-shared";
+import { CompanyMemberMiddleware } from "../middlewares/CompanyMemberMiddleware";
+import { PermissionMiddleware } from "../middlewares/PermissionMiddleware";
 import { validate } from "../middlewares/Validate";
 import { asyncHandler } from "../utils/asyncHandler";
 import { CompanyController } from "../controllers/company/CompanyController";
@@ -10,6 +10,7 @@ import { CompanyBodySchema } from "../schemas/CompanySchema";
 import { UuidParamsSchema } from "../schemas/SharedSchema";
 import {
     CompanyUserCreateSchema,
+    CompanyUserRoleBodySchema,
     CompanyUsersQuerySchema,
     CompanyUserStatusBodySchema,
     CompanyUserUpdateSchema,
@@ -18,25 +19,30 @@ import {
 const router = Router();
 const companyController = new CompanyController();
 const usersController = new CompanyUsersController();
+const canEditCompany = PermissionMiddleware(Permission.COMPANY_EDIT);
+const canEditUser = PermissionMiddleware(Permission.USER_EDIT);
+const uuidParams = validate(UuidParamsSchema, "params");
 
-router.use(AuthMiddleware, RoleMiddleware([UserRole.COMPANY_OWNER]));
+router.use(CompanyMemberMiddleware);
 
-router.get("/", asyncHandler(companyController.get));
-router.put("/", validate(CompanyBodySchema), asyncHandler(companyController.update));
+router.get("/", canEditCompany, asyncHandler(companyController.get));
+router.put("/", canEditCompany, validate(CompanyBodySchema), asyncHandler(companyController.update));
 
-router.get("/users", validate(CompanyUsersQuerySchema, "query"), asyncHandler(usersController.list));
-router.post("/users", validate(CompanyUserCreateSchema), asyncHandler(usersController.create));
+router.get(
+    "/users",
+    PermissionMiddleware(Permission.USER_VIEW),
+    validate(CompanyUsersQuerySchema, "query"),
+    asyncHandler(usersController.list),
+);
+router.post("/users", PermissionMiddleware(Permission.USER_ADD), validate(CompanyUserCreateSchema), asyncHandler(usersController.create));
+router.put("/users/:uuid", canEditUser, uuidParams, validate(CompanyUserUpdateSchema), asyncHandler(usersController.update));
 router.put(
-    "/users/:uuid",
-    validate(UuidParamsSchema, "params"),
-    validate(CompanyUserUpdateSchema),
-    asyncHandler(usersController.update),
+    "/users/:uuid/role",
+    PermissionMiddleware(Permission.MANAGE_USER_PERMISSIONS),
+    uuidParams,
+    validate(CompanyUserRoleBodySchema),
+    asyncHandler(usersController.setRole),
 );
-router.patch(
-    "/users/:uuid/status",
-    validate(UuidParamsSchema, "params"),
-    validate(CompanyUserStatusBodySchema),
-    asyncHandler(usersController.setStatus),
-);
+router.patch("/users/:uuid/status", canEditUser, uuidParams, validate(CompanyUserStatusBodySchema), asyncHandler(usersController.setStatus));
 
 export default router;

@@ -18,7 +18,9 @@ export class AuthCacheService {
     /** `user.company` must be loaded. */
     private static toSnapshot(user: User): IAuthSnapshot {
         return {
-            role: user.role,
+            accountType: user.accountType,
+            canLogIn: user.canLogIn,
+            permissions: user.permissions,
             status: user.status,
             companyUuid: user.companyUuid,
             companyStatus: user.company?.status ?? null,
@@ -77,9 +79,14 @@ export class AuthCacheService {
         await this.patchSnapshots(users.map((user) => user.uuid), { companyStatus });
     }
 
-    /** After a role or status change, so open sessions follow it at once. */
+    /** After a change of login, permissions, or status, so open sessions follow it on their next request. */
     static async setUserAccess(user: User): Promise<void> {
-        await this.patchSnapshots([user.uuid], { role: user.role, status: user.status });
+        await this.patchSnapshots([user.uuid], { canLogIn: user.canLogIn, permissions: user.permissions, status: user.status });
+    }
+
+    /** A role's permissions applied to its users. */
+    static async setPermissions(userUuids: string[], permissions: User["permissions"]): Promise<void> {
+        await this.patchSnapshots(userUuids, { permissions });
     }
 
     /** Rejects every access token issued before now; a later login overwrites it. */

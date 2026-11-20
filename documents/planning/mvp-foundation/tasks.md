@@ -420,58 +420,63 @@ Suggested chunks (each: notes → OK → build → lint/build):
   - [x] One `can(accountType, permissions, permission)` helper used by backend and
         frontend; it takes a `ReadonlySet<Permission>` - the API sends an array, the
         frontend `UserModel` and the backend auth snapshot turn it into a `Set` once
-- [ ] DB
+- [x] DB
   - [x] `roles` table: company, name, `permissions int[]`
-  - [ ] `users`: `account_type`, `role_uuid` (members only), `permissions int[]`,
+  - [x] `users`: `account_type`, `role_uuid` (members only), `permissions int[]`,
         "can log in"
   - [x] New company: the three default roles seeded from the map
-  - [ ] New company: one Owner account (see Rules)
-  - [ ] Old `role` column and `UserRole` enum removed (database recreated, no migration) -
+  - [x] New company: one Owner account - the "New company" dialog takes the Owner's first
+        name, last name, email, and password; company and Owner saved in one transaction.
+        Every user added later is a `COMPANY_MEMBER`
+  - [x] Old `role` column and `UserRole` enum removed (database recreated, no migration) -
         at the end of chunk 3, once nothing uses them; until then they live side by side
 - [ ] Dev seeder (`npm run seed:dev -w armstock-backend`) - replaces the old "Role check
       pass" seeder
-  - [ ] Recreates a demo company: the Owner, a Storekeeper, an Accountant, an HR user, and
-        a user without login, with the default roles and their permissions
-  - [ ] Emails and the shared password from `.env` (`DEV_SEED_*`), placeholders in
+  - [x] Creates a demo company: the Owner, a Storekeeper, an Accountant, an HR user, and
+        a user without login, with the default roles and their permissions, plus the seed
+        data; when the demo company already exists it stops - drop the database to reseed
+  - [x] Emails and the shared password from `.env` (`DEV_SEED_*`), placeholders in
         `.env.example`; stops with a clear message when one is missing
-  - [ ] Refuses to run unless `NODE_ENV` is `development`
+  - [x] Refuses to run unless `NODE_ENV` is `development`
   - [ ] Local `.env` filled with the current local emails and the dev password - only
         after asking the user
 - [ ] Rules
-  - [ ] Exactly one Company Owner; only the Platform Owner can touch that account
-  - [ ] Role permissions copied to the user on create and on role change
+  - [x] Exactly one Company Owner; only the Platform Owner can touch that account
+  - [x] Role permissions copied to the user on create and on role change
   - [ ] Role edit asks whether to also apply to that role's users (replacing their own
         changes)
-  - [ ] User permissions split: `USER_ADD` (create + pick role), `USER_EDIT` (name,
+  - [x] User permissions split: `USER_ADD` (create + pick role), `USER_EDIT` (name,
         position, login, email, password, block, archive - never role or permissions),
         `MANAGE_USER_PERMISSIONS` (everything about rights: roles, role permissions,
         others' permissions, changing an existing user's role)
-  - [ ] Anything that touches roles or permissions = Company Owner ||
+  - [x] Anything that touches roles or permissions = Company Owner ||
         `MANAGE_USER_PERMISSIONS` (Platform Owner: later)
-  - [ ] Default role templates stay compact - only the basics for each job
-  - [ ] Nobody can change their own permissions or role
+  - [x] Default role templates stay compact - only the basics for each job
+  - [x] Nobody can change their own permissions or role
   - [x] Product delete (new): only while the product is in no stock-in or stock-out line;
         otherwise "archive it instead"
-  - [ ] Every delete checks the permission first, then the "not in use" rule
-  - [ ] A role in use can't be deleted - the error says how many users have it (active,
+  - [x] Every delete checks the permission first, then the "not in use" rule
+  - [x] A role in use can't be deleted - the error says how many users have it (active,
         blocked, and archived count)
-  - [ ] Owner-only permissions can't be granted to anyone
-  - [ ] "Can log in" per user: no = no email, no password, no permissions; still a
+  - [x] "Can log in" per user: no = no email, no password, no permissions; still a
         stock-out receiver
 - [ ] Users - create and edit (backend and frontend)
-  - [ ] Schemas and service: `role_uuid` (company role), "can log in", `permissions`;
+  - [x] Schemas and service: `role_uuid` (company role), "can log in", `permissions`;
         account type set by the server, never from the request
-  - [ ] Can log in = yes: email and password required (password only on create or when
+  - [x] Can log in = yes: email and password required (password only on create or when
         turning login on); no: email and password cleared, permissions emptied
   - [ ] Role picker lists the company's roles; picking one fills the permission panel with
         its set (create) - on edit only with `MANAGE_USER_PERMISSIONS`
   - [ ] Each part of the dialog follows its permission: basic data `USER_EDIT`, role and
         permissions `MANAGE_USER_PERMISSIONS`; your own account and the Owner account
         are read-only where the rules say so
-  - [ ] Users list: role name column, "No login" tag, role filter next to the status filter
-  - [ ] Platform Owner's company users page keeps working through the shared service
-        (managing roles and permissions there: later)
-- [ ] Picker endpoints - open to every logged-in company member (no permission), minimal
+  - [x] Users list: role name column, "No login" tag, role filter next to the status filter
+  - [x] Platform Owner's company users page keeps working through the shared service -
+        only adjusted to the new structure, no new features: add = company role (through
+        `/options/roles`-style list) + "can log in", permissions copied from the role; edit =
+        basic data only (role and permissions: later); the Owner row shows an "Owner" tag and
+        is editable only here
+- [x] Picker endpoints - open to every logged-in company member (no permission), minimal
       data only, never prices, stock amounts, or emails
   - [x] `GET /options/products` → `IStockLineProduct` (uuid, name, code, status, unit,
         allows decimals); search, `forStockOut`, `suppliedBy` (both move here from
@@ -480,17 +485,15 @@ Suggested chunks (each: notes → OK → build → lint/build):
   - [x] `GET /options/receivers` → uuid, name, position, status (moves from
         `/stock-outs/receivers`)
   - [x] `GET /options/roles` → uuid, name
-  - [ ] Every picker and picker-style filter in the frontend uses these (product and
-        supplier pickers, supplier filters, receiver picker, role picker and filter) -
-        all done except the role picker and filter (they come with the user dialog)
-- [ ] Backend
-  - [ ] Roles API: list, create, edit (with "apply to users"), delete - Owner or
+  - [x] Every picker and picker-style filter in the frontend uses these (product and
+        supplier pickers, supplier filters, receiver picker, role picker and filter)
+- [x] Backend
+  - [x] Roles API: list, create, edit (with "apply to users"), delete - Owner or
         `MANAGE_USER_PERMISSIONS`
-  - [ ] `PermissionMiddleware(Permission.X)` replaces the role lists on company routes
-  - [ ] Permissions in the auth cache; a change applies on the user's next request
+  - [x] `PermissionMiddleware(Permission.X)` replaces the role lists on company routes
+  - [x] Permissions in the auth cache; a change applies on the user's next request
 - [ ] Frontend
-  - [ ] Products: Delete action (with `PRODUCT_DELETE`), refused while in use - done
-        with today's role check; switch to `PRODUCT_DELETE` with the other permissions
+  - [x] Products: Delete action (with `PRODUCT_DELETE`), refused while in use
   - [ ] Company dashboard: the cards from decisions.md, each shown by its permission and
         loading on its own; empty state when no card applies; open to every member who can
         log in
@@ -501,9 +504,9 @@ Suggested chunks (each: notes → OK → build → lint/build):
         `MANAGE_USER_PERMISSIONS`), "Can log in", permission panel grouped by area with
         switches and "Reset to role defaults"; read-only without
         `MANAGE_USER_PERMISSIONS` and on your own account; hidden without login
-  - [ ] `can(Permission.X)` replaces the `canManage…` flags in menu and buttons; routes use
+  - [x] `can(Permission.X)` replaces the `canManage…` flags in menu and buttons; routes use
         `meta.permission`
-  - [ ] Lost access - a request refused with 403 (e.g. Save), or a reload of a page that is
+  - [x] Lost access - a request refused with 403 (e.g. Save), or a reload of a page that is
         no longer allowed: reload the user, and if the page is no longer allowed show one
         generic popup ("Your permissions have changed. You no longer have access to this
         page.") with OK. OK reloads the app at `/` (the user's dashboard). Same popup for

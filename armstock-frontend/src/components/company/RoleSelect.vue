@@ -1,15 +1,18 @@
 <script setup lang="ts">
-import { COMPANY_ROLES, type UserRole } from 'armstock-shared';
-import { ROLE_LABEL_KEY } from '../../constants/roleLabels';
+import type { INamedRef } from 'armstock-shared';
 
-defineProps<{ disabled?: boolean }>();
+defineProps<{
+  /** The company's roles. */
+  options: INamedRef[];
+  disabled?: boolean;
+}>();
 
-const role = defineModel<UserRole | undefined>({ required: true });
+const roleUuid = defineModel<string>({ required: true });
 </script>
 
 <template>
-  <el-select v-model="role" :disabled="disabled" :placeholder="$t('forms.user.rolePlaceholder')" class="role-select">
-    <el-option v-for="option in COMPANY_ROLES" :key="option" :label="$t(ROLE_LABEL_KEY[option])" :value="option" />
+  <el-select v-model="roleUuid" :disabled="disabled" :placeholder="$t('forms.user.rolePlaceholder')" class="role-select">
+    <el-option v-for="option in options" :key="option.uuid" :label="option.name" :value="option.uuid" />
   </el-select>
 </template>
 

@@ -1,7 +1,7 @@
 import { Router } from "express";
-import { CATALOG_MANAGER_ROLES, COMPANY_LOGIN_ROLES } from "armstock-shared";
-import { AuthMiddleware } from "../middlewares/AuthMiddleware";
-import { RoleMiddleware } from "../middlewares/RoleMiddleware";
+import { Permission } from "armstock-shared";
+import { CompanyMemberMiddleware } from "../middlewares/CompanyMemberMiddleware";
+import { PermissionMiddleware } from "../middlewares/PermissionMiddleware";
 import { validate } from "../middlewares/Validate";
 import { asyncHandler } from "../utils/asyncHandler";
 import { MeasureUnitController } from "../controllers/MeasureUnitController";
@@ -10,13 +10,20 @@ import { UuidParamsSchema } from "../schemas/SharedSchema";
 
 const router = Router();
 const unitController = new MeasureUnitController();
-const canManage = RoleMiddleware([...CATALOG_MANAGER_ROLES]);
+const uuidParams = validate(UuidParamsSchema, "params");
 
-router.use(AuthMiddleware);
+// Reference data every member reads (product form, filters) - no view permission.
+router.use(CompanyMemberMiddleware);
 
-router.get("/", RoleMiddleware([...COMPANY_LOGIN_ROLES]), asyncHandler(unitController.list));
-router.post("/", canManage, validate(MeasureUnitBodySchema), asyncHandler(unitController.create));
-router.put("/:uuid", canManage, validate(UuidParamsSchema, "params"), validate(MeasureUnitBodySchema), asyncHandler(unitController.update));
-router.delete("/:uuid", canManage, validate(UuidParamsSchema, "params"), asyncHandler(unitController.delete));
+router.get("/", asyncHandler(unitController.list));
+router.post("/", PermissionMiddleware(Permission.MEASURE_UNIT_ADD), validate(MeasureUnitBodySchema), asyncHandler(unitController.create));
+router.put(
+    "/:uuid",
+    PermissionMiddleware(Permission.MEASURE_UNIT_EDIT),
+    uuidParams,
+    validate(MeasureUnitBodySchema),
+    asyncHandler(unitController.update),
+);
+router.delete("/:uuid", PermissionMiddleware(Permission.MEASURE_UNIT_DELETE), uuidParams, asyncHandler(unitController.delete));
 
 export default router;

@@ -8,18 +8,25 @@ import SidebarGroup from '../components/SidebarGroup.vue';
 import { isNavGroup, NAV_ITEMS } from '../config/navigation';
 import type { INavGroup } from '../interfaces/INavGroup';
 import type { INavItem } from '../interfaces/INavItem';
+import { useRouter } from 'vue-router';
 import { useAuthStore } from '../stores/auth';
+import { canOpen } from '../utils/canOpen';
 
 const authStore = useAuthStore();
+const router = useRouter();
 const isSidebarOpen = ref(false);
 
-// A group shows only the links the role may open, and is hidden when none are left.
+// A group shows only the links the user may open, and is hidden when none are left.
 const navItems = computed(() => {
-  const role = authStore.user?.role;
-  if (!role) return [];
+  const user = authStore.user;
+  if (!user) return [];
+  const isAllowed = (item: INavItem) => {
+    const { meta } = router.resolve({ name: item.routeName });
+    return canOpen(user, meta.accountTypes, meta.permissions);
+  };
   return NAV_ITEMS.flatMap((entry): (INavItem | INavGroup)[] => {
-    if (!isNavGroup(entry)) return entry.roles.includes(role) ? [entry] : [];
-    const children = entry.children.filter((child) => child.roles.includes(role));
+    if (!isNavGroup(entry)) return isAllowed(entry) ? [entry] : [];
+    const children = entry.children.filter(isAllowed);
     return children.length ? [{ ...entry, children }] : [];
   });
 });

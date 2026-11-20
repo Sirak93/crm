@@ -1,11 +1,17 @@
 import { Response } from "express";
 import { AuthRequest } from "../../middlewares/AuthMiddleware";
 import { CompanyUsersService } from "../../services/CompanyUsersService";
-import type { CompanyUserBody, CompanyUserStatusBody, CompanyUsersQuery } from "../../schemas/CompanyUserSchema";
+import type {
+    CompanyUserBody,
+    CompanyUserCreateBody,
+    CompanyUserRoleBody,
+    CompanyUserStatusBody,
+    CompanyUsersQuery,
+} from "../../schemas/CompanyUserSchema";
 import { AppResponse } from "../../utils/AppResponse";
 import { requireCompanyUuid } from "../../utils/requireCompanyUuid";
 
-/** The Company Owner's own company users. */
+/** The logged-in user's own company users. */
 export class CompanyUsersController {
     private service = new CompanyUsersService();
 
@@ -15,25 +21,25 @@ export class CompanyUsersController {
     };
 
     create = async (req: AuthRequest, res: Response) => {
-        return AppResponse.send(res, await this.service.create(requireCompanyUuid(req), req.body as CompanyUserBody));
+        return AppResponse.send(res, await this.service.create(requireCompanyUuid(req), req.body as CompanyUserCreateBody));
     };
 
     update = async (req: AuthRequest, res: Response) => {
         return AppResponse.send(res, await this.service.update(
             requireCompanyUuid(req),
             req.params.uuid as string,
-            req.user!.userUUID,
+            req.user!,
             req.body as CompanyUserBody,
         ));
     };
 
+    setRole = async (req: AuthRequest, res: Response) => {
+        const { roleUuid } = req.body as CompanyUserRoleBody;
+        return AppResponse.send(res, await this.service.setRole(requireCompanyUuid(req), req.params.uuid as string, req.user!, roleUuid));
+    };
+
     setStatus = async (req: AuthRequest, res: Response) => {
         const { status } = req.body as CompanyUserStatusBody;
-        return AppResponse.send(res, await this.service.setStatus(
-            requireCompanyUuid(req),
-            req.params.uuid as string,
-            req.user!.userUUID,
-            status,
-        ));
+        return AppResponse.send(res, await this.service.setStatus(requireCompanyUuid(req), req.params.uuid as string, req.user!, status));
     };
 }

@@ -1,4 +1,12 @@
-import { COMPANY_LOGIN_ROLES, type ICompany, type ICompanyPayload, type ICompanyUser, type ICompanyUserPayload } from 'armstock-shared';
+import type {
+  ICompany,
+  ICompanyCreatePayload,
+  ICompanyPayload,
+  ICompanyUser,
+  ICompanyUserCreatePayload,
+  ICompanyUserPayload,
+} from 'armstock-shared';
+import type { ICompanyCreateForm } from '../interfaces/ICompanyCreateForm';
 import type { ICompanyForm } from '../interfaces/ICompanyForm';
 import type { IUserForm } from '../interfaces/IUserForm';
 
@@ -20,21 +28,43 @@ export const toCompanyPayload = (form: ICompanyForm): ICompanyPayload => ({
   address: orNull(form.address),
 });
 
+export const emptyCompanyCreateForm = (): ICompanyCreateForm => ({
+  ...toCompanyForm(null),
+  owner: { firstName: '', lastName: '', email: '', password: '' },
+});
+
+export const toCompanyCreatePayload = (form: ICompanyCreateForm): ICompanyCreatePayload => ({
+  ...toCompanyPayload(form),
+  owner: {
+    firstName: form.owner.firstName.trim(),
+    lastName: form.owner.lastName.trim(),
+    email: form.owner.email.trim(),
+    password: form.owner.password,
+  },
+});
+
 export const toUserForm = (user: ICompanyUser | null): IUserForm => ({
   firstName: user?.firstName ?? '',
   lastName: user?.lastName ?? '',
   position: user?.position ?? '',
-  role: user?.role,
+  roleUuid: user?.role?.uuid ?? '',
+  canLogIn: user?.canLogIn ?? true,
   email: user?.email ?? '',
   password: '',
 });
 
-/** `role` must be set (the form requires it). STAFF never sends a password. */
+/** Without login no email or password is sent. */
 export const toUserPayload = (form: IUserForm): ICompanyUserPayload => ({
   firstName: form.firstName.trim(),
   lastName: form.lastName.trim(),
   position: orNull(form.position),
-  role: form.role!,
-  email: orNull(form.email),
-  password: form.role && COMPANY_LOGIN_ROLES.includes(form.role) ? form.password || null : null,
+  canLogIn: form.canLogIn,
+  email: form.canLogIn ? orNull(form.email) : null,
+  password: form.canLogIn ? form.password || null : null,
+});
+
+/** `roleUuid` must be set (the form requires it on create). */
+export const toUserCreatePayload = (form: IUserForm): ICompanyUserCreatePayload => ({
+  ...toUserPayload(form),
+  roleUuid: form.roleUuid,
 });

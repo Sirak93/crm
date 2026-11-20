@@ -206,7 +206,7 @@ export class StockOutService {
         };
     }
 
-    /** Any company user, Staff included - sorted Active -> Blocked -> Archived (the status values go up in that order). */
+    /** Any company user, those without login included - sorted Active -> Blocked -> Archived (the status values go up in that order). */
     async receivers(companyUuid: string): Promise<IStockOutReceiver[]> {
         const users = await this.userRepo.find({
             where: { companyUuid },

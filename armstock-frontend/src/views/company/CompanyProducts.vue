@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { computed, onMounted, ref } from 'vue';
 import { useI18n } from 'vue-i18n';
-import { ProductStatus, type IMeasureUnit, type IPaginationMeta, type IProduct, type IProductCategory } from 'armstock-shared';
+import { Permission, ProductStatus, type IMeasureUnit, type IPaginationMeta, type IProduct, type IProductCategory } from 'armstock-shared';
 import { Package, Plus } from 'lucide-vue-next';
 import PageHeader from '../../components/PageHeader.vue';
 import AppCard from '../../components/AppCard.vue';
@@ -23,7 +23,10 @@ import { AppLogger } from '../../utils/AppLogger';
 const { t } = useI18n();
 const { parseError } = useApiErrorMessage();
 const authStore = useAuthStore();
-const canManage = computed(() => !!authStore.user?.canManageCatalog);
+const canAdd = computed(() => !!authStore.user?.can(Permission.PRODUCT_ADD));
+const canEdit = computed(() => !!authStore.user?.can(Permission.PRODUCT_EDIT));
+const canArchive = computed(() => !!authStore.user?.can(Permission.PRODUCT_ARCHIVE));
+const canDelete = computed(() => !!authStore.user?.can(Permission.PRODUCT_DELETE));
 
 const products = ref<IProduct[]>([]);
 const units = ref<IMeasureUnit[]>([]);
@@ -132,7 +135,7 @@ onMounted(loadLookups);
       :subtitle="$t('products.subtitle')"
       :badge="hasLoaded ? formatNumber(meta.total) : undefined"
     >
-      <template v-if="canManage" #actions>
+      <template v-if="canAdd" #actions>
         <el-button type="primary" @click="openAdd">
           <Plus :size="16" aria-hidden="true" />
           <span>{{ $t('products.add') }}</span>
@@ -155,7 +158,9 @@ onMounted(loadLookups);
         v-else
         v-loading="isLoading"
         :products="products"
-        :can-manage="canManage"
+        :can-edit="canEdit"
+        :can-archive="canArchive"
+        :can-delete="canDelete"
         :updating-uuid="updatingUuid"
         @edit="openEdit"
         @set-status="setStatus"
@@ -175,7 +180,7 @@ onMounted(loadLookups);
     />
 
     <ProductDialog
-      v-if="canManage"
+      v-if="canAdd || canEdit"
       v-model="isDialogOpen"
       :product="editingProduct"
       :units="units"

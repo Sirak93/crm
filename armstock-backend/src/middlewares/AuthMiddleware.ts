@@ -1,5 +1,5 @@
 import { Request, Response, NextFunction } from "express";
-import { CompanyStatus, ErrorCodes, UserRole, UserStatus } from "armstock-shared";
+import { CompanyStatus, ErrorCodes, UserStatus } from "armstock-shared";
 import { tokenFailureDetails, verifyToken } from "../utils/JWT";
 import { AppError } from "../utils/AppError";
 import { AuthCacheService } from "../services/AuthCacheService";
@@ -23,7 +23,7 @@ export const AuthMiddleware = async (req: AuthRequest, _res: Response, next: Nex
             throw new AppError(ErrorCodes.AUTH.UNAUTHORIZED, undefined, undefined, tokenFailureDetails(token, error));
         }
 
-        const tokenUser = { userUuid: decoded.userUUID, role: UserRole[decoded.role] };
+        const tokenUser = { userUuid: decoded.userUUID };
         const snapshot = await AuthCacheService.getSnapshot(decoded.userUUID);
 
         if (!snapshot) {
@@ -34,9 +34,9 @@ export const AuthMiddleware = async (req: AuthRequest, _res: Response, next: Nex
             throw new AppError(ErrorCodes.AUTH.UNAUTHORIZED, undefined, undefined, { reason: "token issued before logout", ...tokenUser });
         }
 
-        // A user switched to STAFF keeps an unexpired token for a while - it must not work.
-        if (snapshot.role === UserRole.STAFF) {
-            throw new AppError(ErrorCodes.AUTH.UNAUTHORIZED, undefined, undefined, { reason: "STAFF cannot log in", ...tokenUser });
+        // A user whose login was turned off keeps an unexpired token for a while - it must not work.
+        if (!snapshot.canLogIn) {
+            throw new AppError(ErrorCodes.AUTH.UNAUTHORIZED, undefined, undefined, { reason: "login turned off", ...tokenUser });
         }
 
         if (snapshot.status !== UserStatus.ACTIVE) {
@@ -47,8 +47,13 @@ export const AuthMiddleware = async (req: AuthRequest, _res: Response, next: Nex
             throw new AppError(ErrorCodes.COMPANY.BLOCKED);
         }
 
-        // Role from the snapshot, not the token: a role change applies to open sessions at once.
-        req.user = { userUUID: decoded.userUUID, role: snapshot.role, companyUUID: snapshot.companyUuid };
+        // Rights from the snapshot, not the token: a change applies to open sessions on their next request.
+        req.user = {
+            userUUID: decoded.userUUID,
+            companyUUID: snapshot.companyUuid,
+            accountType: snapshot.accountType,
+            permissions: new Set(snapshot.permissions),
+        };
         next();
     } catch (err) {
         next(err);

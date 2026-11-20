@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { computed, ref } from 'vue';
 import { useRouter } from 'vue-router';
-import type { IPaginationMeta, IStockIn, IStockInSummary } from 'armstock-shared';
+import { Permission, type IPaginationMeta, type IStockIn, type IStockInSummary } from 'armstock-shared';
 import { ArrowDownToLine, Plus } from 'lucide-vue-next';
 import PageHeader from '../../components/PageHeader.vue';
 import AppCard from '../../components/AppCard.vue';
@@ -21,7 +21,7 @@ const router = useRouter();
 const authStore = useAuthStore();
 const { deleteStockIn } = useStockInDelete();
 
-const canManage = computed(() => !!authStore.user?.canManageStock);
+const canCreate = computed(() => !!authStore.user?.can(Permission.STOCK_IN_CREATE));
 
 const stockIns = ref<IStockIn[]>([]);
 const meta = ref<IPaginationMeta>({ page: 1, pageSize: DEFAULT_PAGE_SIZE, total: 0, totalPages: 0 });
@@ -99,7 +99,7 @@ const onDelete = async (stockIn: IStockIn) => {
       :subtitle="$t('stockIn.subtitle')"
       :badge="hasLoaded ? formatNumber(meta.total) : undefined"
     >
-      <template v-if="canManage" #actions>
+      <template v-if="canCreate" #actions>
         <el-button type="primary" @click="router.push({ name: ROUTE_NAME.COMPANY_STOCK_IN_NEW })">
           <Plus :size="16" aria-hidden="true" />
           <span>{{ $t('stockIn.add') }}</span>
@@ -125,6 +125,7 @@ const onDelete = async (stockIn: IStockIn) => {
         v-loading="isLoading"
         :stock-ins="stockIns"
         :current-user-uuid="authStore.user?.uuid ?? null"
+        :can-edit="canCreate"
         :busy-uuid="busyUuid"
         @open="openView"
         @edit="openEdit"

@@ -1,10 +1,10 @@
-import type { UserRole } from 'armstock-shared';
-
 export interface IUserForm {
   firstName: string;
   lastName: string;
   position: string;
-  role: UserRole | undefined;
+  /** Empty for the Owner, who has no company role. */
+  roleUuid: string;
+  canLogIn: boolean;
   email: string;
   /** Empty = keep the current password. */
   password: string;

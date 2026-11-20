@@ -1,8 +1,11 @@
-import { CompanyStatus, UserRole, UserStatus } from "armstock-shared";
+import { AccountType, CompanyStatus, Permission, UserStatus } from "armstock-shared";
 
 /** The per-user auth state AuthMiddleware needs, cached in Redis so a request doesn't hit the DB. */
 export interface IAuthSnapshot {
-    role: UserRole;
+    accountType: AccountType;
+    canLogIn: boolean;
+    /** An array, as stored in Redis - AuthMiddleware turns it into a Set. */
+    permissions: Permission[];
     status: UserStatus;
     companyUuid: string | null;
     /** Null when the user has no company (Platform Owner). */

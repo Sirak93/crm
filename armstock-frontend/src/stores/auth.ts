@@ -47,13 +47,18 @@ export const useAuthStore = defineStore('auth', () => {
     Cookies.remove(AUTH_COOKIE.REFRESH_TOKEN, cookieOptions);
   };
 
+  /** The logged-in user again from the API - e.g. after a request was refused because permissions changed. */
+  const reloadUser = async () => {
+    const response = await ApiService.get<IAppResponse<{ user: IAuthUser }>>('/auth/user');
+    user.value = UserModel.fromJSON(response.data.data!.user);
+  };
+
   /** Restores the session from the cookies on app start. */
   const init = async () => {
     if (!Cookies.get(AUTH_COOKIE.TOKEN)) return;
 
     try {
-      const response = await ApiService.get<IAppResponse<{ user: IAuthUser }>>('/auth/user');
-      user.value = UserModel.fromJSON(response.data.data!.user);
+      await reloadUser();
     } catch (error) {
       AppLogger.error('Failed to restore the session', error);
       clearSession();
@@ -71,6 +76,7 @@ export const useAuthStore = defineStore('auth', () => {
     logout,
     clearSession,
     init,
+    reloadUser,
     updateAccessToken,
   };
 });

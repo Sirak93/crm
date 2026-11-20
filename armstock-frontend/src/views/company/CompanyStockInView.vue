@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { computed, onMounted, ref, watch } from 'vue';
 import { useRouter } from 'vue-router';
-import type { IStockInDetails } from 'armstock-shared';
+import { Permission, type IStockInDetails } from 'armstock-shared';
 import { Pencil, Trash2 } from 'lucide-vue-next';
 import BackLink from '../../components/BackLink.vue';
 import PageHeader from '../../components/PageHeader.vue';
@@ -29,7 +29,9 @@ const isLoading = ref(true);
 const hasError = ref(false);
 const isDeleting = ref(false);
 
-const isCreator = computed(() => !!doc.value && doc.value.createdBy.uuid === authStore.user?.uuid);
+/** Edit and delete: the creator only, with the create permission. */
+const isCreator = computed(() => !!doc.value && doc.value.createdBy.uuid === authStore.user?.uuid
+  && !!authStore.user?.can(Permission.STOCK_IN_CREATE));
 
 const load = async () => {
   isLoading.value = true;

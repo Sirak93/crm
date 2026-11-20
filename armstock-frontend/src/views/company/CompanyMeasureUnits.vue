@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { computed, onMounted, ref } from 'vue';
 import { useI18n } from 'vue-i18n';
-import type { IMeasureUnit } from 'armstock-shared';
+import { Permission, type IMeasureUnit } from 'armstock-shared';
 import { Plus, Ruler, Search } from 'lucide-vue-next';
 import PageHeader from '../../components/PageHeader.vue';
 import AppCard from '../../components/AppCard.vue';
@@ -18,7 +18,9 @@ import { useAuthStore } from '../../stores/auth';
 const { t } = useI18n();
 const { parseError } = useApiErrorMessage();
 const authStore = useAuthStore();
-const canManage = computed(() => !!authStore.user?.canManageCatalog);
+const canAdd = computed(() => !!authStore.user?.can(Permission.MEASURE_UNIT_ADD));
+const canEdit = computed(() => !!authStore.user?.can(Permission.MEASURE_UNIT_EDIT));
+const canDelete = computed(() => !!authStore.user?.can(Permission.MEASURE_UNIT_DELETE));
 
 const units = ref<IMeasureUnit[]>([]);
 const search = ref('');
@@ -91,7 +93,7 @@ onMounted(load);
       :subtitle="$t('measureUnits.subtitle')"
       :badge="hasLoaded ? formatNumber(units.length) : undefined"
     >
-      <template v-if="canManage" #actions>
+      <template v-if="canAdd" #actions>
         <el-button type="primary" @click="openAdd">
           <Plus :size="16" aria-hidden="true" />
           <span>{{ $t('measureUnits.add') }}</span>
@@ -118,10 +120,10 @@ onMounted(load);
         <template #image><Ruler :size="40" aria-hidden="true" /></template>
       </el-empty>
 
-      <MeasureUnitsTable v-else v-loading="isLoading" :units="filteredUnits" :can-manage="canManage" :deleting-uuid="deletingUuid" @edit="openEdit" @delete="deleteUnit" />
+      <MeasureUnitsTable v-else v-loading="isLoading" :units="filteredUnits" :can-edit="canEdit" :can-delete="canDelete" :deleting-uuid="deletingUuid" @edit="openEdit" @delete="deleteUnit" />
     </AppCard>
 
-    <MeasureUnitDialog v-if="canManage" v-model="isDialogOpen" :unit="editingUnit" @saved="load" />
+    <MeasureUnitDialog v-if="canAdd || canEdit" v-model="isDialogOpen" :unit="editingUnit" @saved="load" />
   </section>
 </template>
 

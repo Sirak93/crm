@@ -58,7 +58,7 @@ export class StockOut {
     @Column({ type: "int", nullable: true })
     department!: StockOutDepartment | null;
 
-    /** Issued only, optional - any company user, Staff included. */
+    /** Issued only, optional - any company user, those without login included. */
     @Column({ name: "receiver_uuid", type: "uuid", nullable: true })
     receiverUuid!: string | null;
 

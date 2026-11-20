@@ -5,6 +5,7 @@ import {
   MONEY_DECIMALS,
   MONEY_MAX,
   QUANTITY_DECIMALS,
+  Permission,
   QUANTITY_MAX,
   type IMeasureUnit,
   type IProduct,
@@ -37,7 +38,7 @@ const authStore = useAuthStore();
 
 const productRefs = new Map<number, { focus: () => void }>();
 
-const canCreateProduct = computed(() => !!authStore.user?.canManageCatalog);
+const canCreateProduct = computed(() => !!authStore.user?.can(Permission.PRODUCT_ADD));
 const isProductDialogOpen = ref(false);
 const newProductName = ref('');
 const newProductRowKey = ref<number | null>(null);

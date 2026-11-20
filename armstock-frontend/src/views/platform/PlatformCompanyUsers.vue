@@ -7,6 +7,7 @@ import LoadError from '../../components/LoadError.vue';
 import { PlatformCompaniesService } from '../../services/platform/PlatformCompaniesService';
 import { ROUTE_NAME } from '../../constants/constants';
 import type { ICompanyUsersApi } from '../../interfaces/ICompanyUsersApi';
+import type { IUsersAccess } from '../../interfaces/IUsersAccess';
 import { AppLogger } from '../../utils/AppLogger';
 
 const props = defineProps<{ uuid: string }>();
@@ -19,7 +20,11 @@ const api: ICompanyUsersApi = {
   create: (payload) => PlatformCompaniesService.createUser(props.uuid, payload),
   update: (uuid, payload) => PlatformCompaniesService.updateUser(props.uuid, uuid, payload),
   setStatus: (uuid, status) => PlatformCompaniesService.setUserStatus(props.uuid, uuid, status),
+  roles: () => PlatformCompaniesService.listRoles(props.uuid),
 };
+
+// Roles and permissions from the platform side come later; the Owner account is managed only here.
+const access: IUsersAccess = { canView: true, canAdd: true, canEdit: true, canChangeRole: false, canEditOwner: true };
 
 const loadCompany = async () => {
   hasError.value = false;
@@ -46,6 +51,7 @@ onMounted(loadCompany);
     <CompanyUsersManager
       v-else
       :api="api"
+      :access="access"
       :title="company.name"
       :subtitle="$t('platform.companies.usersSubtitle')"
     />

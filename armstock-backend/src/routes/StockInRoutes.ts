@@ -1,7 +1,7 @@
 import { Router } from "express";
-import { COMPANY_LOGIN_ROLES, STOCK_MANAGER_ROLES } from "armstock-shared";
-import { AuthMiddleware } from "../middlewares/AuthMiddleware";
-import { RoleMiddleware } from "../middlewares/RoleMiddleware";
+import { Permission } from "armstock-shared";
+import { CompanyMemberMiddleware } from "../middlewares/CompanyMemberMiddleware";
+import { PermissionMiddleware } from "../middlewares/PermissionMiddleware";
 import { validate } from "../middlewares/Validate";
 import { asyncHandler } from "../utils/asyncHandler";
 import { StockInController } from "../controllers/StockInController";
@@ -10,17 +10,18 @@ import { UuidParamsSchema } from "../schemas/SharedSchema";
 
 const router = Router();
 const stockInController = new StockInController();
-const canManage = RoleMiddleware([...STOCK_MANAGER_ROLES]);
+const canView = PermissionMiddleware(Permission.STOCK_IN_VIEW);
+const canCreate = PermissionMiddleware(Permission.STOCK_IN_CREATE);
 const uuidParams = validate(UuidParamsSchema, "params");
 
-router.use(AuthMiddleware, RoleMiddleware([...COMPANY_LOGIN_ROLES]));
+router.use(CompanyMemberMiddleware);
 
-router.get("/", validate(StockInsQuerySchema, "query"), asyncHandler(stockInController.list));
-router.get("/summary", validate(StockInFiltersSchema, "query"), asyncHandler(stockInController.summary));
-router.get("/:uuid", uuidParams, asyncHandler(stockInController.get));
-router.post("/", canManage, validate(StockInBodySchema), asyncHandler(stockInController.create));
-// The service also checks that the user is the document's creator.
-router.put("/:uuid", canManage, uuidParams, validate(StockInBodySchema), asyncHandler(stockInController.update));
-router.delete("/:uuid", canManage, uuidParams, asyncHandler(stockInController.delete));
+router.get("/", canView, validate(StockInsQuerySchema, "query"), asyncHandler(stockInController.list));
+router.get("/summary", canView, validate(StockInFiltersSchema, "query"), asyncHandler(stockInController.summary));
+router.get("/:uuid", canView, uuidParams, asyncHandler(stockInController.get));
+router.post("/", canCreate, validate(StockInBodySchema), asyncHandler(stockInController.create));
+// Edit and delete need the create permission; the service also checks that the user is the document's creator.
+router.put("/:uuid", canCreate, uuidParams, validate(StockInBodySchema), asyncHandler(stockInController.update));
+router.delete("/:uuid", canCreate, uuidParams, asyncHandler(stockInController.delete));
 
 export default router;

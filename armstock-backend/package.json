@@ -8,6 +8,7 @@
     "build": "npm run build:shared && tsc",
     "start": "node dist/server.js",
     "seed": "npm run build:shared && ts-node src/seeders/seed.ts",
+    "seed:dev": "npm run build:shared && ts-node src/seeders/seedDev.ts",
     "lint": "tsc --noEmit"
   },
   "dependencies": {

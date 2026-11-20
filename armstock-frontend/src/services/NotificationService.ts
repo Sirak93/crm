@@ -64,6 +64,19 @@ export const NotificationService = {
     return result.isConfirmed;
   },
 
+  /** A notice with a single OK button. */
+  notice: async (title: string, text: string): Promise<void> => {
+    await AppSwal.fire({
+      title,
+      text,
+      icon: 'warning',
+      confirmButtonText: i18n.global.t('common.ok'),
+      allowOutsideClick: false,
+      allowEscapeKey: false,
+      customClass: { ...SWAL_CLASSES, confirmButton: 'app-swal-btn app-swal-btn--primary' },
+    });
+  },
+
   /** An info popup with a list of rows, for a message too long to read in a toast. */
   alertList: async (title: string, text: string, rows: { label: string; value: string }[]): Promise<void> => {
     const items = rows

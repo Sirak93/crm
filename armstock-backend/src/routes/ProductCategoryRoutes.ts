@@ -1,7 +1,7 @@
 import { Router } from "express";
-import { CATALOG_MANAGER_ROLES, COMPANY_LOGIN_ROLES } from "armstock-shared";
-import { AuthMiddleware } from "../middlewares/AuthMiddleware";
-import { RoleMiddleware } from "../middlewares/RoleMiddleware";
+import { Permission } from "armstock-shared";
+import { CompanyMemberMiddleware } from "../middlewares/CompanyMemberMiddleware";
+import { PermissionMiddleware } from "../middlewares/PermissionMiddleware";
 import { validate } from "../middlewares/Validate";
 import { asyncHandler } from "../utils/asyncHandler";
 import { ProductCategoryController } from "../controllers/ProductCategoryController";
@@ -10,19 +10,25 @@ import { UuidParamsSchema } from "../schemas/SharedSchema";
 
 const router = Router();
 const categoryController = new ProductCategoryController();
-const canManage = RoleMiddleware([...CATALOG_MANAGER_ROLES]);
+const uuidParams = validate(UuidParamsSchema, "params");
 
-router.use(AuthMiddleware);
+// Reference data every member reads (product form, filters) - no view permission.
+router.use(CompanyMemberMiddleware);
 
-router.get("/", RoleMiddleware([...COMPANY_LOGIN_ROLES]), asyncHandler(categoryController.list));
-router.post("/", canManage, validate(ProductCategoryBodySchema), asyncHandler(categoryController.create));
+router.get("/", asyncHandler(categoryController.list));
+router.post(
+    "/",
+    PermissionMiddleware(Permission.PRODUCT_CATEGORY_ADD),
+    validate(ProductCategoryBodySchema),
+    asyncHandler(categoryController.create),
+);
 router.put(
     "/:uuid",
-    canManage,
-    validate(UuidParamsSchema, "params"),
+    PermissionMiddleware(Permission.PRODUCT_CATEGORY_EDIT),
+    uuidParams,
     validate(ProductCategoryBodySchema),
     asyncHandler(categoryController.update),
 );
-router.delete("/:uuid", canManage, validate(UuidParamsSchema, "params"), asyncHandler(categoryController.delete));
+router.delete("/:uuid", PermissionMiddleware(Permission.PRODUCT_CATEGORY_DELETE), uuidParams, asyncHandler(categoryController.delete));
 
 export default router;

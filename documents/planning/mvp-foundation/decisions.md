@@ -163,7 +163,10 @@ the Staff role.
 
 **Company Owner**
 
-- Exactly one per company, created with the company by the Platform Owner.
+- Exactly one per company, created with the company by the Platform Owner: the "New
+  company" dialog takes the Owner's name, email, and password, and both are saved in one
+  transaction. Every user added later is a `COMPANY_MEMBER` - the account type never comes
+  from a request.
 - Only the Platform Owner can touch the Owner account. Inside the company nobody can edit,
   block, archive, or change it; the Owner role can't be given to anyone.
 - Has every permission without storing them: `permissions` stays empty.

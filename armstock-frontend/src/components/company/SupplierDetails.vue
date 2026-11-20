@@ -1,6 +1,8 @@
 <script setup lang="ts">
-import type { ISupplier, ISupplierContact } from 'armstock-shared';
+import { computed } from 'vue';
+import { Permission, type ISupplier, type ISupplierContact } from 'armstock-shared';
 import { Pencil, Phone, Trash2, UserRound, UserRoundPlus } from 'lucide-vue-next';
+import { useAuthStore } from '../../stores/auth';
 import { telHref } from '../../utils/telHref';
 
 defineProps<{
@@ -8,6 +10,11 @@ defineProps<{
   /** uuid of the contact being deleted. */
   deletingContactUuid: string | null;
 }>();
+
+const authStore = useAuthStore();
+const canAdd = computed(() => !!authStore.user?.can(Permission.SUPPLIER_CONTACT_ADD));
+const canEdit = computed(() => !!authStore.user?.can(Permission.SUPPLIER_CONTACT_EDIT));
+const canDelete = computed(() => !!authStore.user?.can(Permission.SUPPLIER_CONTACT_DELETE));
 
 defineEmits<{
   addContact: [];
@@ -21,7 +28,7 @@ defineEmits<{
     <section class="details__section">
       <div class="details__head">
         <h3 class="details__label">{{ $t('suppliers.details.contacts') }}</h3>
-        <el-button size="small" @click="$emit('addContact')">
+        <el-button v-if="canAdd" size="small" @click="$emit('addContact')">
           <UserRoundPlus :size="14" aria-hidden="true" />
           <span>{{ $t('supplierContacts.add') }}</span>
         </el-button>
@@ -52,8 +59,9 @@ defineEmits<{
             </div>
             <p v-if="contact.note" class="contact__note">{{ contact.note }}</p>
           </div>
-          <div class="contact__actions">
+          <div v-if="canEdit || canDelete" class="contact__actions">
             <el-button
+              v-if="canEdit"
               plain
               circle
               size="small"
@@ -63,6 +71,7 @@ defineEmits<{
               <Pencil :size="14" aria-hidden="true" />
             </el-button>
             <el-button
+              v-if="canDelete"
               plain
               circle
               size="small"

@@ -1,10 +1,8 @@
 import jwt from "jsonwebtoken";
 import { createHash, timingSafeEqual } from "crypto";
-import { UserRole } from "armstock-shared";
-
+/** Only the uuid - access rights are read from the auth snapshot on each request. */
 export interface AuthUserJwtPayload {
     userUUID: string;
-    role: UserRole;
 }
 
 export const generateToken = (payload: AuthUserJwtPayload) => {
@@ -39,7 +37,6 @@ export const tokenFailureDetails = (token: string, error: any) => {
         reason: error.message,
         expiredAt: error.expiredAt.toISOString(),
         userUuid: payload.userUUID,
-        role: UserRole[payload.role],
     };
 };
 

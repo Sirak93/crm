@@ -1,12 +1,16 @@
-import { CompanyStatus, type ICompany, type IPaginationMeta } from "armstock-shared";
+import bcrypt from "bcrypt";
+import { AccountType, CompanyStatus, ErrorCodes, type ICompany, type IPaginationMeta } from "armstock-shared";
 import { AppDataSource } from "../../config/database";
 import { Company } from "../../models/Company";
+import { User } from "../../models/User";
+import { AppError } from "../../utils/AppError";
+import { BCRYPT_ROUNDS } from "../../constants/AuthConstants";
 import { AuthCacheService } from "../AuthCacheService";
 import { CompanyService } from "../CompanyService";
 import { MeasureUnitService } from "../MeasureUnitService";
 import { ProductCategoryService } from "../ProductCategoryService";
 import { RoleService } from "../RoleService";
-import type { CompanyBody } from "../../schemas/CompanySchema";
+import type { CompanyBody, CompanyCreateBody } from "../../schemas/CompanySchema";
 import type { PaginatedSearchQuery } from "../../schemas/SharedSchema";
 
 export class PlatformCompaniesService {
@@ -31,11 +35,26 @@ export class PlatformCompaniesService {
         };
     }
 
-    /** The company with its default units, product categories, and roles, saved together. */
-    async create(body: CompanyBody): Promise<ICompany> {
+    /** The company with its one Owner and its default units, product categories, and roles, saved together. */
+    async create(body: CompanyCreateBody): Promise<ICompany> {
+        const { owner, ...companyData } = body;
+        if (await AppDataSource.getRepository(User).exists({ where: { email: owner.email } })) {
+            throw new AppError(ErrorCodes.USER.EMAIL_TAKEN);
+        }
+        const password = await bcrypt.hash(owner.password, BCRYPT_ROUNDS);
+
         const company = await AppDataSource.transaction(async (manager) => {
             const repo = manager.getRepository(Company);
-            const saved = await repo.save(repo.create(body));
+            const saved = await repo.save(repo.create(companyData));
+            const userRepo = manager.getRepository(User);
+            await userRepo.save(userRepo.create({
+                companyUuid: saved.uuid,
+                accountType: AccountType.COMPANY_OWNER,
+                firstName: owner.firstName,
+                lastName: owner.lastName,
+                email: owner.email,
+                password,
+            }));
             await MeasureUnitService.createDefaults(manager, saved.uuid);
             await ProductCategoryService.createDefaults(manager, saved.uuid);
             await RoleService.createDefaults(manager, saved.uuid);

@@ -2,9 +2,12 @@ import type {
   CompanyStatus,
   IAppResponse,
   ICompany,
+  ICompanyCreatePayload,
   ICompanyPayload,
   ICompanyUser,
+  ICompanyUserCreatePayload,
   ICompanyUserPayload,
+  INamedRef,
   IPaginationMeta,
   UserStatus,
 } from 'armstock-shared';
@@ -19,7 +22,7 @@ export const PlatformCompaniesService = {
     return { items: response.data.data!, meta: response.data.meta as IPaginationMeta };
   },
 
-  async create(payload: ICompanyPayload): Promise<ICompany> {
+  async create(payload: ICompanyCreatePayload): Promise<ICompany> {
     const response = await ApiService.post<IAppResponse<ICompany>>('/platform/companies', payload);
     return response.data.data!;
   },
@@ -46,7 +49,12 @@ export const PlatformCompaniesService = {
     return { items: response.data.data!, meta: response.data.meta as IPaginationMeta };
   },
 
-  async createUser(companyUuid: string, payload: ICompanyUserPayload): Promise<ICompanyUser> {
+  async listRoles(companyUuid: string): Promise<INamedRef[]> {
+    const response = await ApiService.get<IAppResponse<INamedRef[]>>(`/platform/companies/${companyUuid}/roles`);
+    return response.data.data!;
+  },
+
+  async createUser(companyUuid: string, payload: ICompanyUserCreatePayload): Promise<ICompanyUser> {
     const response = await ApiService.post<IAppResponse<ICompanyUser>>(`/platform/companies/${companyUuid}/users`, payload);
     return response.data.data!;
   },

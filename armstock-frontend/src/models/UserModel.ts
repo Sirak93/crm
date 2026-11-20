@@ -1,9 +1,10 @@
-import { CATALOG_MANAGER_ROLES, STOCK_MANAGER_ROLES, UserRole, UserStatus, type IAuthUser } from 'armstock-shared';
+import { AccountType, can, type IAuthUser, type Permission, type UserStatus } from 'armstock-shared';
 
 interface IUserModelData {
   uuid: string;
   email: string;
-  role: UserRole;
+  accountType: AccountType;
+  permissions: ReadonlySet<Permission>;
   status: UserStatus;
   firstName: string | null;
   lastName: string | null;
@@ -13,7 +14,9 @@ interface IUserModelData {
 export class UserModel {
   uuid: string;
   email: string;
-  role: UserRole;
+  accountType: AccountType;
+  /** A Set once here, so the many checks are direct lookups. */
+  permissions: ReadonlySet<Permission>;
   status: UserStatus;
   firstName: string | null;
   lastName: string | null;
@@ -22,7 +25,8 @@ export class UserModel {
   constructor(data: IUserModelData) {
     this.uuid = data.uuid;
     this.email = data.email;
-    this.role = data.role;
+    this.accountType = data.accountType;
+    this.permissions = data.permissions;
     this.status = data.status;
     this.firstName = data.firstName;
     this.lastName = data.lastName;
@@ -33,7 +37,8 @@ export class UserModel {
     return new UserModel({
       uuid: json.uuid,
       email: json.email,
-      role: json.role,
+      accountType: json.accountType,
+      permissions: new Set(json.permissions),
       status: json.status,
       firstName: json.firstName,
       lastName: json.lastName,
@@ -57,17 +62,21 @@ export class UserModel {
     return this.email.charAt(0).toUpperCase();
   }
 
-  /** Units, categories, products: Company Owner and Storekeeper manage, Accountant only views. */
-  get canManageCatalog(): boolean {
-    return CATALOG_MANAGER_ROLES.includes(this.role);
+  /** The Company Owner has every permission. */
+  can(permission: Permission): boolean {
+    return can(this.accountType, this.permissions, permission);
   }
 
-  /** Stock documents: Company Owner and Storekeeper create, Accountant only views. */
-  get canManageStock(): boolean {
-    return STOCK_MANAGER_ROLES.includes(this.role);
+  /** True with at least one of them - e.g. a page shown for any of its actions. */
+  canAny(permissions: readonly Permission[]): boolean {
+    return permissions.some((permission) => this.can(permission));
   }
 
   get isPlatformOwner(): boolean {
-    return this.role === UserRole.PLATFORM_OWNER;
+    return this.accountType === AccountType.PLATFORM_OWNER;
+  }
+
+  get isCompanyOwner(): boolean {
+    return this.accountType === AccountType.COMPANY_OWNER;
   }
 }
