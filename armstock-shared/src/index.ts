@@ -8,6 +8,8 @@ export * from "./constants/StockConstants";
 export * from "./enums/CompanyStatus";
 export * from "./enums/ProductStatus";
 export * from "./enums/StockInReason";
+export * from "./enums/StockOutDepartment";
+export * from "./enums/StockOutReason";
 export * from "./enums/SupplierStatus";
 export * from "./enums/UserRole";
 export * from "./enums/UserStatus";

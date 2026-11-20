@@ -12,7 +12,7 @@ export const ErrorHandler = (err: any, _req: Request, res: Response, _next: Next
     res.locals.error = err;
 
     if (err instanceof AppError) {
-        return AppResponse.error(res, err.code, err.message, err.statusCode);
+        return AppResponse.error(res, err.code, err.message, err.statusCode, err.data);
     }
 
     if (err instanceof ZodError) {

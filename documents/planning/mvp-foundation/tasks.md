@@ -346,13 +346,13 @@ Each is its own top-level menu item.
 
 ## Step 13 — Stock-out documents
 
-- [ ] Shared enums
-  - [ ] `StockOutReason` — Returned, Issued, Damaged, Expired, Spoiled, Other
-  - [ ] `StockOutDepartment` — Kitchen (more values later)
-- [ ] Tables
-  - [ ] `StockOut` (header): company, number (`OUT-2026-0015`, same rule as stock-in),
+- [x] Shared enums
+  - [x] `StockOutReason` — Returned, Issued, Damaged, Expired, Spoiled, Other
+  - [x] `StockOutDepartment` — Kitchen (more values later)
+- [x] Tables
+  - [x] `StockOut` (header): company, number (`OUT-2026-0015`, same rule as stock-in),
         reason, date, supplier, department, receiver (user), note, created by
-  - [ ] `StockOutLine`: document, product, quantity. No price.
+  - [x] `StockOutLine`: document, product, quantity. No price.
 - [ ] Rules
   - [ ] Returned → supplier required (active suppliers only)
   - [ ] Issued → department required (form fills in Kitchen); receiver optional
@@ -367,7 +367,7 @@ Each is its own top-level menu item.
   - [ ] Lock the products on the document at the start of every stock save (stock-out
         create/edit/delete, stock-in edit/delete), sorted by uuid, so two saves at the
         same time can't push stock below zero
-  - [ ] `AppError`: optional client-safe data, separate from `details` (which stays
+  - [x] `AppError`: optional client-safe data, separate from `details` (which stays
         logs-only)
   - [ ] Archived products can be picked while they still have stock ("Archived" tag in
         the picker); stock-in still blocks them
