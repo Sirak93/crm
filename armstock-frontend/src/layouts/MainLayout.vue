@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed, ref } from 'vue';
+import { computed, onMounted, ref } from 'vue';
 import { BRAND } from 'armstock-shared';
 import logoName from 'armstock-assets/brand/logo_name.svg';
 import AppHeader from '../components/AppHeader.vue';
@@ -11,6 +11,7 @@ import type { INavItem } from '../interfaces/INavItem';
 import { useRouter } from 'vue-router';
 import { useAuthStore } from '../stores/auth';
 import { canOpen } from '../utils/canOpen';
+import { SerialScannerService } from '../services/SerialScannerService';
 
 const authStore = useAuthStore();
 const router = useRouter();
@@ -34,6 +35,8 @@ const navItems = computed(() => {
 const closeSidebar = () => {
   isSidebarOpen.value = false;
 };
+
+onMounted(() => SerialScannerService.init());
 </script>
 
 <template>

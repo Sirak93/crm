@@ -5,6 +5,9 @@ export default {
     createProduct: 'Create product',
     lookupError: 'Could not look up the barcode.',
     found: 'Found: {name}',
+    connect: 'Connect scanner',
+    connected: 'Scanner connected.',
+    connectError: 'Could not connect the scanner. It may be in use in another tab.',
   },
   common: {
     logout: 'Log out',

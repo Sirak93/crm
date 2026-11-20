@@ -3,6 +3,7 @@ import { Menu } from 'lucide-vue-next';
 import { BRAND } from 'armstock-shared';
 import logoIcon from 'armstock-assets/brand/logo-animated.svg';
 import ProfileDropdown from './ProfileDropdown.vue';
+import ScannerConnectButton from './ScannerConnectButton.vue';
 
 defineEmits<{ 'toggle-sidebar': [] }>();
 </script>
@@ -23,7 +24,10 @@ defineEmits<{ 'toggle-sidebar': [] }>();
       </router-link>
     </div>
 
-    <ProfileDropdown />
+    <div class="app-header__end">
+      <ScannerConnectButton />
+      <ProfileDropdown />
+    </div>
   </header>
 </template>
 
@@ -48,6 +52,12 @@ defineEmits<{ 'toggle-sidebar': [] }>();
   display: flex;
   align-items: center;
   gap: 0.5rem;
+}
+
+.app-header__end {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
 }
 
 .app-header__menu-btn,
