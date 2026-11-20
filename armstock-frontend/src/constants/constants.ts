@@ -57,3 +57,6 @@ export type RouteName = typeof ROUTE_NAME[keyof typeof ROUTE_NAME];
 
 /** `?add=1` on a list page opens its "add" dialog - used by the dashboard quick actions. */
 export const ADD_QUERY = { add: '1' } as const;
+
+/** Put on the product's barcode field: a scan there just fills the field instead of running the page's scan action. */
+export const BARCODE_INPUT_ATTR = 'data-barcode-input';
