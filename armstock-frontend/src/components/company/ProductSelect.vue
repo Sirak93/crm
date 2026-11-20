@@ -1,24 +1,23 @@
 <script setup lang="ts">
 import { computed, ref } from 'vue';
-import { ProductStatus } from 'armstock-shared';
+import { ProductStatus, type IStockLineProduct } from 'armstock-shared';
 import { Plus } from 'lucide-vue-next';
 import CodeBadge from '../CodeBadge.vue';
 import { ProductService } from '../../services/ProductService';
-import type { IProductOption } from '../../interfaces/IProductOption';
-import { toProductOption } from '../../utils/stockInLines';
+import { toLineProduct } from '../../utils/stockInLines';
 import { PICKER_PAGE_SIZE } from '../../constants/constants';
 import { AppLogger } from '../../utils/AppLogger';
 
 const props = defineProps<{
   /** The current choice, so its name shows before any search (it may be archived). */
-  selected: IProductOption | null;
+  selected: IStockLineProduct | null;
   placeholder: string;
   /** Shows "+ New product" at the bottom of the dropdown. */
   canCreate?: boolean;
 }>();
 
 const emit = defineEmits<{
-  select: [product: IProductOption];
+  select: [product: IStockLineProduct];
   /** The text typed in the search, to pre-fill the new product's name. */
   create: [name: string];
 }>();
@@ -26,7 +25,7 @@ const emit = defineEmits<{
 const model = defineModel<string>({ required: true });
 
 const selectRef = ref<{ focus: () => void; blur: () => void }>();
-const options = ref<IProductOption[]>([]);
+const options = ref<IStockLineProduct[]>([]);
 const isLoading = ref(false);
 const query = ref('');
 let lastRequest = 0;
@@ -45,7 +44,7 @@ const search = async (text: string) => {
   try {
     const { items } = await ProductService.list(1, PICKER_PAGE_SIZE, { search: query.value || undefined, status: ProductStatus.ACTIVE });
     // An older, slower answer must not replace a newer one.
-    if (request === lastRequest) options.value = items.map(toProductOption);
+    if (request === lastRequest) options.value = items.map(toLineProduct);
   } catch (error) {
     AppLogger.error('Failed to search products:', error);
   } finally {

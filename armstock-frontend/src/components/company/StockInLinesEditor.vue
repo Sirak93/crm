@@ -9,6 +9,7 @@ import {
   type IMeasureUnit,
   type IProduct,
   type IProductCategory,
+  type IStockLineProduct,
 } from 'armstock-shared';
 import { Plus, Trash2 } from 'lucide-vue-next';
 import ProductSelect from './ProductSelect.vue';
@@ -19,10 +20,9 @@ import { ProductCategoryService } from '../../services/ProductCategoryService';
 import { NotificationService } from '../../services/NotificationService';
 import { useAuthStore } from '../../stores/auth';
 import { AppLogger } from '../../utils/AppLogger';
-import type { IProductOption } from '../../interfaces/IProductOption';
 import type { IStockInLineForm } from '../../interfaces/IStockInLineForm';
 import { roundTo } from '../../utils/format';
-import { emptyLine, toProductOption } from '../../utils/stockInLines';
+import { emptyLine, toLineProduct } from '../../utils/stockInLines';
 
 defineProps<{
   /** Highlight rows that are not filled in correctly - set after a failed save. */
@@ -56,7 +56,7 @@ const removeLine = (key: number) => {
   productRefs.delete(key);
 };
 
-const onProductSelect = (line: IStockInLineForm, product: IProductOption) => {
+const onProductSelect = (line: IStockInLineForm, product: IStockLineProduct) => {
   line.product = product;
   // A whole-number unit drops any decimals typed for the previous product.
   if (!product.allowsDecimals && line.quantity !== undefined) {
@@ -99,7 +99,7 @@ const onProductCreated = (product: IProduct) => {
   const line = lines.value.find((l) => l.key === newProductRowKey.value);
   if (!line) return;
   line.productUuid = product.uuid;
-  onProductSelect(line, toProductOption(product));
+  onProductSelect(line, toLineProduct(product));
 };
 
 const setProductRef = (key: number, el: unknown) => {
@@ -121,7 +121,7 @@ const setProductRef = (key: number, el: unknown) => {
             :can-create="canCreateProduct"
             :class="{ 'is-invalid': showErrors && !row.productUuid }"
             class="lines-editor__product"
-            @select="(product: IProductOption) => onProductSelect(row as IStockInLineForm, product)"
+            @select="(product: IStockLineProduct) => onProductSelect(row as IStockInLineForm, product)"
             @create="(name: string) => openProductDialog(row as IStockInLineForm, name)"
           />
         </template>

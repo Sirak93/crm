@@ -1,10 +1,9 @@
-import type { IProduct, IStockInLine } from 'armstock-shared';
-import type { IProductOption } from '../interfaces/IProductOption';
+import type { IProduct, IStockInLine, IStockLineProduct } from 'armstock-shared';
 import type { IStockInLineForm } from '../interfaces/IStockInLineForm';
 
 let nextKey = 0;
 
-export const toProductOption = (product: IProduct): IProductOption => ({
+export const toLineProduct = (product: IProduct): IStockLineProduct => ({
   uuid: product.uuid,
   name: product.name,
   code: product.code,
