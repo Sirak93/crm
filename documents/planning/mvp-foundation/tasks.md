@@ -364,6 +364,9 @@ Each is its own top-level menu item.
   - [ ] Blocked if not enough stock — the error names each product with its available
         quantity and unit ("Not enough stock: Meat — available 2 kg"); stock-in edit and
         delete show the same message
+  - [ ] Lock the products on the document at the start of every stock save (stock-out
+        create/edit/delete, stock-in edit/delete), sorted by uuid, so two saves at the
+        same time can't push stock below zero
   - [ ] `AppError`: optional client-safe data, separate from `details` (which stays
         logs-only)
   - [ ] Archived products can be picked while they still have stock ("Archived" tag in
