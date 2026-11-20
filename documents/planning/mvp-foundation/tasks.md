@@ -370,6 +370,13 @@ Each is its own top-level menu item.
         same time can't push stock below zero
   - [x] `AppError`: optional client-safe data, separate from `details` (which stays
         logs-only)
+  - [x] Returned: no more than that supplier brought minus what was already returned to
+        it; a product it never brought can't be returned. Error popup lists each product
+        with what can still be returned
+  - [x] Returned: the product picker shows only products that supplier brought ("Choose
+        the supplier first" when none is picked)
+  - [x] Stock-in edit/delete: what the old supplier brought can't drop below what was
+        returned to it (edit down, delete, supplier change, Purchase → other reason)
   - [x] Archived products can be picked while they still have stock ("Archived" tag in
         the picker); stock-in still blocks them
   - [x] Only the creator can edit or delete
@@ -426,6 +433,11 @@ framework, no new package — runs with `ts-node`.
         creator-only edit/delete, roles (Accountant only sees)
   - [ ] Stock-in edit/delete: the same stock error
   - [ ] Two saves at the same time on the same product: only one goes through
+  - [ ] Returns to a supplier (examples in decisions.md): return within what it brought;
+        more than it brought; a product it never brought; two returns that together go
+        over; editing a return doesn't count itself
+  - [ ] Stock-in after returns: edit down above and below the returned amount, delete,
+        change supplier, change Purchase → Other
 - [ ] Lint and build pass
 - [ ] Tester run passes
 

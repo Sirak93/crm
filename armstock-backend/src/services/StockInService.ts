@@ -19,6 +19,7 @@ import { AppError } from "../utils/AppError";
 import { formatDocumentNumber, saveNumberedDocument } from "../utils/documentNumber";
 import { userName } from "../utils/userName";
 import { StockService } from "./StockService";
+import { SupplierReturnService } from "./SupplierReturnService";
 import type { StockInBody, StockInFilters, StockInsQuery } from "../schemas/StockInSchema";
 
 const NUMBER_PREFIX = "IN";
@@ -229,12 +230,17 @@ export class StockInService {
         // Old minus new quantity turns the new total back into the stock before this edit.
         const addBack = StockService.addQuantities(StockService.addQuantities(new Map(), oldLines, 1), body.lines, -1);
 
+        const oldSupplierUuid = doc.supplierUuid;
+
         await AppDataSource.transaction(async (manager) => {
             await StockService.lockProducts(manager, companyUuid, [...addBack.keys()]);
             Object.assign(doc, StockInService.headerFields(body));
             await manager.save(doc);
             await manager.delete(StockInLine, { stockInUuid: doc.uuid });
             await StockInService.saveLines(manager, doc, body);
+            if (oldSupplierUuid) {
+                await SupplierReturnService.assertNotBelowReturned(manager, companyUuid, oldSupplierUuid, [...oldProductUuids]);
+            }
             await StockService.assertNotNegative(manager, companyUuid, addBack);
         });
 
@@ -249,7 +255,9 @@ export class StockInService {
 
         await AppDataSource.transaction(async (manager) => {
             await StockService.lockProducts(manager, companyUuid, [...addBack.keys()]);
+            const supplierUuid = doc.supplierUuid;
             await manager.remove(doc);
+            if (supplierUuid) await SupplierReturnService.assertNotBelowReturned(manager, companyUuid, supplierUuid, [...addBack.keys()]);
             await StockService.assertNotNegative(manager, companyUuid, addBack);
         });
     }

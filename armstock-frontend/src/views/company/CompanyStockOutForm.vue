@@ -253,7 +253,11 @@ const save = async () => {
       </AppCard>
 
       <AppCard class="lines-card">
-        <StockOutLinesEditor v-model="lines" :show-errors="showLineErrors" />
+        <StockOutLinesEditor
+          v-model="lines"
+          :show-errors="showLineErrors"
+          :supplied-by="isReturned ? form.supplierUuid || null : undefined"
+        />
       </AppCard>
 
       <div class="form-bar" role="region" :aria-label="$t('stockOut.form.summary')">

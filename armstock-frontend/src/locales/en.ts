@@ -544,6 +544,7 @@ export default {
       unit: 'Unit',
       add: 'Add row',
       remove: 'Remove row {row}',
+      chooseSupplierFirst: 'Choose the supplier first',
     },
   },
   stockBalance: {
@@ -700,6 +701,14 @@ export default {
     text: 'This change would take more than is in stock. Lower the quantity or add stock first.',
     available: 'available {quantity} {unit}',
   },
+  supplierReturn: {
+    exceedsTitle: 'Too much to return to {supplier}',
+    exceedsText: 'You can return only what this supplier brought, minus what was already returned to it.',
+    canReturn: 'can return {quantity} {unit}',
+    belowReturnedTitle: 'Already returned to {supplier}',
+    belowReturnedText: 'Part of these goods was returned to this supplier, so this document can no longer bring less.',
+    returned: 'returned {quantity} {unit}',
+  },
   errors: {
     AUTH_INVALID_CREDENTIALS: 'Wrong email or password.',
     AUTH_UNAUTHORIZED: 'Your session has ended. Please sign in again.',
@@ -730,6 +739,8 @@ export default {
     STOCK_IN_NOT_CREATOR: 'Only the person who created this document can change it.',
     STOCK_OUT_NOT_FOUND: 'This document no longer exists.',
     STOCK_OUT_NOT_CREATOR: 'Only the person who created this document can change it.',
+    STOCK_OUT_RETURN_EXCEEDS_SUPPLIER: 'This is more than the supplier brought.',
+    STOCK_IN_BELOW_RETURNED: 'Part of these goods was already returned to the supplier.',
     STOCK_NOT_ENOUGH: 'Not enough stock - this change would make a product go below zero.',
     RATE_LIMIT_TOO_MANY_REQUESTS: 'Too many attempts. Please wait a few minutes and try again.',
   },

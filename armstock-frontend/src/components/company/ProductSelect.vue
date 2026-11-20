@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed, ref } from 'vue';
+import { computed, ref, watch } from 'vue';
 import { ProductStatus, type IStockLineProduct } from 'armstock-shared';
 import { Plus } from 'lucide-vue-next';
 import CodeBadge from '../CodeBadge.vue';
@@ -16,6 +16,8 @@ const props = defineProps<{
   canCreate?: boolean;
   /** Stock-out: archived products that still have stock can be picked too. */
   forStockOut?: boolean;
+  /** Return: only products this supplier brought; null = no supplier picked yet, so nothing to show. */
+  suppliedBy?: string | null;
 }>();
 
 const emit = defineEmits<{
@@ -43,10 +45,16 @@ const shownOptions = computed(() => {
 const search = async (text: string) => {
   query.value = text.trim();
   const request = ++lastRequest;
+  if (props.suppliedBy === null) {
+    options.value = [];
+    isLoading.value = false;
+    return;
+  }
   isLoading.value = true;
   try {
     const { items } = await ProductService.list(1, PICKER_PAGE_SIZE, {
       search: query.value || undefined,
+      suppliedBy: props.suppliedBy,
       ...(props.forStockOut ? { forStockOut: true } : { status: ProductStatus.ACTIVE }),
     });
     // An older, slower answer must not replace a newer one.
@@ -57,6 +65,12 @@ const search = async (text: string) => {
     if (request === lastRequest) isLoading.value = false;
   }
 };
+
+// Another supplier means other products; the next open searches again.
+watch(() => props.suppliedBy, () => {
+  lastRequest++;
+  options.value = [];
+});
 
 const onChange = (uuid: string) => {
   const product = shownOptions.value.find((o) => o.uuid === uuid);
@@ -81,6 +95,7 @@ defineExpose({ focus: () => selectRef.value?.focus() });
     :loading="isLoading"
     :placeholder="placeholder"
     :aria-label="placeholder"
+    :no-data-text="suppliedBy === null ? $t('stockOut.lines.chooseSupplierFirst') : undefined"
     @change="onChange"
   >
     <el-option v-for="option in shownOptions" :key="option.uuid" :label="option.name" :value="option.uuid">

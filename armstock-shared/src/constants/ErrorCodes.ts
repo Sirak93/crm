@@ -131,6 +131,10 @@ export const ErrorCodes = {
             CODE: "STOCK_IN_NOT_CREATOR",
             STATUS: 403,
         },
+        BELOW_RETURNED: {
+            CODE: "STOCK_IN_BELOW_RETURNED",
+            STATUS: 409,
+        },
     },
     STOCK_OUT: {
         NOT_FOUND: {
@@ -140,6 +144,10 @@ export const ErrorCodes = {
         NOT_CREATOR: {
             CODE: "STOCK_OUT_NOT_CREATOR",
             STATUS: 403,
+        },
+        RETURN_EXCEEDS_SUPPLIER: {
+            CODE: "STOCK_OUT_RETURN_EXCEEDS_SUPPLIER",
+            STATUS: 409,
         },
     },
     STOCK: {

@@ -8,6 +8,7 @@ import { AppError } from "../utils/AppError";
 import { MeasureUnitService } from "./MeasureUnitService";
 import { ProductCategoryService } from "./ProductCategoryService";
 import { StockService } from "./StockService";
+import { SupplierReturnService } from "./SupplierReturnService";
 import type { ProductBody, ProductCreateBody, ProductsQuery } from "../schemas/ProductSchema";
 
 export class ProductService {
@@ -57,7 +58,7 @@ export class ProductService {
     }
 
     async list(companyUuid: string, query: ProductsQuery): Promise<{ items: IProduct[]; meta: IPaginationMeta }> {
-        const { page, pageSize, search, categoryUuid, status, forStockOut } = query;
+        const { page, pageSize, search, categoryUuid, status, forStockOut, suppliedBy } = query;
 
         const qb = this.repo.createQueryBuilder("product").where("product.companyUuid = :companyUuid", { companyUuid });
         if (search) {
@@ -68,6 +69,7 @@ export class ProductService {
         if (categoryUuid) qb.andWhere("product.categoryUuid = :categoryUuid", { categoryUuid });
         if (status) qb.andWhere("product.status = :status", { status });
         if (forStockOut) StockService.whereActiveOrInStock(qb);
+        if (suppliedBy) SupplierReturnService.whereSuppliedBy(qb, suppliedBy);
 
         const [rows, total] = await qb
             .orderBy("product.name", "ASC")

@@ -1,6 +1,7 @@
 import { In, type EntityManager, type SelectQueryBuilder } from "typeorm";
 import {
     ErrorCodes,
+    StockOutReason,
     SupplierStatus,
     type IPaginationMeta,
     type IStockOut,
@@ -19,6 +20,7 @@ import { AppError } from "../utils/AppError";
 import { formatDocumentNumber, saveNumberedDocument } from "../utils/documentNumber";
 import { userName } from "../utils/userName";
 import { StockService } from "./StockService";
+import { SupplierReturnService } from "./SupplierReturnService";
 import type { StockOutBody, StockOutFilters, StockOutsQuery } from "../schemas/StockOutSchema";
 
 const NUMBER_PREFIX = "OUT";
@@ -84,17 +86,23 @@ export class StockOutService {
         };
     }
 
-    /** Locks the products, saves the lines, then checks stock - the new quantities turn the new total into what was available. */
+    /**
+     * Locks the products, saves the lines, then checks a return against its supplier and the stock.
+     * The document's own quantities turn the new total back into what was available to it.
+     */
     private static async saveLinesChecked(manager: EntityManager, doc: StockOut, body: StockOutBody): Promise<void> {
-        const addBack = StockService.addQuantities(new Map(), body.lines, 1);
-        await StockService.lockProducts(manager, doc.companyUuid, [...addBack.keys()]);
+        const quantities = StockService.addQuantities(new Map(), body.lines, 1);
+        await StockService.lockProducts(manager, doc.companyUuid, [...quantities.keys()]);
         await manager.save(body.lines.map((line, index) => manager.create(StockOutLine, {
             ...line,
             stockOutUuid: doc.uuid,
             companyUuid: doc.companyUuid,
             position: index + 1,
         })));
-        await StockService.assertNotNegative(manager, doc.companyUuid, addBack);
+        if (doc.reason === StockOutReason.RETURNED && doc.supplierUuid) {
+            await SupplierReturnService.assertReturnFits(manager, doc.companyUuid, doc.supplierUuid, doc.uuid, quantities);
+        }
+        await StockService.assertNotNegative(manager, doc.companyUuid, quantities);
     }
 
     /** Product counts, supplier, receiver and creator names for a page of headers, by bounded lookups instead of joins. */

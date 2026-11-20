@@ -10,6 +10,8 @@ import { emptyOutLine } from '../../utils/stockOutLines';
 defineProps<{
   /** Highlight rows that are not filled in correctly - set after a failed save. */
   showErrors: boolean;
+  /** Return: the supplier whose products can be picked (null = none picked yet). */
+  suppliedBy?: string | null;
 }>();
 
 const lines = defineModel<IStockOutLineForm[]>({ required: true });
@@ -52,6 +54,7 @@ const setProductRef = (key: number, el: unknown) => {
             :selected="row.product"
             :placeholder="$t('stockOut.lines.productPlaceholder')"
             for-stock-out
+            :supplied-by="suppliedBy"
             :class="{ 'is-invalid': showErrors && !row.productUuid }"
             class="lines-editor__product"
             @select="(product: IStockLineProduct) => onProductSelect(row as IStockOutLineForm, product)"

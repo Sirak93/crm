@@ -144,11 +144,29 @@ because a document may be entered days after the person left.
 
 Reasons are fixed enums in code (shown as a dropdown in the form).
 
+**Returns to a supplier.** You can't return more to a supplier than that supplier brought:
+returnable = brought by that supplier (its stock-in lines) − already returned to it (its
+Returned stock-outs, not counting the document being saved). A product the supplier never
+brought has 0 returnable. Counted in SQL from the document lines, nothing new is stored.
+Example: S1 brought 20 L of beer and 5 L were returned - returning 10 L is fine, 25 L is
+refused ("Beer — can return 15 L"), and a product S1 never brought is refused ("can return
+0"). The product picker for a return shows only products that supplier brought.
+
+The same rule guards stock-in edit and delete: what the old supplier brought must stay at
+least what was returned to it. With 20 L brought and 15 L returned, editing to 18 L is fine;
+editing to 10 L, deleting the stock-in, changing its supplier, or changing Purchase to
+another reason is refused ("Already returned to S1: Beer — returned 15 L"). Only the old
+supplier is checked - the new one only gains.
+
+Both checks run inside the save, under the product lock, next to the normal stock check.
+Not covered: which delivery the goods came from (batches) - only the totals per supplier.
+
 **Fixing mistakes**
 
 - Documents can be edited and deleted freely.
 - Only the user who created a document can edit or delete it.
-- An edit or delete is blocked if it would make stock go below zero.
+- An edit or delete is blocked if it would make stock go below zero, or (stock-in) below
+  what was already returned to its supplier.
 - Archived products and suppliers can't be picked in a document; ones already in it stay
   and their rows can still be changed or deleted.
 - Exception, stock-out only: an archived product can be picked while it still has stock
