@@ -1,0 +1,4 @@
+[
+    { "name": "Բանկա", "shortName": "բանկա", "allowsDecimals": false },
+    { "name": "Պարկ", "shortName": "պարկ", "allowsDecimals": false }
+]

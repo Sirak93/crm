@@ -218,7 +218,8 @@ reloads the app at `/` (the user's own dashboard). Typed data on that page is lo
   department.
 
 - Each company has its own list. A new company gets the defaults copied in:
-  Հատ (հատ), Կիլոգրամ (կգ), Լիտր (լ), Մետր (մ).
+  Հատ (հատ), Կիլոգրամ (կգ), Գրամ (գ), Լիտր (լ), Միլիլիտր (մլ), Փաթեթ (փաթեթ), Տուփ (տուփ),
+  Շիշ (շիշ).
 - Company Owner and Storekeeper manage units; Accountant only views (same as categories
   and products — `CATALOG_MANAGER_ROLES`).
 - Name and short name are unique inside the company (ignoring case).
@@ -235,8 +236,9 @@ reloads the app at `/` (the user's own dashboard). Typed data on that page is lo
   different packing (e.g. tomatoes in boxes) is a different product. Everything else can
   be edited.
 - Categories (`product_categories`): a simple flat list per company, no sub-categories.
-  A new company gets the defaults copied in (singular names): Բանջարեղեն, Միրգ, Միս,
-  Ձուկ, Կաթնամթերք, Հացամթերք, Չոր մթերք, Ըմպելիք, Համեմունք, Տնտեսական ապրանք, Այլ.
+  A new company gets the defaults copied in (singular names): Միրգ, Բանջարեղեն, Կաթ,
+  Պանիր, Յոգուրտ և կաթնաշոռ, Միս, Ձուկ, Կրուպեղեն, Մակարոնեղեն, Համեմունք, Թեյ և սուրճ,
+  Զովացուցիչ ըմպելիք.
 - No price field on the product. Its current price is the average price from all its
   stock-ins (calculated, not saved). Wherever an average price is shown, mark it as average
   with a "~" before the number (e.g. ~360.00); the column header says "Avg price".

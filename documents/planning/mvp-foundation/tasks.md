@@ -180,7 +180,7 @@ Each is its own top-level menu item.
 
 - [x] `MeasureUnit` table (`measure_units`): company, name ("Կիլոգրամ"), short name ("կգ"), allows decimals. Name
       and short name are unique inside the company (ignoring case).
-- [x] New company gets the default units: Հատ (հատ), Կիլոգրամ (կգ), Լիտր (լ), Մետր (մ)
+- [x] New company gets the default units (`DefaultMeasureUnits.ts`)
 - [x] Shared: `CATALOG_MANAGER_ROLES` (Company Owner, Storekeeper)
 - [x] API (`/api/measure-units`, own company only)
   - [x] All company roles can read
@@ -198,8 +198,7 @@ Each is its own top-level menu item.
 
 - [x] `ProductCategory` table (`product_categories`): company, name (unique inside the
       company, ignoring case)
-- [x] New company gets the default categories: Բանջարեղեն, Միրգ, Միս, Ձուկ, Կաթնամթերք,
-      Հացամթերք, Չոր մթերք, Ըմպելիք, Համեմունք, Տնտեսական ապրանք, Այլ
+- [x] New company gets the default categories (`DefaultProductCategories.ts`)
 - [x] API (`/api/product-categories`, own company only)
   - [x] All company roles can read
   - [x] Company Owner and Storekeeper add, edit, delete
