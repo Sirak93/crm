@@ -2,8 +2,8 @@ import { DefaultRole } from "armstock-shared";
 
 /** Names of the roles copied into every new company. */
 export const DEFAULT_ROLE_NAMES: Readonly<Record<DefaultRole, string>> = {
-    [DefaultRole.STOREKEEPER]: "Storekeeper",
-    [DefaultRole.ACCOUNTANT]: "Accountant",
-    [DefaultRole.HR]: "HR",
-    [DefaultRole.STAFF]: "Staff",
+    [DefaultRole.STOREKEEPER]: "Պահեստապետ",
+    [DefaultRole.ACCOUNTANT]: "Հաշվապահ",
+    [DefaultRole.HR]: "Կադրերի մենեջեր",
+    [DefaultRole.STAFF]: "Աշխատակից",
 };
