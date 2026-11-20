@@ -85,6 +85,9 @@ const openEdit = (product: IProduct) => {
 
 const onSaved = () => load(editingProduct.value ? meta.value.page : 1);
 
+/** Stays on the same page unless it became empty. */
+const reloadAfterRemoval = () => load(products.value.length === 1 && meta.value.page > 1 ? meta.value.page - 1 : meta.value.page);
+
 const setStatus = async (product: IProduct, status: ProductStatus) => {
   updatingUuid.value = product.uuid;
   try {
@@ -94,6 +97,26 @@ const setStatus = async (product: IProduct, status: ProductStatus) => {
     await load();
   } catch (error) {
     NotificationService.error(parseError(error, 'products.saveError'));
+  } finally {
+    updatingUuid.value = null;
+  }
+};
+
+const deleteProduct = async (product: IProduct) => {
+  const confirmed = await NotificationService.confirm(
+    t('products.deleteConfirmTitle', { name: product.name }),
+    t('products.deleteConfirmText'),
+    t('products.actions.delete'),
+  );
+  if (!confirmed) return;
+
+  updatingUuid.value = product.uuid;
+  try {
+    await ProductService.delete(product.uuid);
+    NotificationService.success(t('products.deleted'));
+    await reloadAfterRemoval();
+  } catch (error) {
+    NotificationService.error(parseError(error, 'products.deleteError'));
   } finally {
     updatingUuid.value = null;
   }
@@ -136,6 +159,7 @@ onMounted(loadLookups);
         :updating-uuid="updatingUuid"
         @edit="openEdit"
         @set-status="setStatus"
+        @delete="deleteProduct"
       />
     </AppCard>
 

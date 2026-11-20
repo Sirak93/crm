@@ -18,10 +18,6 @@ export class StockOutController {
         return AppResponse.send(res, await this.service.summary(requireCompanyUuid(req), req.query as unknown as StockOutFilters));
     };
 
-    receivers = async (req: AuthRequest, res: Response) => {
-        return AppResponse.send(res, await this.service.receivers(requireCompanyUuid(req)));
-    };
-
     get = async (req: AuthRequest, res: Response) => {
         return AppResponse.send(res, await this.service.get(requireCompanyUuid(req), req.params.uuid as string));
     };

@@ -1,14 +1,12 @@
 <script setup lang="ts">
 import { computed, ref } from 'vue';
-import { SupplierStatus } from 'armstock-shared';
-import { SupplierService } from '../../services/SupplierService';
-import type { ISupplierOption } from '../../interfaces/ISupplierOption';
-import { PICKER_PAGE_SIZE } from '../../constants/constants';
+import type { INamedRef } from 'armstock-shared';
+import { OptionsService } from '../../services/OptionsService';
 import { AppLogger } from '../../utils/AppLogger';
 
 const props = defineProps<{
   /** The current choice, so its name shows before any search (it may be archived). */
-  selected?: ISupplierOption | null;
+  selected?: INamedRef | null;
   /** New documents may only pick active suppliers; filters may pick any. */
   activeOnly?: boolean;
   placeholder: string;
@@ -16,7 +14,7 @@ const props = defineProps<{
 
 const model = defineModel<string>({ required: true });
 
-const options = ref<ISupplierOption[]>([]);
+const options = ref<INamedRef[]>([]);
 const isLoading = ref(false);
 let lastRequest = 0;
 
@@ -30,12 +28,9 @@ const search = async (query: string) => {
   const request = ++lastRequest;
   isLoading.value = true;
   try {
-    const { items } = await SupplierService.list(1, PICKER_PAGE_SIZE, {
-      search: query.trim() || undefined,
-      status: props.activeOnly ? SupplierStatus.ACTIVE : undefined,
-    });
+    const items = await OptionsService.suppliers(query.trim() || undefined, props.activeOnly);
     // An older, slower answer must not replace a newer one.
-    if (request === lastRequest) options.value = items.map((s) => ({ uuid: s.uuid, name: s.name }));
+    if (request === lastRequest) options.value = items;
   } catch (error) {
     AppLogger.error('Failed to search suppliers:', error);
   } finally {

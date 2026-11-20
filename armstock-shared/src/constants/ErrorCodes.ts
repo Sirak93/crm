@@ -103,6 +103,10 @@ export const ErrorCodes = {
             CODE: "PRODUCT_QUANTITY_NOT_WHOLE",
             STATUS: 422,
         },
+        IN_USE: {
+            CODE: "PRODUCT_IN_USE",
+            STATUS: 409,
+        },
     },
     SUPPLIER: {
         NOT_FOUND: {

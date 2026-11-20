@@ -1,15 +1,19 @@
 import { Brackets, In } from "typeorm";
-import { ErrorCodes, ProductStatus, type IPaginationMeta, type IProduct } from "armstock-shared";
+import { ErrorCodes, ProductStatus, type IPaginationMeta, type IProduct, type IStockLineProduct } from "armstock-shared";
 import { AppDataSource } from "../config/database";
 import { Product } from "../models/Product";
 import { MeasureUnit } from "../models/MeasureUnit";
 import { ProductCategory } from "../models/ProductCategory";
+import { StockInLine } from "../models/StockInLine";
+import { StockOutLine } from "../models/StockOutLine";
 import { AppError } from "../utils/AppError";
 import { MeasureUnitService } from "./MeasureUnitService";
 import { ProductCategoryService } from "./ProductCategoryService";
 import { StockService } from "./StockService";
 import { SupplierReturnService } from "./SupplierReturnService";
+import { PICKER_LIMIT } from "../constants/PickerConstants";
 import type { ProductBody, ProductCreateBody, ProductsQuery } from "../schemas/ProductSchema";
+import type { ProductOptionsQuery } from "../schemas/OptionsSchema";
 
 export class ProductService {
     private repo = AppDataSource.getRepository(Product);
@@ -57,19 +61,23 @@ export class ProductService {
         return products.map((p) => ProductService.toProduct(p, unitMap.get(p.measureUnitUuid)!, categoryMap.get(p.categoryUuid)!));
     }
 
-    async list(companyUuid: string, query: ProductsQuery): Promise<{ items: IProduct[]; meta: IPaginationMeta }> {
-        const { page, pageSize, search, categoryUuid, status, forStockOut, suppliedBy } = query;
-
+    /** The company's products matching the search by name or code. */
+    private searchQuery(companyUuid: string, search: string | undefined) {
         const qb = this.repo.createQueryBuilder("product").where("product.companyUuid = :companyUuid", { companyUuid });
         if (search) {
             qb.andWhere(new Brackets((w) => {
                 w.where("product.name ILIKE :search", { search: `%${search}%` }).orWhere("product.code ILIKE :search");
             }));
         }
+        return qb;
+    }
+
+    async list(companyUuid: string, query: ProductsQuery): Promise<{ items: IProduct[]; meta: IPaginationMeta }> {
+        const { page, pageSize, search, categoryUuid, status } = query;
+
+        const qb = this.searchQuery(companyUuid, search);
         if (categoryUuid) qb.andWhere("product.categoryUuid = :categoryUuid", { categoryUuid });
         if (status) qb.andWhere("product.status = :status", { status });
-        if (forStockOut) StockService.whereActiveOrInStock(qb);
-        if (suppliedBy) SupplierReturnService.whereSuppliedBy(qb, suppliedBy);
 
         const [rows, total] = await qb
             .orderBy("product.name", "ASC")
@@ -113,5 +121,36 @@ export class ProductService {
         await this.repo.save(product);
         const [item] = await this.withRelations(companyUuid, [product]);
         return item!;
+    }
+
+    /**
+     * Product picker - open to every company member, so only what a stock line needs.
+     * Active products only, unless `forStockOut` (archived ones with stock too).
+     */
+    async options(companyUuid: string, query: ProductOptionsQuery): Promise<IStockLineProduct[]> {
+        const qb = this.searchQuery(companyUuid, query.search);
+        if (query.forStockOut) StockService.whereActiveOrInStock(qb);
+        else qb.andWhere("product.status = :status", { status: ProductStatus.ACTIVE });
+        if (query.suppliedBy) SupplierReturnService.whereSuppliedBy(qb, query.suppliedBy);
+
+        const rows = await qb.orderBy("product.name", "ASC").take(PICKER_LIMIT).getMany();
+        const unitUuids = [...new Set(rows.map((p) => p.measureUnitUuid))];
+        const units = unitUuids.length
+            ? await AppDataSource.getRepository(MeasureUnit).find({ where: { uuid: In(unitUuids), companyUuid } })
+            : [];
+        const unitMap = new Map(units.map((u) => [u.uuid, u]));
+        return rows.map((product) => StockService.toLineProduct(Object.assign(product, { measureUnit: unitMap.get(product.measureUnitUuid)! })));
+    }
+
+    /** Only while no stock document line uses it - otherwise it is archived instead. */
+    async delete(companyUuid: string, uuid: string): Promise<void> {
+        const where = { productUuid: uuid, companyUuid };
+        const [product, inStockIn, inStockOut] = await Promise.all([
+            this.findOrFail(companyUuid, uuid),
+            AppDataSource.getRepository(StockInLine).exists({ where }),
+            AppDataSource.getRepository(StockOutLine).exists({ where }),
+        ]);
+        if (inStockIn || inStockOut) throw new AppError(ErrorCodes.PRODUCT.IN_USE, undefined, undefined, { uuid });
+        await this.repo.remove(product);
     }
 }

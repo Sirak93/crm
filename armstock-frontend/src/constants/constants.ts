@@ -42,9 +42,6 @@ export const HTTP_METHODS = ['GET', 'POST', 'PUT', 'PATCH', 'DELETE'] as const;
 
 export const DEFAULT_PAGE_SIZE = 20;
 
-/** Matches a search-as-you-type picker shows at once; typing narrows them down. */
-export const PICKER_PAGE_SIZE = 50;
-
 /** Required-field rules also run while typing, so the error clears as soon as the field is filled. */
 export const REQUIRED_RULE_TRIGGER = ['blur', 'change'];
 

@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { ProductStatus, type IProduct } from 'armstock-shared';
-import { Archive, ArchiveRestore, Pencil } from 'lucide-vue-next';
+import { Archive, ArchiveRestore, Pencil, Trash2 } from 'lucide-vue-next';
 import CodeBadge from '../CodeBadge.vue';
 import RowActionsMenu from '../RowActionsMenu.vue';
 import { PRODUCT_STATUS_TAG } from '../../constants/statusTags';
@@ -9,20 +9,22 @@ defineProps<{
   products: IProduct[];
   /** False for read-only roles - no actions column. */
   canManage: boolean;
-  /** uuid of the product whose status is saving. */
+  /** uuid of the product being saved or deleted. */
   updatingUuid: string | null;
 }>();
 
 const emit = defineEmits<{
   edit: [product: IProduct];
   setStatus: [product: IProduct, status: ProductStatus];
+  delete: [product: IProduct];
 }>();
 
-const ACTION = { EDIT: 'edit', ARCHIVE: 'archive', RESTORE: 'restore' } as const;
+const ACTION = { EDIT: 'edit', ARCHIVE: 'archive', RESTORE: 'restore', DELETE: 'delete' } as const;
 type Action = typeof ACTION[keyof typeof ACTION];
 
 const onAction = (product: IProduct, action: Action) => {
   if (action === ACTION.EDIT) emit('edit', product);
+  else if (action === ACTION.DELETE) emit('delete', product);
   else emit('setStatus', product, action === ACTION.ARCHIVE ? ProductStatus.ARCHIVED : ProductStatus.ACTIVE);
 };
 </script>
@@ -69,6 +71,10 @@ const onAction = (product: IProduct, action: Action) => {
           <el-dropdown-item v-else :command="ACTION.RESTORE">
             <ArchiveRestore :size="16" aria-hidden="true" />
             <span>{{ $t('products.actions.restore') }}</span>
+          </el-dropdown-item>
+          <el-dropdown-item :command="ACTION.DELETE" class="dropdown-item--danger">
+            <Trash2 :size="16" aria-hidden="true" />
+            <span>{{ $t('products.actions.delete') }}</span>
           </el-dropdown-item>
         </RowActionsMenu>
       </template>

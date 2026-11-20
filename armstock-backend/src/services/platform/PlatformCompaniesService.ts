@@ -5,6 +5,7 @@ import { AuthCacheService } from "../AuthCacheService";
 import { CompanyService } from "../CompanyService";
 import { MeasureUnitService } from "../MeasureUnitService";
 import { ProductCategoryService } from "../ProductCategoryService";
+import { RoleService } from "../RoleService";
 import type { CompanyBody } from "../../schemas/CompanySchema";
 import type { PaginatedSearchQuery } from "../../schemas/SharedSchema";
 
@@ -30,13 +31,14 @@ export class PlatformCompaniesService {
         };
     }
 
-    /** The company with its default units and product categories, saved together. */
+    /** The company with its default units, product categories, and roles, saved together. */
     async create(body: CompanyBody): Promise<ICompany> {
         const company = await AppDataSource.transaction(async (manager) => {
             const repo = manager.getRepository(Company);
             const saved = await repo.save(repo.create(body));
             await MeasureUnitService.createDefaults(manager, saved.uuid);
             await ProductCategoryService.createDefaults(manager, saved.uuid);
+            await RoleService.createDefaults(manager, saved.uuid);
             return saved;
         });
         return CompanyService.toCompany(company);

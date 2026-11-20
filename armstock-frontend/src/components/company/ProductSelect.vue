@@ -3,9 +3,7 @@ import { computed, ref, watch } from 'vue';
 import { ProductStatus, type IStockLineProduct } from 'armstock-shared';
 import { Plus } from 'lucide-vue-next';
 import CodeBadge from '../CodeBadge.vue';
-import { ProductService } from '../../services/ProductService';
-import { toLineProduct } from '../../utils/stockLines';
-import { PICKER_PAGE_SIZE } from '../../constants/constants';
+import { OptionsService } from '../../services/OptionsService';
 import { AppLogger } from '../../utils/AppLogger';
 
 const props = defineProps<{
@@ -52,13 +50,13 @@ const search = async (text: string) => {
   }
   isLoading.value = true;
   try {
-    const { items } = await ProductService.list(1, PICKER_PAGE_SIZE, {
+    const items = await OptionsService.products({
       search: query.value || undefined,
       suppliedBy: props.suppliedBy,
-      ...(props.forStockOut ? { forStockOut: true } : { status: ProductStatus.ACTIVE }),
+      forStockOut: props.forStockOut || undefined,
     });
     // An older, slower answer must not replace a newer one.
-    if (request === lastRequest) options.value = items.map(toLineProduct);
+    if (request === lastRequest) options.value = items;
   } catch (error) {
     AppLogger.error('Failed to search products:', error);
   } finally {

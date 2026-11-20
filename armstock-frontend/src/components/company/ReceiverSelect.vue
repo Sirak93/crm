@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { computed, onMounted, ref } from 'vue';
 import { UserStatus, type INamedRef, type IStockOutReceiver } from 'armstock-shared';
-import { StockOutService } from '../../services/StockOutService';
+import { OptionsService } from '../../services/OptionsService';
 import { USER_STATUS_TAG } from '../../constants/statusTags';
 import { AppLogger } from '../../utils/AppLogger';
 
@@ -27,7 +27,7 @@ const shownOptions = computed<IStockOutReceiver[]>(() => {
 onMounted(async () => {
   isLoading.value = true;
   try {
-    options.value = await StockOutService.receivers();
+    options.value = await OptionsService.receivers();
   } catch (error) {
     AppLogger.error('Failed to load receivers:', error);
   } finally {

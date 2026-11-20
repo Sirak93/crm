@@ -65,6 +65,7 @@ export type * from "./interfaces/IStockShortage";
 export type * from "./interfaces/ISupplier";
 export type * from "./interfaces/ISupplierContact";
 export type * from "./interfaces/ISupplierContactPayload";
+export type * from "./interfaces/ISupplierOption";
 export type * from "./interfaces/ISupplierPayload";
 export type * from "./interfaces/ISupplierReturnError";
 export type * from "./interfaces/ITableStorage";

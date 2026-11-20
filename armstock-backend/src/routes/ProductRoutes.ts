@@ -24,5 +24,6 @@ router.patch(
     validate(ProductStatusBodySchema),
     asyncHandler(productController.setStatus),
 );
+router.delete("/:uuid", canManage, validate(UuidParamsSchema, "params"), asyncHandler(productController.delete));
 
 export default router;

@@ -3,7 +3,7 @@ import { computed, onMounted, ref } from 'vue';
 import { useRouter } from 'vue-router';
 import { useI18n } from 'vue-i18n';
 import type { FormInstance, FormItemRule, FormRules } from 'element-plus';
-import { MONEY_DECIMALS, StockInReason, type IStockInDetails, type IStockInPayload } from 'armstock-shared';
+import { MONEY_DECIMALS, StockInReason, type INamedRef, type IStockInDetails, type IStockInPayload } from 'armstock-shared';
 import BackLink from '../../components/BackLink.vue';
 import PageHeader from '../../components/PageHeader.vue';
 import AppCard from '../../components/AppCard.vue';
@@ -18,7 +18,6 @@ import { useAuthStore } from '../../stores/auth';
 import { DATE_TIME_PICKER_FORMAT, REQUIRED_RULE_TRIGGER, ROUTE_NAME } from '../../constants/constants';
 import { STOCK_IN_REASON_LABEL, STOCK_IN_REASONS } from '../../constants/stockInReasons';
 import type { IStockInLineForm } from '../../interfaces/IStockInLineForm';
-import type { ISupplierOption } from '../../interfaces/ISupplierOption';
 import { formatMoney, formatNumber, isFutureDay, roundTo } from '../../utils/format';
 import { emptyLine, isLineValid, toLineForm } from '../../utils/stockInLines';
 import { AppLogger } from '../../utils/AppLogger';
@@ -45,7 +44,7 @@ const form = ref({
 });
 const lines = ref<IStockInLineForm[]>([emptyLine()]);
 const original = ref<IStockInDetails | null>(null);
-const selectedSupplier = ref<ISupplierOption | null>(null);
+const selectedSupplier = ref<INamedRef | null>(null);
 
 const isLoading = ref(isEdit.value);
 const hasError = ref(false);

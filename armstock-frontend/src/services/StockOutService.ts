@@ -4,7 +4,6 @@ import type {
   IStockOut,
   IStockOutDetails,
   IStockOutPayload,
-  IStockOutReceiver,
   IStockOutSummary,
 } from 'armstock-shared';
 import ApiService from './ApiService';
@@ -21,11 +20,6 @@ export const StockOutService = {
 
   async summary(filters: IStockOutFilters): Promise<IStockOutSummary> {
     const response = await ApiService.get<IAppResponse<IStockOutSummary>>('/stock-outs/summary', { params: filters });
-    return response.data.data!;
-  },
-
-  async receivers(): Promise<IStockOutReceiver[]> {
-    const response = await ApiService.get<IAppResponse<IStockOutReceiver[]>>('/stock-outs/receivers');
     return response.data.data!;
   },
 

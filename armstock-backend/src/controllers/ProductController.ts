@@ -22,6 +22,11 @@ export class ProductController {
         return AppResponse.send(res, await this.service.update(requireCompanyUuid(req), req.params.uuid as string, req.body as ProductBody));
     };
 
+    delete = async (req: AuthRequest, res: Response) => {
+        await this.service.delete(requireCompanyUuid(req), req.params.uuid as string);
+        return AppResponse.send(res, { success: true });
+    };
+
     setStatus = async (req: AuthRequest, res: Response) => {
         const { status } = req.body as ProductStatusBody;
         return AppResponse.send(res, await this.service.setStatus(requireCompanyUuid(req), req.params.uuid as string, status));

@@ -19,10 +19,6 @@ export const ProductStatusBodySchema = z.object({
 export const ProductsQuerySchema = PaginatedSearchQuerySchema.extend({
     categoryUuid: z.uuid().optional(),
     status: z.coerce.number().pipe(z.enum(ProductStatus)).optional(),
-    // Stock-out picker: active products plus archived ones that still have stock.
-    forStockOut: z.stringbool().optional(),
-    // Return picker: only products that came in from this supplier.
-    suppliedBy: z.uuid().optional(),
 });
 
 export type ProductBody = z.infer<typeof ProductBodySchema>;

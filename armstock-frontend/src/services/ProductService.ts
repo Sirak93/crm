@@ -32,4 +32,8 @@ export const ProductService = {
     const response = await ApiService.patch<IAppResponse<IProduct>>(`/products/${uuid}/status`, { status });
     return response.data.data!;
   },
+
+  async delete(uuid: string): Promise<void> {
+    await ApiService.delete(`/products/${uuid}`);
+  },
 };

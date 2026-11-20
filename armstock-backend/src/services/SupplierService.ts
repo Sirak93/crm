@@ -1,11 +1,20 @@
 import { In } from "typeorm";
-import { ErrorCodes, SupplierStatus, type IPaginationMeta, type ISupplier, type ISupplierContact } from "armstock-shared";
+import {
+    ErrorCodes,
+    SupplierStatus,
+    type IPaginationMeta,
+    type ISupplier,
+    type ISupplierContact,
+    type ISupplierOption,
+} from "armstock-shared";
 import { AppDataSource } from "../config/database";
 import { Supplier } from "../models/Supplier";
 import { SupplierContact } from "../models/SupplierContact";
 import { StockIn } from "../models/StockIn";
 import { AppError } from "../utils/AppError";
+import { PICKER_LIMIT } from "../constants/PickerConstants";
 import type { SupplierBody, SupplierContactBody, SuppliersQuery } from "../schemas/SupplierSchema";
+import type { SupplierOptionsQuery } from "../schemas/OptionsSchema";
 
 export class SupplierService {
     private repo = AppDataSource.getRepository(Supplier);
@@ -109,6 +118,17 @@ export class SupplierService {
     }
 
     /** Contacts go with it (FK cascade). A supplier used by a stock-in document can only be archived. */
+    /** Supplier picker and filters - open to every company member, so no tax ID, note, or contacts. */
+    async options(companyUuid: string, query: SupplierOptionsQuery): Promise<ISupplierOption[]> {
+        const qb = this.repo.createQueryBuilder("supplier")
+            .select(["supplier.uuid", "supplier.name", "supplier.status"])
+            .where("supplier.companyUuid = :companyUuid", { companyUuid });
+        if (query.search) qb.andWhere("supplier.name ILIKE :search", { search: `%${query.search}%` });
+        if (query.activeOnly) qb.andWhere("supplier.status = :status", { status: SupplierStatus.ACTIVE });
+        const rows = await qb.orderBy("supplier.name", "ASC").take(PICKER_LIMIT).getMany();
+        return rows.map((s) => ({ uuid: s.uuid, name: s.name, status: s.status }));
+    }
+
     async delete(companyUuid: string, uuid: string): Promise<void> {
         const [supplier, inUse] = await Promise.all([
             this.findOrFail(companyUuid, uuid),
