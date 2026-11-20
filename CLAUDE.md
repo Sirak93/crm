@@ -206,12 +206,10 @@ export enum UserRole {
   commit message in Conventional Commits format — `type(scope): description`, e.g.
   `feat(api): add contact search` — without waiting to be asked. Commit only when the
   user asks.
-- **Git write actions — never without per-operation confirmation.** Never run `git
-  commit`, `git push`, or any other write/mutating git command on your own. When the
-  user says "do" (or similar) to a proposed git write action, ask for confirmation
-  before running it — for that specific operation, every time. Saying "do" once, or
-  approving one operation, is not standing approval for the session or for any later
-  operation — confirm each one individually.
+- **Git write actions — banned unless the user orders one.** Never run `git commit`,
+  `git push`, or any other write/mutating git command, and never offer or ask to run
+  one — the user commits. The only exception: the user explicitly tells you to run a
+  specific git write command. That covers only that one operation, never later ones.
 - **Legacy code:** if existing code violates these rules, do not silently ignore it and
   do not auto-refactor it. Ask: *"I've noticed an old implementation in [file] that
   violates [rule]. Should I update it to follow our current standards as part of this
