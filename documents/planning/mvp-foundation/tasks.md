@@ -500,6 +500,11 @@ Suggested chunks (each: notes → OK → build → lint/build):
   - [x] Permission panel: groups with a group switch, every permission its own switch
   - [ ] Roles page (Owner or `MANAGE_USER_PERMISSIONS`): list, add, edit permissions,
         delete
+        - Ready: `GET/POST/PUT/DELETE /api/roles` (body `{ name, permissions, applyToUsers? }`;
+          list gives `userCount`; delete refuses with `ROLE_IN_USE` + `userCount`), frontend
+          `RoleService.list()`, `PermissionPanel` (with `locked`), `lockedPermissions()` /
+          `keepLocked()` helpers
+        - Still needed: route + menu item, page, add/edit dialog, "apply to N users?" prompt
   - [x] User dialog: role picker (on create with `USER_ADD`; on edit only with
         `MANAGE_USER_PERMISSIONS`), "Can log in", permission panel grouped by area with
         switches and "Reset to role defaults"; hidden without `MANAGE_USER_PERMISSIONS`
