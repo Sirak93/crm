@@ -588,10 +588,10 @@ uuid, and another company's uuid.
        creator-only edit/delete; Accountant only sees; list, get, summary
 2. - [x] **Stock-in** - create, edit, delete; edit/delete that would make stock negative is
        refused with the same stock error; list, get, summary
-3. - [ ] **Two saves at the same time** on the same product (in and out mixed): only one goes
+3. - [x] **Two saves at the same time** on the same product (in and out mixed): only one goes
        through, stock stays right
-       - [ ] Open bug: 6-8 documents saved at once - some get a 500 (document number clash
-             after 3 retries, `utils/documentNumber.ts`). Fix to be discussed
+       - [x] Bug found and fixed: 6-8 documents saved at once got a 500 (document number
+             clash after 3 retries). Now a per-company lock in `utils/documentNumber.ts`
 4. - [x] **Returns to a supplier** (examples in decisions.md) - within what it brought; more
        than it brought; a product it never brought; two returns that together go over;
        editing a return doesn't count itself
