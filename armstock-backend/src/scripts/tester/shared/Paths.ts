@@ -3,6 +3,9 @@ import { API_PATH } from "armstock-shared";
 /** Every API base path the suites call. Item paths are built as `${PATHS.X}/${uuid}`. */
 export const PATHS = {
     LOGIN: `${API_PATH}/auth/login`,
+    REFRESH: `${API_PATH}/auth/refresh`,
+    LOGOUT: `${API_PATH}/auth/logout`,
+    AUTH_USER: `${API_PATH}/auth/user`,
     PLATFORM_COMPANIES: `${API_PATH}/platform/companies`,
     COMPANY: `${API_PATH}/company`,
     COMPANY_USERS: `${API_PATH}/company/users`,

@@ -7,6 +7,8 @@ export interface ITestSide<T extends ITestContext = ITestContext> {
     name: string;
     /** Extra env for this side's backend. */
     env?: Record<string, string>;
+    /** Runs before this side's backend starts - e.g. emptying its Redis index. */
+    beforeStart?: () => Promise<void>;
     setup: (context: ITestContext) => Promise<T>;
     suites: ((context: T) => ITestSuite)[];
 }

@@ -11,7 +11,8 @@ an endpoint.**
 
 ```bash
 npm test -w armstock-backend               # every side
-npm run test:company -w armstock-backend   # only the company side
+npm run test:company -w armstock-backend       # only the company side
+npm run test:rate-limits -w armstock-backend   # only the rate-limits side
 ```
 
 Each side, on its own:
@@ -20,7 +21,7 @@ Each side, on its own:
 2. seeds a Platform Owner with a random password, then runs the side's setup (the company
    side makes **two companies**, so cross-company access can always be checked);
 3. starts its own backend on a free port with `NODE_ENV=test` and Redis index `15`, so a
-   dev backend keeps running untouched;
+   dev backend keeps running untouched (the rate-limits side: see below);
 4. runs its suites and prints each case in the terminal;
 5. stops the backend and drops the database.
 
@@ -38,13 +39,16 @@ Optional, off by default. Put them in front of the command, never in `.env`:
 | `KEEP_DB=1`        | keeps the scratch database instead of dropping it         |
 | `TESTER_DB_NAME`   | another database name prefix (default `armstock_tester`)  |
 | `TESTER_REDIS_DB`  | another Redis index (default `15`)                        |
+| `TESTER_RATE_LIMITS_REDIS_DB` | the rate-limits side's Redis index (default `14`) |
 
 The tester reads `DB_*`, `REDIS_*` and the rest from `armstock-backend/.env`, and ignores
 `DB_NAME` - it always uses its own database. No test logins live in `.env`: every account
 gets a random password per run, never printed.
 
 Under `NODE_ENV=test` the rate limits get a very high ceiling (`RateLimiter.ts`), so a run
-is never throttled. The rate-limits side (not built yet) will run with the real limits.
+is never throttled. The **rate-limits side** runs with the real limits (`NODE_ENV=development`)
+on its own Redis index `14`, which it empties before its backend starts - so a count left
+from an earlier run never leaks in. Nothing else uses that index.
 
 ## Layout
 
@@ -94,11 +98,18 @@ own small task.
 | Company isolation | company A's Owner calls every company route that takes a uuid with company B's real ids and a valid body - each gives that record's "not found"; A's supplier with B's contact; no list or picker shows any of B's ids; filters by B's records find nothing; A can't use B's category, unit or role in a body; a fingerprint of all B's tables is unchanged at the end |
 | Permissions | the route table matches the app's routers exactly; every route refuses a user with every permission but its own, and lets through a user with only its own; open routes let through a member with no permissions; the Owner is let through everywhere; no token is refused everywhere; the Platform Owner is refused everywhere; a permission turned off works on the next request |
 
+| Auth and sessions | login response holds only the user and two tokens, never a stored secret; email without case and spaces; wrong password and unknown email answer the same; bad body; current user for Owner, member, Platform Owner; refresh gives a working token; refresh refuses an access token, a made-up and an empty one; expired, foreign-signed, malformed and refresh tokens refused as access tokens; logout ends access and refresh at once, login again works; blocked user stopped on the next request, can't log in or refresh, works again when active; archived user; login turned off stops session, refresh and login, on again with a new password works; a user without login stores no email or password; blocked company stops all its users, others go on, works again when unblocked |
+
+### Rate-limits side
+
+| Suite      | Covered                                                                 |
+| ---------- | ----------------------------------------------------------------------- |
+| Login rate limit | up to the limit wrong logins get the normal answer; the next is refused with "too many", even with the right password; other routes not limited |
+
 ### Still open
 
 In order, as in `documents/planning/mvp-foundation/tasks.md` (Step 15):
 
-- Auth and sessions
 - Company users; roles; products; suppliers and contacts; categories; units; options; company profile
 - Platform side: companies and their users; database and logs
-- Rate-limits side; health
+- Health

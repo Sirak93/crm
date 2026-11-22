@@ -73,6 +73,7 @@ const runSide = async (side: ITestSide<any>, reporter: Reporter): Promise<void> 
         const ownerPassword = randomPassword();
         await seedPlatformOwner(db, ownerEmail, ownerPassword);
 
+        await side.beforeStart?.();
         await server.start();
 
         const anonymous = new Http(server.baseUrl);

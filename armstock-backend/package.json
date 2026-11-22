@@ -11,7 +11,8 @@
     "seed:dev": "npm run build:shared && ts-node src/seeders/seedDev.ts",
     "lint": "tsc --noEmit",
     "test": "npm run build:shared && ts-node --transpile-only src/scripts/tester/Run.ts",
-    "test:company": "npm run build:shared && ts-node --transpile-only src/scripts/tester/Run.ts company"
+    "test:company": "npm run build:shared && ts-node --transpile-only src/scripts/tester/Run.ts company",
+    "test:rate-limits": "npm run build:shared && ts-node --transpile-only src/scripts/tester/Run.ts rate-limits"
   },
   "dependencies": {
     "armstock-shared": "*",

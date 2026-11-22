@@ -7,6 +7,7 @@ import stockInAfterReturnsSuite from "../suites/company/StockInAfterReturnsSuite
 import stockBalanceSuite from "../suites/company/StockBalanceSuite";
 import companyIsolationSuite from "../suites/company/CompanyIsolationSuite";
 import permissionsSuite from "../suites/company/PermissionsSuite";
+import authSuite from "../suites/company/AuthSuite";
 import type { ICompanySideContext } from "../interfaces/ICompanySideContext";
 import type { ITestSide } from "../interfaces/ITestSide";
 
@@ -26,5 +27,6 @@ export const companySide: ITestSide<ICompanySideContext> = {
         stockBalanceSuite,
         companyIsolationSuite,
         permissionsSuite,
+        authSuite,
     ],
 };

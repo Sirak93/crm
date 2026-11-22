@@ -64,6 +64,14 @@ export const matches = (actual: unknown, expected: unknown, label?: string): voi
     }
 };
 
+/** Response shape: fails when a field appears or disappears, even if nobody asserted it. */
+export const hasExactKeys = (actual: unknown, keys: string[]): void => {
+    if (typeof actual !== "object" || actual === null) throw new AssertionError("expected an object to check keys on", keys, actual);
+    const found = Object.keys(actual).sort();
+    const wanted = [...keys].sort();
+    if (found.join(",") !== wanted.join(",")) throw new AssertionError("response keys differ", wanted, found);
+};
+
 export const equals = (actual: unknown, expected: unknown, label = "value"): void => {
     if (actual !== expected) throw new AssertionError(`${label} does not match`, expected, actual);
 };

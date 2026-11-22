@@ -542,7 +542,7 @@ reuse it with the same logic; only armstock-specific points are decided here.
       all, `test:company` / `test:platform` / `test:rate-limits` run one. Each side builds
       its own scratch database and backend; a side that fails to set up doesn't stop the
       others
-- [ ] Rate limits like armlytic: each side has its own Redis index, so limit counters
+- [x] Rate limits like armlytic: each side has its own Redis index, so limit counters
       start at zero; normal suites stay under the limits; the rate-limits side hits them
       on purpose
 
@@ -602,7 +602,7 @@ uuid, and another company's uuid.
        uuids, gives 404 and changes nothing
 8. - [x] **Permissions** - every company route refuses a user without its permission and
        allows one with it
-9. - [ ] **Auth and sessions** - login, refresh, logout, current user; wrong password;
+9. - [x] **Auth and sessions** - login, refresh, logout, current user; wrong password;
        turned-off user and turned-off company are locked out; login rate limit
 10. - [ ] **Company users** - list, summary, create (with and without login), edit, access,
         status; can't change own permissions or role; Owner account can't be touched from
