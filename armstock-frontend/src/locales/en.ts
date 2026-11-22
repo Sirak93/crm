@@ -880,6 +880,7 @@ export default {
     PRODUCT_CATEGORY_NOT_FOUND: 'This category no longer exists.',
     PRODUCT_CATEGORY_NAME_TAKEN: 'A category with this name already exists.',
     MEASURE_UNIT_IN_USE: 'This unit is used by products and cannot be deleted.',
+    MEASURE_UNIT_DECIMALS_IN_USE: 'This unit is used by products - decimals cannot be turned off.',
     PRODUCT_CATEGORY_IN_USE: 'This category is used by products and cannot be deleted.',
     PRODUCT_NOT_FOUND: 'This product no longer exists.',
     PRODUCT_CODE_TAKEN: 'Another product already has this code.',

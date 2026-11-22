@@ -95,6 +95,11 @@ export const ErrorCodes = {
             CODE: "MEASURE_UNIT_IN_USE",
             STATUS: 409,
         },
+        /** Decimals can't be turned off while products use the unit - their stock may be fractional. */
+        DECIMALS_IN_USE: {
+            CODE: "MEASURE_UNIT_DECIMALS_IN_USE",
+            STATUS: 409,
+        },
     },
     PRODUCT_CATEGORY: {
         NOT_FOUND: {

@@ -636,6 +636,8 @@ uuid, and another company's uuid.
         contact; delete rules once used in documents
 14. - [x] **Product categories** - list, create, edit, delete; delete rules while in use
 15. - [x] **Measure units** - list, create, edit, delete; delete rules while in use
+        - [x] Rule added: "allows decimals" can't be turned off while any product uses the
+              unit (`MEASURE_UNIT_DECIMALS_IN_USE`) - fractional stock would get stuck
 16. - [ ] **Options** - products, suppliers, receivers, roles: only active, only own company
 17. - [ ] **Company profile** - get and edit; who may do it
 18. - [ ] **Platform: companies and their users** - list, create, edit, status, get, roles;

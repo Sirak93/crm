@@ -50,6 +50,24 @@ export default (context: ICompanySideContext) => defineSuite("Measure units", (t
         await storekeeper.api.rejects("PUT", path(a.uuid), ErrorCodes.MEASURE_UNIT.NAME_TAKEN, { name, shortName: b.shortName, allowsDecimals: true });
     });
 
+    test("decimals can't be turned off while a product uses the unit; turning them on, or off when free, is fine", async () => {
+        const unit = await createUnit(storekeeper, { allowsDecimals: true });
+        const fields = { name: unit.name, shortName: unit.shortName };
+        const category = await findCategory(storekeeper);
+        const { data: product } = await storekeeper.api.ok<IProduct>("POST", PATHS.PRODUCTS,
+            { name: uniqueName("Product"), categoryUuid: category.uuid, measureUnitUuid: unit.uuid });
+
+        await storekeeper.api.rejects("PUT", path(unit.uuid), ErrorCodes.MEASURE_UNIT.DECIMALS_IN_USE, { ...fields, allowsDecimals: false });
+        await storekeeper.api.ok("PUT", path(unit.uuid), { ...fields, name: uniqueName("Renamed"), allowsDecimals: true });
+
+        await storekeeper.api.ok("DELETE", `${PATHS.PRODUCTS}/${product.uuid}`);
+        await storekeeper.api.ok("PUT", path(unit.uuid), { ...fields, allowsDecimals: false });
+        const { data } = await storekeeper.api.ok<IProduct>("POST", PATHS.PRODUCTS,
+            { name: uniqueName("Product"), categoryUuid: category.uuid, measureUnitUuid: unit.uuid });
+        await storekeeper.api.ok("PUT", path(unit.uuid), { ...fields, allowsDecimals: true });
+        equals(data.measureUnit.allowsDecimals, false, "the product saw the unit without decimals");
+    });
+
     test("delete: refused while a product uses it; works when free", async () => {
         const unit = await createUnit(storekeeper);
         const category = await findCategory(storekeeper);

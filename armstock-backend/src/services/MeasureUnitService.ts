@@ -53,13 +53,20 @@ export class MeasureUnitService {
     async update(companyUuid: string, uuid: string, body: MeasureUnitBody): Promise<IMeasureUnit> {
         const unit = await this.findOrFail(companyUuid, uuid);
         await this.assertNamesFree(companyUuid, body, uuid);
+        if (unit.allowsDecimals && !body.allowsDecimals && await this.isUsed(uuid)) {
+            throw new AppError(ErrorCodes.MEASURE_UNIT.DECIMALS_IN_USE, undefined, undefined, { uuid });
+        }
         Object.assign(unit, body);
         return MeasureUnitService.toUnit(await this.repo.save(unit));
     }
 
+    private isUsed(uuid: string): Promise<boolean> {
+        return AppDataSource.getRepository(Product).exists({ where: { measureUnitUuid: uuid } });
+    }
+
     async delete(companyUuid: string, uuid: string): Promise<void> {
         const unit = await this.findOrFail(companyUuid, uuid);
-        if (await AppDataSource.getRepository(Product).exists({ where: { measureUnitUuid: uuid } })) {
+        if (await this.isUsed(uuid)) {
             throw new AppError(ErrorCodes.MEASURE_UNIT.IN_USE);
         }
         await this.repo.remove(unit);
