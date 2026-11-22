@@ -14,5 +14,5 @@ export const companySide: ITestSide<ICompanySideContext> = {
         const [companyA, companyB] = await Promise.all([createCompany(context, "A"), createCompany(context, "B")]);
         return { ...context, companyA, companyB };
     },
-    suites: [stockOutSuite, stockInSuite, stockConcurrencySuite, supplierReturnSuite, stockInAfterReturnsSuite],
+    suites: [stockInSuite, stockOutSuite, stockConcurrencySuite, supplierReturnSuite, stockInAfterReturnsSuite],
 };
