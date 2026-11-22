@@ -1,4 +1,17 @@
+import type { ErrorCode } from 'armstock-shared';
+
 export default {
+  language: {
+    label: 'Language',
+    names: {
+      hy: 'Հայերեն',
+      en: 'English',
+    },
+    short: {
+      hy: 'ՀԱՅ',
+      en: 'EN',
+    },
+  },
   scanner: {
     notFound: 'No product with barcode {barcode}.',
     notFoundTitle: 'Product not found',
@@ -846,6 +859,8 @@ export default {
     returned: 'returned {quantity} {unit}',
   },
   errors: {
+    SERVER_INTERNAL_ERROR: 'Something went wrong on the server. Please try again.',
+    VALIDATION_ERROR: 'Some data is not filled in correctly. Check it and try again.',
     AUTH_INVALID_CREDENTIALS: 'Wrong email or password.',
     AUTH_UNAUTHORIZED: 'Your session has ended. Please sign in again.',
     AUTH_FORBIDDEN: 'You do not have access to this.',
@@ -885,5 +900,5 @@ export default {
     STOCK_IN_BELOW_RETURNED: 'Part of these goods was already returned to the supplier.',
     STOCK_NOT_ENOUGH: 'Not enough stock - this change would make a product go below zero.',
     RATE_LIMIT_TOO_MANY_REQUESTS: 'Too many attempts. Please wait a few minutes and try again.',
-  },
+  } satisfies Record<ErrorCode, string>,
 };

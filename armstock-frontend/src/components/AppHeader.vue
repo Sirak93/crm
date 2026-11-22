@@ -2,6 +2,7 @@
 import { Menu } from 'lucide-vue-next';
 import { BRAND } from 'armstock-shared';
 import logoIcon from 'armstock-assets/brand/logo-animated.svg';
+import LanguageSwitcher from './LanguageSwitcher.vue';
 import ProfileDropdown from './ProfileDropdown.vue';
 import ScannerConnectButton from './ScannerConnectButton.vue';
 
@@ -26,6 +27,7 @@ defineEmits<{ 'toggle-sidebar': [] }>();
 
     <div class="app-header__end">
       <ScannerConnectButton />
+      <LanguageSwitcher />
       <ProfileDropdown />
     </div>
   </header>

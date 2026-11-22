@@ -1,4 +1,14 @@
-export const DEFAULT_LOCALE = 'en';
+export const LOCALE = {
+  HY: 'hy',
+  EN: 'en',
+} as const;
+
+export type Locale = typeof LOCALE[keyof typeof LOCALE];
+
+export const DEFAULT_LOCALE: Locale = LOCALE.HY;
+/** Shown when a key is missing in the active language, so the user never sees a raw key. */
+export const FALLBACK_LOCALE: Locale = LOCALE.EN;
+export const LOCALE_STORAGE_KEY = 'locale';
 
 /**
  * Where the tokens live. Shared so ApiService can read the access token per request without

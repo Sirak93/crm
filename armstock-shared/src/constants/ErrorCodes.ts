@@ -196,3 +196,8 @@ export const ErrorCodes = {
         },
     },
 } as const;
+
+type CodesOf<T> = T extends { CODE: infer C } ? C : { [K in keyof T]: CodesOf<T[K]> }[keyof T];
+
+/** Every error code the API can return. */
+export type ErrorCode = CodesOf<typeof ErrorCodes>;
