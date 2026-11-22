@@ -642,8 +642,13 @@ uuid, and another company's uuid.
 17. - [x] **Company profile** - get and edit; who may do it
 18. - [ ] **Platform: companies and their users** - list, create, edit, status, get, roles;
         users list, create, edit, status; company users can't call any platform route
+        - [ ] Open bug: an unknown company's roles and users answer 200 with an empty list
+              (create user: "role not found") instead of `COMPANY_NOT_FOUND`. Fix to be discussed
 19. - [ ] **Platform: database and logs** - storage info; logs list and clear
-20. - [ ] **Health** - answers without a token
+        - [ ] Open bug: the logs `dateFrom` / `dateTo` filter is off by the DB time zone
+              (`Asia/Yerevan`, 4 h) - the ISO text is compared with a `timestamp` column as is;
+              the stock filters use `new Date(...)`. Fix to be discussed
+20. - [x] **Health** - answers without a token
 
 - [ ] Lint and build pass
 - [ ] Tester run passes

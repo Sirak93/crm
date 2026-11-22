@@ -12,6 +12,7 @@ an endpoint.**
 ```bash
 npm test -w armstock-backend               # every side
 npm run test:company -w armstock-backend       # only the company side
+npm run test:platform -w armstock-backend      # only the platform side
 npm run test:rate-limits -w armstock-backend   # only the rate-limits side
 ```
 
@@ -112,6 +113,17 @@ own small task.
 | Options (pickers) | called by a member with no permissions; products: active only, sorted, only stock-line fields; for a stock-out archived with stock too, never at 0; for a return only what the supplier brought; search by code, exact barcode; at most the picker limit; bad query; suppliers: every status, active only on request, no tax id / note / contacts; receivers: every user incl. without login, active first, no email; roles: names only, sorted as the DB sorts |
 | Company profile | own company; the Owner sees it with exact keys; edit saves every field trimmed, empty as null, status can't be changed here; bad bodies; a member with COMPANY_EDIT sees and edits, one without can't; each company only its own |
 
+### Platform side
+
+Its backend always logs requests to the DB (`API_DB_LOG_ENABLED=true`) and has a "slow" threshold
+no request reaches, whatever `.env` says. Suites make the companies they need.
+
+| Suite      | Covered                                                                 |
+| ---------- | ----------------------------------------------------------------------- |
+| Platform: companies and their users | create with its Owner (can log in) and default units, categories, roles; bad bodies and a taken Owner email save nothing; get, edit (trimmed, empty as null, never the status); unknown and malformed company; block and unblock; list newest first, search, paging; the company's users incl. the Owner, never another company's; create a user (role's permissions copied); the Platform Owner edits and blocks the company Owner, can't turn its login off; a user only through their own company; **open:** an unknown company's roles and users; company users and no token refused |
+| Platform: database and logs | storage of the scratch database, totals add up; a successful request logged with user and company, no payload; a failed one with its payload, password and refresh token masked - also in the DB; filters by method, success, slow, date (**open:** date filter), paging, newest first, bad query; company users and no token refused, can't clear; clear removes every older row |
+| Health | answers without a token, database and Redis up |
+
 ### Rate-limits side
 
 | Suite      | Covered                                                                 |
@@ -125,5 +137,4 @@ In order, as in `documents/planning/mvp-foundation/tasks.md` (Step 15):
 - **Session revocation** - 4 auth cases are skipped, marked `[open: session revocation]`:
   an old access token comes back after a new login, after login is turned on again, and a
   new password ends no session. Fix postponed - see suite 9 in `tasks.md`
-- Platform side: companies and their users; database and logs
-- Health
+- Two open platform bugs, one failing case each - see suites 18 and 19 in `tasks.md`

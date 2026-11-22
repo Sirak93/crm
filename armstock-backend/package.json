@@ -12,7 +12,8 @@
     "lint": "tsc --noEmit",
     "test": "npm run build:shared && ts-node --transpile-only src/scripts/tester/Run.ts",
     "test:company": "npm run build:shared && ts-node --transpile-only src/scripts/tester/Run.ts company",
-    "test:rate-limits": "npm run build:shared && ts-node --transpile-only src/scripts/tester/Run.ts rate-limits"
+    "test:rate-limits": "npm run build:shared && ts-node --transpile-only src/scripts/tester/Run.ts rate-limits",
+    "test:platform": "npm run build:shared && ts-node --transpile-only src/scripts/tester/Run.ts platform"
   },
   "dependencies": {
     "armstock-shared": "*",
