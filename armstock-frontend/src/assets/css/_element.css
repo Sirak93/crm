@@ -235,3 +235,50 @@
 .el-picker-panel__shortcut {
     font-size: var(--text-base) !important;
 }
+
+/* Phones: two months side by side plus shortcuts (~650px) don't fit - stack them, shortcuts on top. */
+@media (max-width: 575px) {
+    .el-date-range-picker.el-picker-panel {
+        width: calc(100vw - 2rem) !important;
+    }
+
+    .el-date-range-picker .el-picker-panel__body-wrapper {
+        max-height: 70vh;
+        overflow-y: auto;
+    }
+
+    .el-date-range-picker .el-picker-panel__sidebar {
+        position: static;
+        width: auto;
+        display: flex;
+        flex-wrap: wrap;
+        gap: 0.375rem;
+        padding: 0.75rem;
+        border-right: none;
+        border-bottom: 1px solid var(--border);
+    }
+
+    .el-date-range-picker .el-picker-panel__shortcut {
+        width: auto;
+        padding: 4px 10px;
+        border: 1px solid var(--border);
+        border-radius: 999px;
+        font-size: var(--text-sm) !important;
+        line-height: 1.4;
+    }
+
+    .el-date-range-picker .el-picker-panel__body {
+        min-width: 0;
+        margin-left: 0 !important;
+    }
+
+    .el-date-range-picker__content {
+        float: none;
+        width: 100%;
+    }
+
+    .el-date-range-picker__content.is-left {
+        border-right: none;
+        border-bottom: 1px solid var(--border);
+    }
+}
