@@ -569,8 +569,8 @@ changes how an existing helper works - if a helper must change, that is its own 
 - [x] User builder: make a user with exactly the permissions a case needs (for the
       permission checks)
 - [ ] Data builders: unit, category, product, supplier (+ contact), stock-in, stock-out -
-      each one call with sensible defaults, any field can be overridden (product, supplier,
-      stock-in, stock-out done; unit, category, contact come with their suites)
+      each one call with sensible defaults, any field can be overridden (category, product,
+      supplier, stock-in, stock-out done; unit and contact come with their suites)
 - [x] Stock check helper: read a product's stock from the database and compare it with what
       the documents add up to
 - [ ] Route list: every company route with its method, path and required permission - one
@@ -597,7 +597,7 @@ uuid, and another company's uuid.
        editing a return doesn't count itself
 5. - [x] **Stock-in after returns** - edit down above and below the returned amount, delete,
        change supplier, change Purchase → Other
-6. - [ ] **Stock balance** - `/stock/balance` and its summary match the documents; filters
+6. - [x] **Stock balance** - `/stock/balance` and its summary match the documents; filters
        and paging
 7. - [ ] **Company isolation** - every company route, called with the other company's
        uuids, gives 404 and changes nothing

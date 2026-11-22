@@ -66,7 +66,7 @@ own small task.
   Accountant, HR and Staff (no permissions), all logged in.
 - `Accounts.createMember` - a logged-in user with exactly the permissions a case needs;
   `createNoLoginUser` - a user without login (a stock-out receiver).
-- `Builders` - `createProduct`, `createSupplier`, `createStockIn`, `createStockOut`, with
+- `Builders` - `createCategory`, `createProduct`, `createSupplier`, `createStockIn`, `createStockOut`, with
   defaults; `stockInBody` / `stockOutBody` to send a slightly wrong body.
 - `Stock.stockOf` / `expectStock` - a product's stock summed straight from the database.
 - `Http.rejects` - checks error code, status, and that the message shows nothing internal;
@@ -85,11 +85,12 @@ own small task.
 | Returns to a supplier | the decisions.md example (20 L brought, 5 L returned: 25 refused "can return 15", 10 fine); a product it never brought (0); two returns that together go over; editing a return doesn't count itself; each supplier counted on its own; changing a return to another reason or deleting it frees the amount; a return the supplier allows still needs the stock |
 | Stock-in after returns | 20 L brought, 15 L returned: edit to 18 and to 15 fine, to 10 refused; delete, change supplier, change Purchase to Other / Initial stock, replace the product - refused "returned 15 L"; other edits still work; two stock-ins from one supplier; after the return is deleted the stock-in can go |
 
+| Stock balance | only products in stock by default, sorted by name; quantity, average price (from totals, not the rounded price) and value; products at 0 with `inStockOnly=false`; archived with stock shown, archived at 0 never; every quantity matches the database; summary total value and count; category filter; search by code; paging; bad query; Accountant sees, HR / Staff / no token / Platform Owner don't; other company sees nothing |
+
 ### Still open
 
 In order, as in `documents/planning/mvp-foundation/tasks.md` (Step 15):
 
-- Stock balance
 - Company isolation for every route; permissions for every route; auth and sessions
 - Company users; roles; products; suppliers and contacts; categories; units; options; company profile
 - Platform side: companies and their users; database and logs

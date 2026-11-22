@@ -37,6 +37,11 @@ export const findCategory = async (actor: ITestUser): Promise<IProductCategory> 
     return data[0];
 };
 
+export const createCategory = async (actor: ITestUser, body: Record<string, unknown> = {}): Promise<IProductCategory> => {
+    const { data } = await actor.api.ok<IProductCategory>("POST", PATHS.PRODUCT_CATEGORIES, { name: uniqueName("Category"), ...body });
+    return data;
+};
+
 interface IProductOptions {
     allowsDecimals?: boolean;
     body?: Record<string, unknown>;
