@@ -6,7 +6,6 @@ export const STOCK_OUT_REASONS = [
   StockOutReason.RETURNED,
   StockOutReason.DAMAGED,
   StockOutReason.EXPIRED,
-  StockOutReason.SPOILED,
   StockOutReason.OTHER,
 ];
 
@@ -15,7 +14,6 @@ export const STOCK_OUT_REASON_LABEL: Record<StockOutReason, string> = {
   [StockOutReason.ISSUED]: 'stockOut.reasons.issued',
   [StockOutReason.DAMAGED]: 'stockOut.reasons.damaged',
   [StockOutReason.EXPIRED]: 'stockOut.reasons.expired',
-  [StockOutReason.SPOILED]: 'stockOut.reasons.spoiled',
   [StockOutReason.OTHER]: 'stockOut.reasons.other',
 };
 

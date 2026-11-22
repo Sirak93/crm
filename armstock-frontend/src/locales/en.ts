@@ -579,7 +579,6 @@ export default {
       issued: 'Issued',
       damaged: 'Damaged',
       expired: 'Expired',
-      spoiled: 'Spoiled',
       other: 'Other',
     },
     departments: {

@@ -5,7 +5,6 @@ export enum StockOutReason {
     ISSUED = 20,
     DAMAGED = 30,
     EXPIRED = 40,
-    SPOILED = 50,
     /** Anything else - note required. */
     OTHER = 60,
 }

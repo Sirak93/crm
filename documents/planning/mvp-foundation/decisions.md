@@ -302,10 +302,10 @@ Lines: product, quantity. No price.
 | --- | --- | --- | --- |
 | Returned | Supplier, required | — | optional |
 | Issued | Department, required (`StockOutDepartment`: Kitchen for now) | optional | optional |
-| Damaged / Expired / Spoiled | — (a loss) | — | optional |
+| Damaged / Expired | — (a loss) | — | optional |
 | Other | — | — | required |
 
-Damaged, Expired and Spoiled stay separate so a later report can show why goods were lost.
+Damaged and Expired stay separate so a later report can show why goods were lost.
 The department is a code enum, not a table; more values are added when needed. The
 receiver picker shows active users first, then blocked and archived ones with their tag,
 because a document may be entered days after the person left.

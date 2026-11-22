@@ -346,7 +346,7 @@ Each is its own top-level menu item.
 ## Step 13 — Stock-out documents
 
 - [x] Shared enums
-  - [x] `StockOutReason` — Returned, Issued, Damaged, Expired, Spoiled, Other
+  - [x] `StockOutReason` — Returned, Issued, Damaged, Expired, Other
   - [x] `StockOutDepartment` — Kitchen (more values later)
 - [x] Tables
   - [x] `StockOut` (header): company, number (`OUT-2026-0015`, same rule as stock-in),
@@ -355,7 +355,7 @@ Each is its own top-level menu item.
 - [x] Rules
   - [x] Returned → supplier required (active suppliers only)
   - [x] Issued → department required (form fills in Kitchen); receiver optional
-  - [x] Damaged / Expired / Spoiled → no supplier, department, or receiver
+  - [x] Damaged / Expired → no supplier, department, or receiver
   - [x] Other → note required; note optional for every other reason
   - [x] Receiver picker: active users first, then blocked and archived ones with their
         tag (goods may be entered days later, after the person left)

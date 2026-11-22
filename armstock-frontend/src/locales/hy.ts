@@ -579,7 +579,6 @@ const hy: typeof en = {
       issued: 'Տրամադրում',
       damaged: 'Վնասված',
       expired: 'Ժամկետանց',
-      spoiled: 'Փչացած',
       other: 'Այլ',
     },
     departments: {
