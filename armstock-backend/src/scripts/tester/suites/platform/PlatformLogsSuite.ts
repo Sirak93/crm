@@ -92,6 +92,14 @@ export default (context: ITestContext) => defineSuite("Platform: database and lo
         const future = encodeURIComponent(new Date(Date.now() + 60_000).toISOString());
         matches((await api.ok<IApiLog[]>("GET", `${PATHS.PLATFORM_LOGS}?dateFrom=${future}`)).data, [], "nothing in the future");
 
+        // A request from just now is inside "the last minute" and outside "until a minute ago".
+        const minuteAgo = encodeURIComponent(new Date(Date.now() - 60_000).toISOString());
+        await company.owner.api.ok("GET", PATHS.AUTH_USER);
+        const isFresh = (l: IApiLog) => l.user?.uuid === company.owner.uuid && l.path === PATHS.AUTH_USER;
+        await logsFor(`dateFrom=${minuteAgo}&path=${encodeURIComponent(PATHS.AUTH_USER)}`, isFresh);
+        const before = (await api.ok<IApiLog[]>("GET", `${PATHS.PLATFORM_LOGS}?pageSize=100&dateTo=${minuteAgo}`)).data;
+        isTrue(!before.some(isFresh), "a request from just now is not before a minute ago");
+
         const total = await db.count("api_logs");
         const page = await api.ok<IApiLog[]>("GET", `${PATHS.PLATFORM_LOGS}?page=1&pageSize=5`);
         isTrue(page.meta.total >= total, "total counts every row");

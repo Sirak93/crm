@@ -644,10 +644,12 @@ uuid, and another company's uuid.
         users list, create, edit, status; company users can't call any platform route
         - [ ] Open bug: an unknown company's roles and users answer 200 with an empty list
               (create user: "role not found") instead of `COMPANY_NOT_FOUND`. Fix to be discussed
-19. - [ ] **Platform: database and logs** - storage info; logs list and clear
-        - [ ] Open bug: the logs `dateFrom` / `dateTo` filter is off by the DB time zone
-              (`Asia/Yerevan`, 4 h) - the ISO text is compared with a `timestamp` column as is;
-              the stock filters use `new Date(...)`. Fix to be discussed
+19. - [x] **Platform: database and logs** - storage info; logs list and clear
+        - [x] Bug found and fixed: the logs `dateFrom` / `dateTo` filter was off by the DB time
+              zone (`Asia/Yerevan`, 4 h) - ISO text compared with a local `timestamp` column.
+              Now converted with `new Date(...)` like the stock filters
+        - Prod check: the server's Node and Postgres must use the same time zone (`date`,
+          `SHOW timezone;`) - display and every date filter rely on it
 20. - [x] **Health** - answers without a token
 
 - [ ] Lint and build pass

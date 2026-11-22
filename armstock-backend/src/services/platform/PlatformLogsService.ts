@@ -18,8 +18,9 @@ export class PlatformLogsService {
         if (ip) qb.andWhere("log.ip ILIKE :ip", { ip: `%${ip}%` });
         if (slow !== undefined) qb.andWhere("log.slow = :slow", { slow });
         if (success !== undefined) qb.andWhere("log.success = :success", { success });
-        if (dateFrom) qb.andWhere("log.createdAt >= :dateFrom", { dateFrom });
-        if (dateTo) qb.andWhere("log.createdAt <= :dateTo", { dateTo });
+        // As Dates, like the stock filters: the column is a local-time `timestamp`, so raw ISO text would be read as local time.
+        if (dateFrom) qb.andWhere("log.createdAt >= :dateFrom", { dateFrom: new Date(dateFrom) });
+        if (dateTo) qb.andWhere("log.createdAt <= :dateTo", { dateTo: new Date(dateTo) });
 
         const [rows, total] = await qb
             .orderBy("log.createdAt", "DESC")
