@@ -110,6 +110,9 @@ own small task.
 
 In order, as in `documents/planning/mvp-foundation/tasks.md` (Step 15):
 
+- **Session revocation** - 4 auth cases are skipped, marked `[open: session revocation]`:
+  an old access token comes back after a new login, after login is turned on again, and a
+  new password ends no session. Fix postponed - see suite 9 in `tasks.md`
 - Company users; roles; products; suppliers and contacts; categories; units; options; company profile
 - Platform side: companies and their users; database and logs
 - Health

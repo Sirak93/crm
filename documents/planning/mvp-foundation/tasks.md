@@ -604,6 +604,24 @@ uuid, and another company's uuid.
        allows one with it
 9. - [x] **Auth and sessions** - login, refresh, logout, current user; wrong password;
        turned-off user and turned-off company are locked out; login rate limit
+       - [ ] **Open security issue - session revocation** (found by the tester, fix postponed).
+             Logout, a new password and login turned off should end every old session for
+             good. Today the "tokens before now are dead" mark (`revokedBefore`) lives only in
+             the Redis snapshot: a new login or refresh overwrites it, and a cache expiry or
+             Redis restart loses it - an old access token then works again until it expires
+             (up to `JWT_EXPIRES_IN`, 15 min). Refresh tokens are fine (cleared in the DB).
+             Also: a new password ends no session at all today. Blocking is not affected
+             (status is in the DB). Danger: low-medium - needs an already stolen token.
+             - Agreed direction: store the revoke time in the DB (`users.sessions_revoked_at`),
+               the snapshot reads it from the user row, login never clears it; compare in whole
+               seconds (JWT `iat` has seconds only). Same design and same gap in armlytic -
+               checked there separately (`armlytic/documents/planning/session-revocation/`)
+             - To decide at fix time: changing **your own** password must not log you out -
+               recommended: end all sessions, then return a fresh token pair to the caller
+               (small frontend change); a password set by someone else logs the user out
+             - 4 tester cases wait for it, marked `[open: session revocation]` (skipped)
+             - Side note: two logins of one user in the same second get the same refresh
+               token (no unique id in the JWT) - harmless, keep in mind when testing
 10. - [ ] **Company users** - list, summary, create (with and without login), edit, access,
         status; can't change own permissions or role; Owner account can't be touched from
         the company side; `USER_ADD` / `USER_EDIT` / `MANAGE_USER_PERMISSIONS` limits

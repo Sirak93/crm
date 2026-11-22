@@ -22,7 +22,10 @@ import type { ITestUser } from "../../interfaces/ITestUser";
 const AUTH_USER_KEYS = ["uuid", "email", "accountType", "permissions", "status", "firstName", "lastName", "lastLoginAt"];
 const ONE_HOUR_SECONDS = 60 * 60;
 
-export default (context: ICompanySideContext) => defineSuite("Auth and sessions", (test) => {
+// Skipped until the session revocation fix: see Step 15 in documents/planning/mvp-foundation/tasks.md.
+const OPEN = "[open: session revocation]";
+
+export default (context: ICompanySideContext) => defineSuite("Auth and sessions", (test, skip) => {
     const { db, anonymous, companyA } = context;
 
     /** A fresh member, so blocking or logging out never touches the shared fixture users. */
@@ -166,6 +169,61 @@ export default (context: ICompanySideContext) => defineSuite("Auth and sessions"
 
         const password = randomPassword();
         await companyA.owner.api.ok("PUT", path, { ...names, canLogIn: true, email: member.email, password });
+        await login(anonymous, member.email, password);
+    });
+
+    skip(`${OPEN} after logout and a new login, the old access token stays dead`, async () => {
+        const member = await freshMember();
+        const { token } = await fullLogin(member);
+        await withToken(token).ok("POST", PATHS.LOGOUT);
+        await login(anonymous, member.email, member.password);
+        await withToken(token).rejects("GET", PATHS.AUTH_USER, ErrorCodes.AUTH.UNAUTHORIZED);
+    });
+
+    skip(`${OPEN} login turned off and on again: the old access token stays dead`, async () => {
+        const member = await freshMember();
+        const { token } = await fullLogin(member);
+        const path = `${PATHS.COMPANY_USERS}/${member.uuid}`;
+        const names = { firstName: "Tester", lastName: "Login off" };
+        await companyA.owner.api.ok("PUT", path, { ...names, canLogIn: false });
+        const password = randomPassword();
+        await companyA.owner.api.ok("PUT", path, { ...names, canLogIn: true, email: member.email, password });
+        await login(anonymous, member.email, password);
+        await withToken(token).rejects("GET", PATHS.AUTH_USER, ErrorCodes.AUTH.UNAUTHORIZED);
+    });
+
+    skip(`${OPEN} a new password set by someone else logs the user out everywhere; an edit without a password doesn't`, async () => {
+        const member = await freshMember();
+        const { token, refreshToken } = await fullLogin(member);
+        const path = `${PATHS.COMPANY_USERS}/${member.uuid}`;
+        const fields = { firstName: "Tester", lastName: "Password", canLogIn: true, email: member.email };
+
+        await companyA.owner.api.ok("PUT", path, { ...fields, lastName: "Renamed" });
+        await withToken(token).ok("GET", PATHS.AUTH_USER);
+        await anonymous.ok("POST", PATHS.REFRESH, { refreshToken });
+
+        const password = randomPassword();
+        await companyA.owner.api.ok("PUT", path, { ...fields, password });
+        await withToken(token).rejects("GET", PATHS.AUTH_USER, ErrorCodes.AUTH.UNAUTHORIZED);
+        await anonymous.rejects("POST", PATHS.REFRESH, ErrorCodes.AUTH.UNAUTHORIZED, { refreshToken });
+        await anonymous.rejects("POST", PATHS.LOGIN, ErrorCodes.AUTH.INVALID_CREDENTIALS, loginBody(member));
+        const fresh = await login(anonymous, member.email, password);
+        await fresh.api.ok("GET", PATHS.AUTH_USER);
+    });
+
+    skip(`${OPEN} a new password set by the Platform Owner logs the user out too`, async () => {
+        const member = await freshMember();
+        const { token, refreshToken } = await fullLogin(member);
+        const password = randomPassword();
+        await context.platformOwner.api.ok("PUT", `${PATHS.PLATFORM_COMPANIES}/${companyA.uuid}/users/${member.uuid}`, {
+            firstName: "Tester",
+            lastName: "Platform password",
+            canLogIn: true,
+            email: member.email,
+            password,
+        });
+        await withToken(token).rejects("GET", PATHS.AUTH_USER, ErrorCodes.AUTH.UNAUTHORIZED);
+        await anonymous.rejects("POST", PATHS.REFRESH, ErrorCodes.AUTH.UNAUTHORIZED, { refreshToken });
         await login(anonymous, member.email, password);
     });
 
