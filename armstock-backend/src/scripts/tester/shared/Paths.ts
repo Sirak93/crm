@@ -4,7 +4,9 @@ import { API_PATH } from "armstock-shared";
 export const PATHS = {
     LOGIN: `${API_PATH}/auth/login`,
     PLATFORM_COMPANIES: `${API_PATH}/platform/companies`,
+    COMPANY: `${API_PATH}/company`,
     COMPANY_USERS: `${API_PATH}/company/users`,
+    OPTIONS: `${API_PATH}/options`,
     ROLES: `${API_PATH}/roles`,
     MEASURE_UNITS: `${API_PATH}/measure-units`,
     PRODUCT_CATEGORIES: `${API_PATH}/product-categories`,

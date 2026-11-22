@@ -66,9 +66,13 @@ own small task.
   Accountant, HR and Staff (no permissions), all logged in.
 - `Accounts.createMember` - a logged-in user with exactly the permissions a case needs;
   `createNoLoginUser` - a user without login (a stock-out receiver).
-- `Builders` - `createCategory`, `createProduct`, `createSupplier`, `createStockIn`, `createStockOut`, with
+- `Builders` - `createUnit`, `createCategory`, `createProduct`, `createSupplier`, `createContact`, `createStockIn`, `createStockOut`, with
   defaults; `stockInBody` / `stockOutBody` to send a slightly wrong body.
 - `Stock.stockOf` / `expectStock` - a product's stock summed straight from the database.
+- `CompanyRoutes.COMPANY_ROUTES` - every company route with its permission, what its
+  `:uuid` points at, and a valid body. **Add a new company route here** - the Permissions
+  suite fails while the table and the app's routers differ.
+- `CompanySnapshot.companySnapshot` - a fingerprint of all one company's tables.
 - `Http.rejects` - checks error code, status, and that the message shows nothing internal;
   `Http.rejectsField` - a validation error that names the field.
 
@@ -87,11 +91,14 @@ own small task.
 
 | Stock balance | only products in stock by default, sorted by name; quantity, average price (from totals, not the rounded price) and value; products at 0 with `inStockOnly=false`; archived with stock shown, archived at 0 never; every quantity matches the database; summary total value and count; category filter; search by code; paging; bad query; Accountant sees, HR / Staff / no token / Platform Owner don't; other company sees nothing |
 
+| Company isolation | company A's Owner calls every company route that takes a uuid with company B's real ids and a valid body - each gives that record's "not found"; A's supplier with B's contact; no list or picker shows any of B's ids; filters by B's records find nothing; A can't use B's category, unit or role in a body; a fingerprint of all B's tables is unchanged at the end |
+| Permissions | the route table matches the app's routers exactly; every route refuses a user with every permission but its own, and lets through a user with only its own; open routes let through a member with no permissions; the Owner is let through everywhere; no token is refused everywhere; the Platform Owner is refused everywhere; a permission turned off works on the next request |
+
 ### Still open
 
 In order, as in `documents/planning/mvp-foundation/tasks.md` (Step 15):
 
-- Company isolation for every route; permissions for every route; auth and sessions
+- Auth and sessions
 - Company users; roles; products; suppliers and contacts; categories; units; options; company profile
 - Platform side: companies and their users; database and logs
 - Rate-limits side; health

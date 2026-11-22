@@ -5,6 +5,8 @@ import stockConcurrencySuite from "../suites/company/StockConcurrencySuite";
 import supplierReturnSuite from "../suites/company/SupplierReturnSuite";
 import stockInAfterReturnsSuite from "../suites/company/StockInAfterReturnsSuite";
 import stockBalanceSuite from "../suites/company/StockBalanceSuite";
+import companyIsolationSuite from "../suites/company/CompanyIsolationSuite";
+import permissionsSuite from "../suites/company/PermissionsSuite";
 import type { ICompanySideContext } from "../interfaces/ICompanySideContext";
 import type { ITestSide } from "../interfaces/ITestSide";
 
@@ -15,5 +17,14 @@ export const companySide: ITestSide<ICompanySideContext> = {
         const [companyA, companyB] = await Promise.all([createCompany(context, "A"), createCompany(context, "B")]);
         return { ...context, companyA, companyB };
     },
-    suites: [stockInSuite, stockOutSuite, stockConcurrencySuite, supplierReturnSuite, stockInAfterReturnsSuite, stockBalanceSuite],
+    suites: [
+        stockInSuite,
+        stockOutSuite,
+        stockConcurrencySuite,
+        supplierReturnSuite,
+        stockInAfterReturnsSuite,
+        stockBalanceSuite,
+        companyIsolationSuite,
+        permissionsSuite,
+    ],
 };

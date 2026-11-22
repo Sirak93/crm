@@ -568,14 +568,13 @@ changes how an existing helper works - if a helper must change, that is its own 
       Storekeeper, Accountant, HR and a user with no permissions; logged in, tokens ready
 - [x] User builder: make a user with exactly the permissions a case needs (for the
       permission checks)
-- [ ] Data builders: unit, category, product, supplier (+ contact), stock-in, stock-out -
-      each one call with sensible defaults, any field can be overridden (category, product,
-      supplier, stock-in, stock-out done; unit and contact come with their suites)
+- [x] Data builders: unit, category, product, supplier (+ contact), stock-in, stock-out -
+      each one call with sensible defaults, any field can be overridden
 - [x] Stock check helper: read a product's stock from the database and compare it with what
       the documents add up to
-- [ ] Route list: every company route with its method, path and required permission - one
-      table that the permission and company-isolation suites both loop over (built with
-      those suites)
+- [x] Route list: every company route with its method, path and required permission - one
+      table that the permission and company-isolation suites both loop over; a check fails
+      the run when the table and the app's routers differ
 - [x] Common checks: bad body → 422 with field errors; unknown uuid → 404; no token → 401;
       error message never shows internal details
 
@@ -599,9 +598,9 @@ uuid, and another company's uuid.
        change supplier, change Purchase → Other
 6. - [x] **Stock balance** - `/stock/balance` and its summary match the documents; filters
        and paging
-7. - [ ] **Company isolation** - every company route, called with the other company's
+7. - [x] **Company isolation** - every company route, called with the other company's
        uuids, gives 404 and changes nothing
-8. - [ ] **Permissions** - every company route refuses a user without its permission and
+8. - [x] **Permissions** - every company route refuses a user without its permission and
        allows one with it
 9. - [ ] **Auth and sessions** - login, refresh, logout, current user; wrong password;
        turned-off user and turned-off company are locked out; login rate limit

@@ -9,6 +9,7 @@ import {
     type IStockInDetails,
     type IStockOutDetails,
     type ISupplier,
+    type ISupplierContact,
 } from "armstock-shared";
 import { PATHS } from "./Paths";
 import { uniqueName } from "./Random";
@@ -37,6 +38,16 @@ export const findCategory = async (actor: ITestUser): Promise<IProductCategory> 
     return data[0];
 };
 
+export const createUnit = async (actor: ITestUser, body: Record<string, unknown> = {}): Promise<IMeasureUnit> => {
+    const { data } = await actor.api.ok<IMeasureUnit>("POST", PATHS.MEASURE_UNITS, {
+        name: uniqueName("Unit"),
+        shortName: uniqueName("u").slice(-8),
+        allowsDecimals: false,
+        ...body,
+    });
+    return data;
+};
+
 export const createCategory = async (actor: ITestUser, body: Record<string, unknown> = {}): Promise<IProductCategory> => {
     const { data } = await actor.api.ok<IProductCategory>("POST", PATHS.PRODUCT_CATEGORIES, { name: uniqueName("Category"), ...body });
     return data;
@@ -60,6 +71,11 @@ export const createProduct = async (actor: ITestUser, { allowsDecimals = false, 
 
 export const createSupplier = async (actor: ITestUser, body: Record<string, unknown> = {}): Promise<ISupplier> => {
     const { data } = await actor.api.ok<ISupplier>("POST", PATHS.SUPPLIERS, { name: uniqueName("Supplier"), ...body });
+    return data;
+};
+
+export const createContact = async (actor: ITestUser, supplierUuid: string, body: Record<string, unknown> = {}): Promise<ISupplierContact> => {
+    const { data } = await actor.api.ok<ISupplierContact>("POST", `${PATHS.SUPPLIERS}/${supplierUuid}/contacts`, { name: uniqueName("Contact"), ...body });
     return data;
 };
 
