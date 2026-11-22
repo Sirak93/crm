@@ -16,3 +16,9 @@ build/
 *.log
 
 tmp/
+
+# Netlify CLI local state
+.netlify/
+
+# Deploy script holds the Netlify token
+/deploy-frontend.sh
