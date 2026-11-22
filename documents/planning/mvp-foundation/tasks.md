@@ -630,12 +630,12 @@ uuid, and another company's uuid.
               otherwise `USER_EDIT` could log in as someone with more rights
 11. - [x] **Roles** - create, edit, apply to users, delete; delete refused while users have
         the role
-12. - [ ] **Products** - list, create, edit, status, delete; delete rules once the product is
+12. - [x] **Products** - list, create, edit, status, delete; delete rules once the product is
         used in documents
-13. - [ ] **Suppliers and contacts** - list, create, edit, status, delete; add, edit, delete
+13. - [x] **Suppliers and contacts** - list, create, edit, status, delete; add, edit, delete
         contact; delete rules once used in documents
-14. - [ ] **Product categories** - list, create, edit, delete; delete rules while in use
-15. - [ ] **Measure units** - list, create, edit, delete; delete rules while in use
+14. - [x] **Product categories** - list, create, edit, delete; delete rules while in use
+15. - [x] **Measure units** - list, create, edit, delete; delete rules while in use
 16. - [ ] **Options** - products, suppliers, receivers, roles: only active, only own company
 17. - [ ] **Company profile** - get and edit; who may do it
 18. - [ ] **Platform: companies and their users** - list, create, edit, status, get, roles;

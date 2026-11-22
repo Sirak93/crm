@@ -104,6 +104,11 @@ own small task.
 
 | Roles | create (trimmed name, each permission once, no users); bad bodies; name taken in any case, free in another company; only the Owner puts MANAGE_USER_PERMISSIONS into a role; edit changes name and permissions, users keep theirs unless applied; rename to a taken name; apply to users - users with login get the role's set, without login stay empty, other roles untouched; apply works on open sessions at once; a manager applying keeps each user's MANAGE_USER_PERMISSIONS and skips themselves; the Owner applying sets it as in the role; delete refused while users have it (archived too) with the count, works once they moved; list sorted as the DB sorts with matching user counts; unknown and malformed uuid |
 
+| Products | create active with unit and category, empty code/barcode as null; bad bodies; unknown unit or category; code unique ignoring case, barcode unique, both free in another company, many without either; edit changes name, code, barcode, category - never the unit; taken code or barcode on edit; unknown category on edit; archive and back; unused product deleted; used in a stock-in or stock-out can't be deleted, even at 0; list sorted by name, filters by category, status, search by name or code, exact barcode; paging; bad query; unknown and malformed uuid |
+| Suppliers and contacts | create active without contacts, empty fields as null; bad bodies; name unique ignoring case incl. archived, free in another company; edit keeps contacts, taken name refused; archive and back; unused supplier deleted with its contacts; used in a stock-in can't be deleted; add contact, empty fields as null; contacts sorted by name; edit and delete contact; a contact only through its own supplier; unknown supplier/contact and malformed uuid; list sorted by name, search, status, paging |
+| Product categories | a new company gets the defaults; create trimmed, bad names; name unique ignoring case, free in another company; rename, taken name refused; delete refused while a product (archived too) uses it, works when free; list sorted as the DB sorts, open to a member without permissions; unknown and malformed uuid |
+| Measure units | a new company gets the defaults; create trimmed, bad bodies; name and short name each unique ignoring case, free in another company; edit, taken short name refused; delete refused while a product uses it, works when free; list sorted as the DB sorts, open to a member without permissions; unknown and malformed uuid |
+
 ### Rate-limits side
 
 | Suite      | Covered                                                                 |
@@ -117,6 +122,6 @@ In order, as in `documents/planning/mvp-foundation/tasks.md` (Step 15):
 - **Session revocation** - 4 auth cases are skipped, marked `[open: session revocation]`:
   an old access token comes back after a new login, after login is turned on again, and a
   new password ends no session. Fix postponed - see suite 9 in `tasks.md`
-- Products; suppliers and contacts; categories; units; options; company profile
+- Options; company profile
 - Platform side: companies and their users; database and logs
 - Health
