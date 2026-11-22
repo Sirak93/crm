@@ -225,3 +225,13 @@
 .cell-text--muted {
     color: var(--text-muted);
 }
+
+/* Armenian "2026 թ. նոյեմբեր" is wider than English and wrapped onto the week days. */
+.el-date-range-picker__header div {
+    font-size: var(--text-sm) !important;
+    white-space: nowrap;
+}
+
+.el-picker-panel__shortcut {
+    font-size: var(--text-base) !important;
+}
