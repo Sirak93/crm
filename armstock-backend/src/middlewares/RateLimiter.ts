@@ -3,7 +3,12 @@ import { RedisStore, type RedisReply } from "rate-limit-redis";
 import { ErrorCodes } from "armstock-shared";
 import { redisClient } from "../config/RedisConfig";
 import { RateLimits, type RateLimitPreset } from "../constants/RateLimits";
+import { NodeEnv } from "../constants/NodeEnv";
 import { AppError } from "../utils/AppError";
+
+// The backend tester starts its own backend with NODE_ENV=test and logs in far more often
+// than a real limit allows; its rate-limits side runs with the real limits.
+const TEST_MAX = 1_000_000;
 
 /**
  * Rate-limit middleware for a named preset, stored in Redis so counts survive a restart.
@@ -14,7 +19,7 @@ export const buildRateLimiter = (preset: RateLimitPreset) => {
 
     return rateLimit({
         windowMs,
-        max,
+        max: process.env.NODE_ENV === NodeEnv.TEST ? TEST_MAX : max,
         standardHeaders: true,
         legacyHeaders: false,
         // Redis down: let the request through instead of failing every login.

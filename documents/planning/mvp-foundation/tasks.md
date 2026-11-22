@@ -535,29 +535,92 @@ Suggested chunks (each: notes → OK → build → lint/build):
 
 A reusable end-to-end tester like armlytic's (`armlytic-backend/src/scripts/tester/`): it
 calls the real HTTP API with real logins and checks the responses and the database. No test
-framework, no new package — runs with `ts-node`.
+framework, no new package — runs with `ts-node`. Where armlytic already made a choice,
+reuse it with the same logic; only armstock-specific points are decided here.
 
-- [ ] Copy the core from armlytic: runner, HTTP client, asserts, DB setup, server start,
-      reporter (JSON + HTML). Leave out armlytic-only parts (Polar, Telegram, surveys)
-- [ ] Each run: own scratch database built with `synchronize` (MVP), own backend on a free
+- [ ] Sides like armlytic: company side, platform side, rate-limits side; `npm test` runs
+      all, `test:company` / `test:platform` / `test:rate-limits` run one. Each side builds
+      its own scratch database and backend; a side that fails to set up doesn't stop the
+      others
+- [ ] Rate limits like armlytic: each side has its own Redis index, so limit counters
+      start at zero; normal suites stay under the limits; the rate-limits side hits them
+      on purpose
+
+- [x] Copy the core from armlytic: runner, HTTP client, asserts, DB setup, server start.
+      Leave out the report files (JSON + HTML) and armlytic-only parts (Polar, Telegram,
+      surveys) - results print in the terminal only: pass/fail per case, failures with
+      the reason, a total at the end
+- [x] Each run: own scratch database built with `synchronize` (MVP), own backend on a free
       port, own Redis index — the dev database and dev server stay untouched; the scratch
       database is dropped at the end
-- [ ] Test logins and passwords from env only (placeholders in `.env.example`)
-- [ ] `npm test -w armstock-backend`; exit code 0 only when everything passed
-- [ ] README in the tester folder as the coverage map: what is tested, what is still open
-- [ ] First suites
-  - [ ] Stock-out: rules per reason, "Not enough stock" with the available quantity,
-        creator-only edit/delete, roles (Accountant only sees)
-  - [ ] Stock-in edit/delete: the same stock error
-  - [ ] Two saves at the same time on the same product: only one goes through
-  - [ ] Permissions: every company route refuses a user without its permission and
-        allows one with it; own permissions and role can't be changed; the Owner account
-        can't be touched from the company side
-  - [ ] Returns to a supplier (examples in decisions.md): return within what it brought;
-        more than it brought; a product it never brought; two returns that together go
-        over; editing a return doesn't count itself
-  - [ ] Stock-in after returns: edit down above and below the returned amount, delete,
-        change supplier, change Purchase → Other
+- [x] Test logins made per run with random passwords (like armlytic), never printed; they
+      live only in the scratch database. No new env vars - the tester reads only the
+      backend's own `DB_*`, `REDIS_*`, `JWT_*`
+- [x] `npm test -w armstock-backend`; exit code 0 only when everything passed
+- [x] README in the tester folder as the coverage map: what is tested, what is still open
+
+### Shared parts (built once, reused by every suite)
+
+A new suite only adds cases and, if needed, new helpers next to the old ones. It never
+changes how an existing helper works - if a helper must change, that is its own small task.
+
+- [x] Fixture: two companies (to check one can't reach the other), each with Owner,
+      Storekeeper, Accountant, HR and a user with no permissions; logged in, tokens ready
+- [x] User builder: make a user with exactly the permissions a case needs (for the
+      permission checks)
+- [ ] Data builders: unit, category, product, supplier (+ contact), stock-in, stock-out -
+      each one call with sensible defaults, any field can be overridden (product, supplier,
+      stock-in, stock-out done; unit, category, contact come with their suites)
+- [x] Stock check helper: read a product's stock from the database and compare it with what
+      the documents add up to
+- [ ] Route list: every company route with its method, path and required permission - one
+      table that the permission and company-isolation suites both loop over (built with
+      those suites)
+- [x] Common checks: bad body → 422 with field errors; unknown uuid → 404; no token → 401;
+      error message never shows internal details
+
+### Suites, most important first
+
+Every suite also checks, for its own routes: the happy path, bad input (Zod), unknown
+uuid, and another company's uuid.
+
+1. - [x] **Stock-out** - rules per reason; "Not enough stock" with the available quantity;
+       creator-only edit/delete; Accountant only sees; list, get, summary
+2. - [ ] **Stock-in** - create, edit, delete; edit/delete that would make stock negative is
+       refused with the same stock error; list, get, summary
+3. - [ ] **Two saves at the same time** on the same product (in and out mixed): only one goes
+       through, stock stays right
+4. - [ ] **Returns to a supplier** (examples in decisions.md) - within what it brought; more
+       than it brought; a product it never brought; two returns that together go over;
+       editing a return doesn't count itself
+5. - [ ] **Stock-in after returns** - edit down above and below the returned amount, delete,
+       change supplier, change Purchase → Other
+6. - [ ] **Stock balance** - `/stock/balance` and its summary match the documents; filters
+       and paging
+7. - [ ] **Company isolation** - every company route, called with the other company's
+       uuids, gives 404 and changes nothing
+8. - [ ] **Permissions** - every company route refuses a user without its permission and
+       allows one with it
+9. - [ ] **Auth and sessions** - login, refresh, logout, current user; wrong password;
+       turned-off user and turned-off company are locked out; login rate limit
+10. - [ ] **Company users** - list, summary, create (with and without login), edit, access,
+        status; can't change own permissions or role; Owner account can't be touched from
+        the company side; `USER_ADD` / `USER_EDIT` / `MANAGE_USER_PERMISSIONS` limits
+11. - [ ] **Roles** - create, edit, apply to users, delete; delete refused while users have
+        the role
+12. - [ ] **Products** - list, create, edit, status, delete; delete rules once the product is
+        used in documents
+13. - [ ] **Suppliers and contacts** - list, create, edit, status, delete; add, edit, delete
+        contact; delete rules once used in documents
+14. - [ ] **Product categories** - list, create, edit, delete; delete rules while in use
+15. - [ ] **Measure units** - list, create, edit, delete; delete rules while in use
+16. - [ ] **Options** - products, suppliers, receivers, roles: only active, only own company
+17. - [ ] **Company profile** - get and edit; who may do it
+18. - [ ] **Platform: companies and their users** - list, create, edit, status, get, roles;
+        users list, create, edit, status; company users can't call any platform route
+19. - [ ] **Platform: database and logs** - storage info; logs list and clear
+20. - [ ] **Health** - answers without a token
+
 - [ ] Lint and build pass
 - [ ] Tester run passes
 

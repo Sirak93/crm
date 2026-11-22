@@ -9,7 +9,9 @@
     "start": "node dist/server.js",
     "seed": "npm run build:shared && ts-node src/seeders/seed.ts",
     "seed:dev": "npm run build:shared && ts-node src/seeders/seedDev.ts",
-    "lint": "tsc --noEmit"
+    "lint": "tsc --noEmit",
+    "test": "npm run build:shared && ts-node --transpile-only src/scripts/tester/Run.ts",
+    "test:company": "npm run build:shared && ts-node --transpile-only src/scripts/tester/Run.ts company"
   },
   "dependencies": {
     "armstock-shared": "*",
