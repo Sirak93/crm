@@ -579,6 +579,7 @@ export default {
     filters: {
       reason: 'Reason',
       supplier: 'Supplier',
+      receiver: 'Receiver',
       to: 'to',
       startDate: 'From',
       endDate: 'To',

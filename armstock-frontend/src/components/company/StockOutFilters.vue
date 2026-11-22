@@ -1,7 +1,8 @@
 <script setup lang="ts">
-import { onMounted, reactive, watch } from 'vue';
-import type { StockOutReason } from 'armstock-shared';
+import { computed, onMounted, reactive, watch } from 'vue';
+import { StockOutReason } from 'armstock-shared';
 import SupplierSelect from './SupplierSelect.vue';
+import ReceiverSelect from './ReceiverSelect.vue';
 import { DATE_PICKER_FORMAT } from '../../constants/constants';
 import { STOCK_OUT_REASON_LABEL, STOCK_OUT_REASONS } from '../../constants/stockOutReasons';
 import type { IStockOutFilters } from '../../interfaces/IStockOutFilters';
@@ -16,11 +17,23 @@ const form = reactive({
   dateRange: null as [string, string] | null,
   reason: '' as StockOutReason | '',
   supplierUuid: '',
+  receiverUuid: '',
+});
+
+// Only a return has a supplier and only an issue has a receiver.
+const showSupplier = computed(() => !form.reason || form.reason === StockOutReason.RETURNED);
+const showReceiver = computed(() => !form.reason || form.reason === StockOutReason.ISSUED);
+
+// A hidden filter must not keep narrowing the list.
+watch(() => form.reason, () => {
+  if (!showSupplier.value) form.supplierUuid = '';
+  if (!showReceiver.value) form.receiverUuid = '';
 });
 
 const toFilters = (): IStockOutFilters => ({
   reason: form.reason || undefined,
   supplierUuid: form.supplierUuid || undefined,
+  receiverUuid: form.receiverUuid || undefined,
   // Whole days in the browser's time zone.
   dateFrom: form.dateRange ? new Date(`${form.dateRange[0]}T00:00:00`).toISOString() : undefined,
   dateTo: form.dateRange ? new Date(`${form.dateRange[1]}T23:59:59.999`).toISOString() : undefined,
@@ -28,7 +41,7 @@ const toFilters = (): IStockOutFilters => ({
 
 const emitChange = () => emit('change', toFilters());
 
-watch(() => [form.dateRange, form.reason, form.supplierUuid], emitChange);
+watch(() => [form.dateRange, form.reason, form.supplierUuid, form.receiverUuid], emitChange);
 
 // The page loads from this first emit, so both start from the same filters.
 onMounted(emitChange);
@@ -59,7 +72,19 @@ onMounted(emitChange);
       <el-option v-for="reason in STOCK_OUT_REASONS" :key="reason" :label="$t(STOCK_OUT_REASON_LABEL[reason])" :value="reason" />
     </el-select>
 
-    <SupplierSelect v-model="form.supplierUuid" :placeholder="$t('stockOut.filters.supplier')" class="stock-out-filters__select" />
+    <SupplierSelect
+      v-if="showSupplier"
+      v-model="form.supplierUuid"
+      :placeholder="$t('stockOut.filters.supplier')"
+      class="stock-out-filters__select"
+    />
+
+    <ReceiverSelect
+      v-if="showReceiver"
+      v-model="form.receiverUuid"
+      :placeholder="$t('stockOut.filters.receiver')"
+      class="stock-out-filters__select"
+    />
   </div>
 </template>
 

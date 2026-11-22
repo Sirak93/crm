@@ -143,10 +143,11 @@ export class StockOutService {
 
     /** The same filters for the list and its summary, so the two always match. */
     private filtered(companyUuid: string, filters: StockOutFilters): SelectQueryBuilder<StockOut> {
-        const { reason, supplierUuid, dateFrom, dateTo } = filters;
+        const { reason, supplierUuid, receiverUuid, dateFrom, dateTo } = filters;
         const qb = this.repo.createQueryBuilder("doc").where("doc.companyUuid = :companyUuid", { companyUuid });
         if (reason) qb.andWhere("doc.reason = :reason", { reason });
         if (supplierUuid) qb.andWhere("doc.supplierUuid = :supplierUuid", { supplierUuid });
+        if (receiverUuid) qb.andWhere("doc.receiverUuid = :receiverUuid", { receiverUuid });
         if (dateFrom) qb.andWhere("doc.date >= :dateFrom", { dateFrom: new Date(dateFrom) });
         if (dateTo) qb.andWhere("doc.date <= :dateTo", { dateTo: new Date(dateTo) });
         return qb;

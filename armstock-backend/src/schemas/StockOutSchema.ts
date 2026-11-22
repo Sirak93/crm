@@ -46,6 +46,7 @@ export const StockOutBodySchema = z
 
 export const StockOutFiltersSchema = StockDocumentFiltersSchema.extend({
     reason: z.coerce.number().pipe(z.enum(StockOutReason)).optional(),
+    receiverUuid: z.uuid().optional(),
 });
 
 export const StockOutsQuerySchema = PaginatedSearchQuerySchema.omit({ search: true }).extend(StockOutFiltersSchema.shape);

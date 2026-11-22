@@ -37,19 +37,23 @@ const isSummaryLoading = ref(false);
 
 const hasFilters = computed(() => Object.values(filters.value).some(Boolean));
 
+// An older, slower answer must not replace a newer one (e.g. unfiltered rows over filtered ones).
+let lastListRequest = 0;
 const load = async (page = meta.value.page) => {
+  const request = ++lastListRequest;
   isLoading.value = true;
   hasError.value = false;
   try {
     const result = await StockOutService.list(page, meta.value.pageSize, filters.value);
+    if (request !== lastListRequest) return;
     stockOuts.value = result.items;
     meta.value = result.meta;
     hasLoaded.value = true;
   } catch (error) {
     AppLogger.error('Failed to load stock-out documents:', error);
-    hasError.value = true;
+    if (request === lastListRequest) hasError.value = true;
   } finally {
-    isLoading.value = false;
+    if (request === lastListRequest) isLoading.value = false;
   }
 };
 
