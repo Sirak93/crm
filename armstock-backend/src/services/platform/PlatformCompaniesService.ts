@@ -67,6 +67,11 @@ export class PlatformCompaniesService {
         return this.companyService.get(uuid);
     }
 
+    /** For the company's own sub-routes (roles, users), so an unknown company is "not found", not empty. */
+    async assertExists(uuid: string): Promise<void> {
+        await this.companyService.findOrFail(uuid);
+    }
+
     update(uuid: string, body: CompanyBody): Promise<ICompany> {
         return this.companyService.update(uuid, body);
     }

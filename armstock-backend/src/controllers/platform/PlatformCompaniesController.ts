@@ -38,19 +38,23 @@ export class PlatformCompaniesController {
 
     /** The company's role picker on its users page. */
     listRoles = async (req: AuthRequest, res: Response) => {
+        await this.service.assertExists(req.params.uuid as string);
         return AppResponse.send(res, await this.roleService.options(req.params.uuid as string));
     };
 
     listUsers = async (req: AuthRequest, res: Response) => {
+        await this.service.assertExists(req.params.uuid as string);
         const { items, meta } = await this.usersService.list(req.params.uuid as string, req.query as unknown as CompanyUsersQuery);
         return AppResponse.send(res, items, meta);
     };
 
     createUser = async (req: AuthRequest, res: Response) => {
+        await this.service.assertExists(req.params.uuid as string);
         return AppResponse.send(res, await this.usersService.create(req.params.uuid as string, req.body as CompanyUserCreateBody, false, []));
     };
 
     updateUser = async (req: AuthRequest, res: Response) => {
+        await this.service.assertExists(req.params.uuid as string);
         return AppResponse.send(res, await this.usersService.update(
             req.params.uuid as string,
             req.params.userUuid as string,
@@ -60,6 +64,7 @@ export class PlatformCompaniesController {
     };
 
     setUserStatus = async (req: AuthRequest, res: Response) => {
+        await this.service.assertExists(req.params.uuid as string);
         const { status } = req.body as CompanyUserStatusBody;
         return AppResponse.send(res, await this.usersService.setStatus(
             req.params.uuid as string,

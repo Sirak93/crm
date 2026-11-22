@@ -538,7 +538,7 @@ calls the real HTTP API with real logins and checks the responses and the databa
 framework, no new package — runs with `ts-node`. Where armlytic already made a choice,
 reuse it with the same logic; only armstock-specific points are decided here.
 
-- [ ] Sides like armlytic: company side, platform side, rate-limits side; `npm test` runs
+- [x] Sides like armlytic: company side, platform side, rate-limits side; `npm test` runs
       all, `test:company` / `test:platform` / `test:rate-limits` run one. Each side builds
       its own scratch database and backend; a side that fails to set up doesn't stop the
       others
@@ -640,10 +640,10 @@ uuid, and another company's uuid.
               unit (`MEASURE_UNIT_DECIMALS_IN_USE`) - fractional stock would get stuck
 16. - [x] **Options** - products, suppliers, receivers, roles: only active, only own company
 17. - [x] **Company profile** - get and edit; who may do it
-18. - [ ] **Platform: companies and their users** - list, create, edit, status, get, roles;
+18. - [x] **Platform: companies and their users** - list, create, edit, status, get, roles;
         users list, create, edit, status; company users can't call any platform route
-        - [ ] Open bug: an unknown company's roles and users answer 200 with an empty list
-              (create user: "role not found") instead of `COMPANY_NOT_FOUND`. Fix to be discussed
+        - [x] Bug found and fixed: an unknown company's roles and users answered 200 with an
+              empty list (create user: "role not found"). Now `COMPANY_NOT_FOUND` on all five
 19. - [x] **Platform: database and logs** - storage info; logs list and clear
         - [x] Bug found and fixed: the logs `dateFrom` / `dateTo` filter was off by the DB time
               zone (`Asia/Yerevan`, 4 h) - ISO text compared with a local `timestamp` column.
@@ -652,8 +652,8 @@ uuid, and another company's uuid.
           `SHOW timezone;`) - display and every date filter rely on it
 20. - [x] **Health** - answers without a token
 
-- [ ] Lint and build pass
-- [ ] Tester run passes
+- [x] Lint and build pass
+- [x] Tester run passes (4 session cases skipped until the session revocation fix)
 
 ---
 

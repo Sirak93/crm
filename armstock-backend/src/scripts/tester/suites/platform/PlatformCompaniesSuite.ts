@@ -170,6 +170,9 @@ export default (context: ITestContext) => defineSuite("Platform: companies and t
         await api.rejects("POST", usersPath(unknown), ErrorCodes.COMPANY.NOT_FOUND, {
             firstName: "A", lastName: "B", canLogIn: false, roleUuid: company.roles[DefaultRole.STAFF],
         });
+        const userPath = `${usersPath(unknown)}/${company.staff.uuid}`;
+        await api.rejects("PUT", userPath, ErrorCodes.COMPANY.NOT_FOUND, { firstName: "A", lastName: "B", canLogIn: false });
+        await api.rejects("PATCH", `${userPath}/status`, ErrorCodes.COMPANY.NOT_FOUND, { status: UserStatus.BLOCKED });
     });
 
     // --- Who may call it ---
