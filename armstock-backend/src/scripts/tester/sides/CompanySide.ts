@@ -1,5 +1,9 @@
 import { createCompany } from "../shared/Companies";
+import stockInSuite from "../suites/company/StockInSuite";
 import stockOutSuite from "../suites/company/StockOutSuite";
+import stockConcurrencySuite from "../suites/company/StockConcurrencySuite";
+import supplierReturnSuite from "../suites/company/SupplierReturnSuite";
+import stockInAfterReturnsSuite from "../suites/company/StockInAfterReturnsSuite";
 import type { ICompanySideContext } from "../interfaces/ICompanySideContext";
 import type { ITestSide } from "../interfaces/ITestSide";
 
@@ -10,5 +14,5 @@ export const companySide: ITestSide<ICompanySideContext> = {
         const [companyA, companyB] = await Promise.all([createCompany(context, "A"), createCompany(context, "B")]);
         return { ...context, companyA, companyB };
     },
-    suites: [stockOutSuite],
+    suites: [stockOutSuite, stockInSuite, stockConcurrencySuite, supplierReturnSuite, stockInAfterReturnsSuite],
 };

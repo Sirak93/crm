@@ -586,14 +586,16 @@ uuid, and another company's uuid.
 
 1. - [x] **Stock-out** - rules per reason; "Not enough stock" with the available quantity;
        creator-only edit/delete; Accountant only sees; list, get, summary
-2. - [ ] **Stock-in** - create, edit, delete; edit/delete that would make stock negative is
+2. - [x] **Stock-in** - create, edit, delete; edit/delete that would make stock negative is
        refused with the same stock error; list, get, summary
 3. - [ ] **Two saves at the same time** on the same product (in and out mixed): only one goes
        through, stock stays right
-4. - [ ] **Returns to a supplier** (examples in decisions.md) - within what it brought; more
+       - [ ] Open bug: 6-8 documents saved at once - some get a 500 (document number clash
+             after 3 retries, `utils/documentNumber.ts`). Fix to be discussed
+4. - [x] **Returns to a supplier** (examples in decisions.md) - within what it brought; more
        than it brought; a product it never brought; two returns that together go over;
        editing a return doesn't count itself
-5. - [ ] **Stock-in after returns** - edit down above and below the returned amount, delete,
+5. - [x] **Stock-in after returns** - edit down above and below the returned amount, delete,
        change supplier, change Purchase → Other
 6. - [ ] **Stock balance** - `/stock/balance` and its summary match the documents; filters
        and paging
