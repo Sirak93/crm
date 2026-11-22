@@ -628,7 +628,7 @@ uuid, and another company's uuid.
         - [x] Rule added: a new password for a user with MANAGE_USER_PERMISSIONS only from
               the Owner, the Platform Owner or a permissions manager (`USER_PASSWORD_LOCKED`) -
               otherwise `USER_EDIT` could log in as someone with more rights
-11. - [ ] **Roles** - create, edit, apply to users, delete; delete refused while users have
+11. - [x] **Roles** - create, edit, apply to users, delete; delete refused while users have
         the role
 12. - [ ] **Products** - list, create, edit, status, delete; delete rules once the product is
         used in documents

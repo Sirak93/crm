@@ -102,6 +102,8 @@ own small task.
 
 | Company users | create with login (sent permissions, email lowercased, bcrypt hash, can log in, exact response keys) and without (no email, password, permissions); bad bodies name their field; unknown role; email taken in any company and case; without MANAGE_USER_PERMISSIONS the role's set is copied; MANAGE_USER_PERMISSIONS only the Owner hands out or takes away (create and access); edit changes basic fields only; email taken on edit; login on needs a password, then the role's permissions; login off drops email, password, permissions; access for a user without login stays empty; unknown role on access; nobody changes their own login, access or status; a new password for a permissions manager only from the Owner or another manager; the Owner account is locked from the company side, even for the Owner; block / archive / active with the summary; summary matches the DB; list incl. the Owner, ordered by status, no secrets; filters by status, role, search; paging; unknown and malformed uuid |
 
+| Roles | create (trimmed name, each permission once, no users); bad bodies; name taken in any case, free in another company; only the Owner puts MANAGE_USER_PERMISSIONS into a role; edit changes name and permissions, users keep theirs unless applied; rename to a taken name; apply to users - users with login get the role's set, without login stay empty, other roles untouched; apply works on open sessions at once; a manager applying keeps each user's MANAGE_USER_PERMISSIONS and skips themselves; the Owner applying sets it as in the role; delete refused while users have it (archived too) with the count, works once they moved; list sorted as the DB sorts with matching user counts; unknown and malformed uuid |
+
 ### Rate-limits side
 
 | Suite      | Covered                                                                 |
@@ -115,6 +117,6 @@ In order, as in `documents/planning/mvp-foundation/tasks.md` (Step 15):
 - **Session revocation** - 4 auth cases are skipped, marked `[open: session revocation]`:
   an old access token comes back after a new login, after login is turned on again, and a
   new password ends no session. Fix postponed - see suite 9 in `tasks.md`
-- Roles; products; suppliers and contacts; categories; units; options; company profile
+- Products; suppliers and contacts; categories; units; options; company profile
 - Platform side: companies and their users; database and logs
 - Health

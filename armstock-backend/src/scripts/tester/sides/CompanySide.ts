@@ -9,6 +9,7 @@ import companyIsolationSuite from "../suites/company/CompanyIsolationSuite";
 import permissionsSuite from "../suites/company/PermissionsSuite";
 import authSuite from "../suites/company/AuthSuite";
 import companyUsersSuite from "../suites/company/CompanyUsersSuite";
+import rolesSuite from "../suites/company/RolesSuite";
 import type { ICompanySideContext } from "../interfaces/ICompanySideContext";
 import type { ITestSide } from "../interfaces/ITestSide";
 
@@ -30,5 +31,6 @@ export const companySide: ITestSide<ICompanySideContext> = {
         permissionsSuite,
         authSuite,
         companyUsersSuite,
+        rolesSuite,
     ],
 };
