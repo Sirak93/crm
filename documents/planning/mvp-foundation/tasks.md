@@ -638,8 +638,8 @@ uuid, and another company's uuid.
 15. - [x] **Measure units** - list, create, edit, delete; delete rules while in use
         - [x] Rule added: "allows decimals" can't be turned off while any product uses the
               unit (`MEASURE_UNIT_DECIMALS_IN_USE`) - fractional stock would get stuck
-16. - [ ] **Options** - products, suppliers, receivers, roles: only active, only own company
-17. - [ ] **Company profile** - get and edit; who may do it
+16. - [x] **Options** - products, suppliers, receivers, roles: only active, only own company
+17. - [x] **Company profile** - get and edit; who may do it
 18. - [ ] **Platform: companies and their users** - list, create, edit, status, get, roles;
         users list, create, edit, status; company users can't call any platform route
 19. - [ ] **Platform: database and logs** - storage info; logs list and clear

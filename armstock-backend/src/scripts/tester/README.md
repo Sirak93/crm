@@ -109,6 +109,9 @@ own small task.
 | Product categories | a new company gets the defaults; create trimmed, bad names; name unique ignoring case, free in another company; rename, taken name refused; delete refused while a product (archived too) uses it, works when free; list sorted as the DB sorts, open to a member without permissions; unknown and malformed uuid |
 | Measure units | a new company gets the defaults; create trimmed, bad bodies; name and short name each unique ignoring case, free in another company; edit, taken short name refused; decimals can't be turned off while a product uses it (on, or off when free, is fine); delete refused while a product uses it, works when free; list sorted as the DB sorts, open to a member without permissions; unknown and malformed uuid |
 
+| Options (pickers) | called by a member with no permissions; products: active only, sorted, only stock-line fields; for a stock-out archived with stock too, never at 0; for a return only what the supplier brought; search by code, exact barcode; at most the picker limit; bad query; suppliers: every status, active only on request, no tax id / note / contacts; receivers: every user incl. without login, active first, no email; roles: names only, sorted as the DB sorts |
+| Company profile | own company; the Owner sees it with exact keys; edit saves every field trimmed, empty as null, status can't be changed here; bad bodies; a member with COMPANY_EDIT sees and edits, one without can't; each company only its own |
+
 ### Rate-limits side
 
 | Suite      | Covered                                                                 |
@@ -122,6 +125,5 @@ In order, as in `documents/planning/mvp-foundation/tasks.md` (Step 15):
 - **Session revocation** - 4 auth cases are skipped, marked `[open: session revocation]`:
   an old access token comes back after a new login, after login is turned on again, and a
   new password ends no session. Fix postponed - see suite 9 in `tasks.md`
-- Options; company profile
 - Platform side: companies and their users; database and logs
 - Health

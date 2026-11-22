@@ -14,6 +14,8 @@ import productsSuite from "../suites/company/ProductsSuite";
 import suppliersSuite from "../suites/company/SuppliersSuite";
 import productCategoriesSuite from "../suites/company/ProductCategoriesSuite";
 import measureUnitsSuite from "../suites/company/MeasureUnitsSuite";
+import optionsSuite from "../suites/company/OptionsSuite";
+import companyProfileSuite from "../suites/company/CompanyProfileSuite";
 import type { ICompanySideContext } from "../interfaces/ICompanySideContext";
 import type { ITestSide } from "../interfaces/ITestSide";
 
@@ -40,5 +42,7 @@ export const companySide: ITestSide<ICompanySideContext> = {
         suppliersSuite,
         productCategoriesSuite,
         measureUnitsSuite,
+        optionsSuite,
+        companyProfileSuite,
     ],
 };
