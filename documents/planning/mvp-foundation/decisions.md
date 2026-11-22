@@ -369,7 +369,8 @@ Not covered: which delivery the goods came from (batches) - only the totals per 
 - **Backend:** Node + Express, Zod validation.
 - **Database:** PostgreSQL + TypeORM. During MVP `synchronize: true` (entity changes
   only). After MVP: migrations only.
-- **Redis:** caching (units, categories, products). Stock quantities are never cached.
+- **Redis:** rate limits and the auth cache. List caching (units, categories) is a
+  later improvement. Stock quantities are never cached.
 - **i18n:** set up from the start, English only for now.
 - **Loggers:** copied from armlytic — backend `AppLogger` (console) and `ApiLogger`
   (one row per request in the `api_logs` table, on/off with the `API_DB_LOG_ENABLED`

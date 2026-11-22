@@ -32,8 +32,7 @@ Decisions behind these steps: [decisions.md](decisions.md).
 - [x] Step 12 — Archived users
 - [x] Step 13 — Stock-out documents
 - [ ] Step 14 — User permissions
-- [ ] Step 15 — Redis cache
-- [ ] Step 16 — Backend tester
+- [ ] Step 15 — Backend tester
 
 ---
 
@@ -513,7 +512,7 @@ Suggested chunks (each: notes → OK → build → lint/build):
         page.") with OK. OK reloads the app at `/` (the user's dashboard). Same popup for
         both cases; the unsaved-changes dialog is skipped and typed data is lost (accepted)
 - [x] Lint and build pass
-- [ ] Checked in browser
+- [ ] Checked in browser - moved to after Step 15 (one browser pass for the full flow)
   - [ ] Two Accountants: turn off supplier management for one - menu and buttons
         disappear and the API refuses; the other still has it
   - [ ] Edit a role and apply to its users - their lists change; edit again without
@@ -532,20 +531,7 @@ Suggested chunks (each: notes → OK → build → lint/build):
   - [ ] A Storekeeper on the new stock-in form loses "create stock-in" - Save shows the
         popup and OK opens the dashboard; reloading that form page shows the same popup
 
-## Step 15 — Redis cache
-
-- [ ] Shared Redis helper copied from armlytic
-- [ ] Cache units
-- [ ] Cache categories (per company)
-- [ ] Cache products (per company)
-- [ ] Clear the cache when an item is added, edited, or deleted
-- [ ] If Redis is down, read from the DB and log the problem
-- [ ] Stock quantities are never cached
-- [ ] Lint and build pass
-- [ ] Checked in browser: lists work the same, logs show cache hits, changes show up
-      at once
-
-## Step 16 — Backend tester
+## Step 15 — Backend tester
 
 A reusable end-to-end tester like armlytic's (`armlytic-backend/src/scripts/tester/`): it
 calls the real HTTP API with real logins and checks the responses and the database. No test
@@ -581,6 +567,9 @@ framework, no new package — runs with `ts-node`.
 
 Ideas agreed for later. Not part of any step above.
 
+- [ ] Redis cache for the units and categories lists (one copy per company, cleared on
+      add, edit, delete; DB read when Redis is down). Add when there is real load and the
+      API logs show slow reads. Products and stock amounts are not cached.
 - [ ] Platform Owner manages a company's roles and user permissions (same rules as
       `MANAGE_USER_PERMISSIONS`).
 - [ ] Transfer company ownership - Platform Owner action only: move the Owner account type to
