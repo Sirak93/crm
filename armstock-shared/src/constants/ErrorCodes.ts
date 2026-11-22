@@ -51,6 +51,11 @@ export const ErrorCodes = {
             CODE: "USER_OWNER_LOCKED",
             STATUS: 403,
         },
+        /** A user who manages permissions gets a new password only from someone who manages them too. */
+        PASSWORD_LOCKED: {
+            CODE: "USER_PASSWORD_LOCKED",
+            STATUS: 403,
+        },
     },
     ROLE: {
         NOT_FOUND: {

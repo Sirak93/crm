@@ -230,6 +230,20 @@ export default (context: ICompanySideContext) => defineSuite("Company users", (t
         await manager.api.ok("PUT", path(manager.uuid), editBody(self, { position: "Own name is fine" }));
     });
 
+    test("only the Owner or a permissions manager sets a new password for a user who manages permissions", async () => {
+        const target = await create(owner, { permissions: [Permission.MANAGE_USER_PERMISSIONS] });
+        const editor = await createMember(companyA, { permissions: [Permission.USER_VIEW, Permission.USER_EDIT], label: "editor" });
+        const withPassword = () => editBody(target, { password: randomPassword() });
+
+        await editor.api.rejects("PUT", path(target.uuid), ErrorCodes.USER.PASSWORD_LOCKED, withPassword());
+        await editor.api.ok("PUT", path(target.uuid), editBody(target, { position: "No password - fine" }));
+        await owner.api.ok("PUT", path(target.uuid), withPassword());
+        await manager.api.ok("PUT", path(target.uuid), withPassword());
+
+        const plain = await create(owner);
+        await editor.api.ok("PUT", path(plain.uuid), editBody(plain, { password: randomPassword() }));
+    });
+
     test("the Owner account can't be changed from the company side - not even by the Owner", async () => {
         const ownerRow = (await owner.api.ok<ICompanyUser[]>("GET", `${PATHS.COMPANY_USERS}?pageSize=100`)).data
             .find((u) => u.uuid === owner.uuid)!;

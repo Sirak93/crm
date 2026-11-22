@@ -871,6 +871,7 @@ export default {
     USER_PASSWORD_REQUIRED: 'Set a password - this role signs in.',
     USER_OWN_ACCOUNT: 'You cannot change your own role, login, or status.',
     USER_OWNER_LOCKED: 'Only the platform owner can change the company owner account.',
+    USER_PASSWORD_LOCKED: 'Only the owner or someone who manages permissions can change this user\'s password.',
     ROLE_NOT_FOUND: 'This role no longer exists.',
     ROLE_NAME_TAKEN: 'A role with this name already exists.',
     ROLE_IN_USE: 'Users with this role: {userCount}. Move them to another role first.',

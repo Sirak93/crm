@@ -1,6 +1,6 @@
 import bcrypt from "bcrypt";
 import { Brackets, In, Not } from "typeorm";
-import { AccountType, ErrorCodes, UserStatus, keepLocked, lockedPermissions, type ICompanyUser, type ICompanyUsersSummary, type IPaginationMeta, type Permission } from "armstock-shared";
+import { AccountType, ErrorCodes, Permission, UserStatus, can, keepLocked, lockedPermissions, type ICompanyUser, type ICompanyUsersSummary, type IPaginationMeta } from "armstock-shared";
 import { AppDataSource } from "../config/database";
 import { User } from "../models/User";
 import { Role } from "../models/Role";
@@ -67,6 +67,15 @@ export class CompanyUsersService {
 
     private static assertNotSelf(user: User, actor: IRequestUser): void {
         if (user.uuid === actor.userUUID) throw new AppError(ErrorCodes.USER.OWN_ACCOUNT);
+    }
+
+    /** Otherwise a password reset would let someone log in as a user with more rights than their own. */
+    private static assertMayChangePassword(user: User, actor: IRequestUser): void {
+        const actorManages = actor.accountType === AccountType.PLATFORM_OWNER
+            || can(actor.accountType, actor.permissions, Permission.MANAGE_USER_PERMISSIONS);
+        if (user.permissions.includes(Permission.MANAGE_USER_PERMISSIONS) && !actorManages) {
+            throw new AppError(ErrorCodes.USER.PASSWORD_LOCKED, undefined, undefined, { uuid: user.uuid, actorUuid: actor.userUUID });
+        }
     }
 
     private async assertEmailFree(email: string | null, exceptUuid?: string): Promise<void> {
@@ -154,6 +163,7 @@ export class CompanyUsersService {
         const email = body.canLogIn ? body.email : null;
         if (email !== user.email) await this.assertEmailFree(email, user.uuid);
         if (body.canLogIn && !body.password && !user.password) throw new AppError(ErrorCodes.USER.PASSWORD_REQUIRED);
+        if (body.canLogIn && body.password) CompanyUsersService.assertMayChangePassword(user, actor);
 
         Object.assign(user, {
             firstName: body.firstName,

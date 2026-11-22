@@ -625,6 +625,9 @@ uuid, and another company's uuid.
 10. - [x] **Company users** - list, summary, create (with and without login), edit, access,
         status; can't change own permissions or role; Owner account can't be touched from
         the company side; `USER_ADD` / `USER_EDIT` / `MANAGE_USER_PERMISSIONS` limits
+        - [x] Rule added: a new password for a user with MANAGE_USER_PERMISSIONS only from
+              the Owner, the Platform Owner or a permissions manager (`USER_PASSWORD_LOCKED`) -
+              otherwise `USER_EDIT` could log in as someone with more rights
 11. - [ ] **Roles** - create, edit, apply to users, delete; delete refused while users have
         the role
 12. - [ ] **Products** - list, create, edit, status, delete; delete rules once the product is
