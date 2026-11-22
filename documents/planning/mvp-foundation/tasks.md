@@ -622,7 +622,7 @@ uuid, and another company's uuid.
              - 4 tester cases wait for it, marked `[open: session revocation]` (skipped)
              - Side note: two logins of one user in the same second get the same refresh
                token (no unique id in the JWT) - harmless, keep in mind when testing
-10. - [ ] **Company users** - list, summary, create (with and without login), edit, access,
+10. - [x] **Company users** - list, summary, create (with and without login), edit, access,
         status; can't change own permissions or role; Owner account can't be touched from
         the company side; `USER_ADD` / `USER_EDIT` / `MANAGE_USER_PERMISSIONS` limits
 11. - [ ] **Roles** - create, edit, apply to users, delete; delete refused while users have
