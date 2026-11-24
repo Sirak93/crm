@@ -1,5 +1,6 @@
 /** Commands of the table row actions menu - each table shows only the ones it needs. */
 export const ROW_ACTION = {
+  VIEW: 'view',
   EDIT: 'edit',
   DELETE: 'delete',
   ARCHIVE: 'archive',

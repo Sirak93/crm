@@ -1,4 +1,4 @@
-import { CompanyStatus, ProductStatus, SupplierStatus, UserStatus } from 'armstock-shared';
+import { CompanyStatus, ProductStatus, RecipeStatus, SupplierStatus, UserStatus } from 'armstock-shared';
 import type { IStatusTag } from '../interfaces/IStatusTag';
 
 export const COMPANY_STATUS_TAG: Record<CompanyStatus, IStatusTag> = {
@@ -20,4 +20,9 @@ export const PRODUCT_STATUS_TAG: Record<ProductStatus, IStatusTag> = {
 export const SUPPLIER_STATUS_TAG: Record<SupplierStatus, IStatusTag> = {
   [SupplierStatus.ACTIVE]: { labelKey: 'status.active', type: 'success' },
   [SupplierStatus.ARCHIVED]: { labelKey: 'status.archived', type: 'info' },
+};
+
+export const RECIPE_STATUS_TAG: Record<RecipeStatus, IStatusTag> = {
+  [RecipeStatus.ACTIVE]: { labelKey: 'status.active', type: 'success' },
+  [RecipeStatus.ARCHIVED]: { labelKey: 'status.archived', type: 'info' },
 };

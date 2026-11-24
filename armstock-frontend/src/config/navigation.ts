@@ -4,6 +4,7 @@ import {
   Boxes,
   Building,
   Building2,
+  ChefHat,
   Database,
   LayoutDashboard,
   Package,
@@ -81,6 +82,13 @@ export const NAV_ITEMS: (INavItem | INavGroup)[] = [
     labelKey: 'nav.products',
     icon: Package,
     routeName: ROUTE_NAME.COMPANY_PRODUCTS,
+  },
+  // Recipe items stay together, so a future module check is one place.
+  {
+    id: 'company-recipes',
+    labelKey: 'nav.recipes',
+    icon: ChefHat,
+    routeName: ROUTE_NAME.COMPANY_RECIPES,
   },
   {
     id: 'company-suppliers',

@@ -77,6 +77,25 @@ const routes: RouteRecordRaw[] = [
         meta: { accountTypes: COMPANY_ACCOUNT_TYPES, permissions: [Permission.PRODUCT_VIEW] },
       },
       {
+        path: 'recipes',
+        name: ROUTE_NAME.COMPANY_RECIPES,
+        component: () => import('../views/company/CompanyRecipes.vue'),
+        meta: { accountTypes: COMPANY_ACCOUNT_TYPES, permissions: [Permission.RECIPE_VIEW] },
+      },
+      {
+        path: 'recipes/new',
+        name: ROUTE_NAME.COMPANY_RECIPE_NEW,
+        component: () => import('../views/company/CompanyRecipeForm.vue'),
+        meta: { accountTypes: COMPANY_ACCOUNT_TYPES, permissions: [Permission.RECIPE_ADD] },
+      },
+      {
+        path: 'recipes/:uuid/edit',
+        name: ROUTE_NAME.COMPANY_RECIPE_EDIT,
+        component: () => import('../views/company/CompanyRecipeForm.vue'),
+        props: true,
+        meta: { accountTypes: COMPANY_ACCOUNT_TYPES, permissions: [Permission.RECIPE_EDIT] },
+      },
+      {
         path: 'suppliers',
         name: ROUTE_NAME.COMPANY_SUPPLIERS,
         component: () => import('../views/company/CompanySuppliers.vue'),

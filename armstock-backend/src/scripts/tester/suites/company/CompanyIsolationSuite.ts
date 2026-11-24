@@ -1,4 +1,4 @@
-import { DefaultRole, ErrorCodes, type IProduct, type IRole, type IStockInDetails, type IStockOutDetails, type ISupplier, type ISupplierContact } from "armstock-shared";
+import { DefaultRole, ErrorCodes, type IProduct, type IRecipeDetails, type IRole, type IStockInDetails, type IStockOutDetails, type ISupplier, type ISupplierContact } from "armstock-shared";
 import { defineSuite } from "../../core/Suite";
 import { AssertionError, matches } from "../../core/Assert";
 import { createNoLoginUser } from "../../shared/Accounts";
@@ -6,6 +6,7 @@ import {
     createCategory,
     createContact,
     createProduct,
+    createRecipe,
     createStockIn,
     createStockOut,
     createSupplier,
@@ -59,6 +60,7 @@ export default (context: ICompanySideContext) => defineSuite("Company isolation"
         contactB = await createContact(accountantB, supplierB.uuid);
         stockInB = await createStockIn(storekeeperB, [{ productUuid: productB.uuid, quantity: 10 }], { supplierUuid: supplierB.uuid });
         stockOutB = await createStockOut(storekeeperB, [{ productUuid: productB.uuid, quantity: 2 }], { receiverUuid: receiverB });
+        const recipeB: IRecipeDetails = await createRecipe(companyB.owner, [{ productUuid: productB.uuid, quantity: 0.1 }]);
 
         const [categoryA, productA] = await Promise.all([findCategory(ownerA), createProduct(companyA.storekeeper)]);
         refs = { categoryUuid: categoryA.uuid, productUuid: productA.uuid, roleUuid: companyA.roles[DefaultRole.STAFF] };
@@ -74,10 +76,11 @@ export default (context: ICompanySideContext) => defineSuite("Company isolation"
             [RouteTarget.USER]: one(companyB.staff.uuid),
             [RouteTarget.STOCK_IN]: one(stockInB.uuid),
             [RouteTarget.STOCK_OUT]: one(stockOutB.uuid),
+            [RouteTarget.RECIPE]: one(recipeB.uuid),
         };
         uuidsOfB = [
             companyB.uuid, productB.uuid, supplierB.uuid, contactB.uuid, unitB, categoryB, roleB.uuid, receiverB,
-            stockInB.uuid, stockOutB.uuid,
+            stockInB.uuid, stockOutB.uuid, recipeB.uuid,
             ...[companyB.owner, companyB.storekeeper, companyB.accountant, companyB.hr, companyB.staff].map((u) => u.uuid),
         ];
         snapshotBefore = await companySnapshot(db, companyB.uuid);

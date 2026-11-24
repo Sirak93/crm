@@ -17,6 +17,7 @@ export const PATHS = {
     MEASURE_UNITS: `${API_PATH}/measure-units`,
     PRODUCT_CATEGORIES: `${API_PATH}/product-categories`,
     PRODUCTS: `${API_PATH}/products`,
+    RECIPES: `${API_PATH}/recipes`,
     SUPPLIERS: `${API_PATH}/suppliers`,
     STOCK_INS: `${API_PATH}/stock-ins`,
     STOCK_OUTS: `${API_PATH}/stock-outs`,

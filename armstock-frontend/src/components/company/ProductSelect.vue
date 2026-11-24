@@ -16,6 +16,8 @@ const props = defineProps<{
   forStockOut?: boolean;
   /** Return: only products this supplier brought; null = no supplier picked yet, so nothing to show. */
   suppliedBy?: string | null;
+  /** Products not offered - e.g. ones already on other rows. */
+  excludeUuids?: string[];
 }>();
 
 const emit = defineEmits<{
@@ -34,7 +36,10 @@ let lastRequest = 0;
 
 const shownOptions = computed(() => {
   const current = props.selected;
-  return current && !options.value.some((o) => o.uuid === current.uuid) ? [current, ...options.value] : options.value;
+  const offered = props.excludeUuids?.length
+    ? options.value.filter((o) => o.uuid === current?.uuid || !props.excludeUuids!.includes(o.uuid))
+    : options.value;
+  return current && !offered.some((o) => o.uuid === current.uuid) ? [current, ...offered] : offered;
 });
 
 // Only active products can be picked (stock-out: also archived ones with stock); an archived one already

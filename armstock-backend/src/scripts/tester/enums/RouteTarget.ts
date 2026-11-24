@@ -10,4 +10,5 @@ export enum RouteTarget {
     USER = 70,
     STOCK_IN = 80,
     STOCK_OUT = 90,
+    RECIPE = 100,
 }

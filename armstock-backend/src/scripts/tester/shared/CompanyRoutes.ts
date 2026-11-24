@@ -1,7 +1,7 @@
 import { ErrorCodes, Permission, ProductStatus, SupplierStatus, UserStatus } from "armstock-shared";
 import { HttpMethod } from "../enums/HttpMethod";
 import { RouteTarget } from "../enums/RouteTarget";
-import { stockInBody, stockOutBody } from "./Builders";
+import { recipeBody, stockInBody, stockOutBody } from "./Builders";
 import { PATHS } from "./Paths";
 import type { ICompanyRoute } from "../interfaces/ICompanyRoute";
 import type { IOwnRefs } from "../interfaces/IOwnRefs";
@@ -132,6 +132,15 @@ export const COMPANY_ROUTES: ICompanyRoute[] = [
     },
     { method: DELETE, path: (ids) => `${PATHS.STOCK_OUTS}/${ids.uuid}`, permission: P.STOCK_OUT_DELETE, target: T.STOCK_OUT },
 
+    // Recipes
+    { method: GET, path: () => PATHS.RECIPES, permission: P.RECIPE_VIEW },
+    { method: GET, path: (ids) => `${PATHS.RECIPES}/${ids.uuid}`, permission: P.RECIPE_VIEW, target: T.RECIPE },
+    { method: POST, path: () => PATHS.RECIPES, permission: P.RECIPE_ADD },
+    {
+        method: PUT, path: (ids) => `${PATHS.RECIPES}/${ids.uuid}`, permission: P.RECIPE_EDIT, target: T.RECIPE,
+        body: (refs) => recipeBody(line(refs)),
+    },
+
     // Pickers - every member
     { method: GET, path: () => `${PATHS.OPTIONS}/products`, permission: null },
     { method: GET, path: () => `${PATHS.OPTIONS}/suppliers`, permission: null },
@@ -150,6 +159,7 @@ export const TARGET_NOT_FOUND: Record<RouteTarget, { CODE: string; STATUS: numbe
     [T.USER]: ErrorCodes.USER.NOT_FOUND,
     [T.STOCK_IN]: ErrorCodes.STOCK_IN.NOT_FOUND,
     [T.STOCK_OUT]: ErrorCodes.STOCK_OUT.NOT_FOUND,
+    [T.RECIPE]: ErrorCodes.RECIPE.NOT_FOUND,
 };
 
 /** A route's label in case names and messages, e.g. "PUT /api/products/:uuid". */

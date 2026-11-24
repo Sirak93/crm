@@ -13,6 +13,7 @@ import measureUnitRouter from "../../../../routes/MeasureUnitRoutes";
 import optionsRouter from "../../../../routes/OptionsRoutes";
 import productCategoryRouter from "../../../../routes/ProductCategoryRoutes";
 import productRouter from "../../../../routes/ProductRoutes";
+import recipeRouter from "../../../../routes/RecipeRoutes";
 import roleRouter from "../../../../routes/RoleRoutes";
 import stockInRouter from "../../../../routes/StockInRoutes";
 import stockOutRouter from "../../../../routes/StockOutRoutes";
@@ -32,6 +33,7 @@ const COMPANY_ROUTERS: [string, Router][] = [
     [`${API_PATH}/options`, optionsRouter],
     [`${API_PATH}/product-categories`, productCategoryRouter],
     [`${API_PATH}/products`, productRouter],
+    [`${API_PATH}/recipes`, recipeRouter],
     [`${API_PATH}/roles`, roleRouter],
     [`${API_PATH}/suppliers`, supplierRouter],
     [`${API_PATH}/stock-ins`, stockInRouter],

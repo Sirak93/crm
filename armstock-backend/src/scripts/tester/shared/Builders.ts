@@ -6,6 +6,7 @@ import {
     type IMeasureUnit,
     type IProduct,
     type IProductCategory,
+    type IRecipeDetails,
     type IStockInDetails,
     type IStockOutDetails,
     type ISupplier,
@@ -116,5 +117,18 @@ export const stockOutBody = (lines: ILineInput[], fields: Record<string, unknown
 
 export const createStockOut = async (actor: ITestUser, lines: ILineInput[], fields: Record<string, unknown> = {}): Promise<IStockOutDetails> => {
     const { data } = await actor.api.ok<IStockOutDetails>("POST", PATHS.STOCK_OUTS, stockOutBody(lines, fields));
+    return data;
+};
+
+/** A recipe body - one line per `lines` entry, amounts per 1 person. */
+export const recipeBody = (lines: ILineInput[], fields: Record<string, unknown> = {}) => ({
+    name: uniqueName("Recipe"),
+    note: null,
+    lines: lines.map(({ productUuid, quantity }) => ({ productUuid, quantity })),
+    ...fields,
+});
+
+export const createRecipe = async (actor: ITestUser, lines: ILineInput[], fields: Record<string, unknown> = {}): Promise<IRecipeDetails> => {
+    const { data } = await actor.api.ok<IRecipeDetails>("POST", PATHS.RECIPES, recipeBody(lines, fields));
     return data;
 };

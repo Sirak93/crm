@@ -68,16 +68,17 @@ Decisions behind these steps: [decisions.md](decisions.md).
 
 ## Step 2b — Recipes: list, create, edit, details
 
-- [ ] Backend (own router file, so a module check can be added later in one line)
-  - [ ] List (search, status filter, pagination), details, create, edit
-  - [ ] Zod schemas. Rules: name unique per company (any case); at least 1 line; product
-        once; amount > 0, up to 3 decimals for every unit; products must be the company's
-- [ ] Frontend
-  - [ ] Menu "Recipes" (Բաղադրատոմսեր) - `RECIPE_VIEW`
-  - [ ] List page (like products), form with product lines (unit shown next to the
+- [x] Backend (own router file, so a module check can be added later in one line)
+  - [x] List (search, status filter, pagination), details, create, edit
+  - [x] Zod schemas. Rules: name unique per company (any case); at least 1 line; product
+        once; amount > 0, up to 3 decimals for every unit; products must be the company's;
+        new lines need active products (an archived one already on the recipe stays)
+- [x] Frontend
+  - [x] Menu "Recipes" (Բաղադրատոմսեր) - `RECIPE_VIEW`
+  - [x] List page (like products), form with product lines (unit shown next to the
         amount)
-  - [ ] Details popup: "View" row action + row click; name, status, note, all lines
-- [ ] Tests: `RecipesSuite` - list / details / create / edit, every rule above,
+  - [x] Details popup: "View" row action + row click; name, status, note, all lines
+- [x] Tests: `RecipesSuite` - list / details / create / edit, every rule above,
       permissions, other company's recipe → not found
 - [ ] Checked in browser: the head chef creates and edits a recipe; a storekeeper opens
       the list and a recipe's details, with no edit actions

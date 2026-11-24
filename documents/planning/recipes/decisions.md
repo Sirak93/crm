@@ -49,7 +49,9 @@ To keep adding the module later cheap:
   - Amount is in the **product's own unit** (the unit is shown next to the input). No unit
     conversion - for a product in kg, 100 g is typed as `0.1`.
   - Amount > 0, up to 3 decimals, for **every** unit - "pcs" too (0.1 egg is allowed).
-  - Each product once per recipe.
+  - Each product once per recipe (the picker hides products already on other rows).
+  - A new line needs an **active** product. A line the recipe already had keeps its product
+    even if that product was archived later.
 - **Delete** - only while the recipe was never used in a stock-out document. Otherwise
   archive.
 - No category, photo or price for now.
