@@ -9,12 +9,8 @@ import { DEFAULT_ROLE_NAMES } from "../constants/DefaultRoles";
 import { requireEnv } from "../utils/requireEnv";
 import { PlatformCompaniesService } from "../services/platform/PlatformCompaniesService";
 import { CompanyUsersService } from "../services/CompanyUsersService";
-import { MeasureUnitService } from "../services/MeasureUnitService";
-import { ProductCategoryService } from "../services/ProductCategoryService";
 import { ProductService } from "../services/ProductService";
 import { SupplierService } from "../services/SupplierService";
-import extraUnits from "./data/measure-units.json";
-import extraCategories from "./data/product-categories.json";
 import products from "./data/products.json";
 import suppliers from "./data/suppliers.json";
 
@@ -78,11 +74,6 @@ export const seedDevCompany = async () => {
     await member("Լիլիթ", "Մարտիրոսյան", "Կադրերի մենեջեր", DEFAULT_ROLE_NAMES[DefaultRole.HR], env("HR_EMAIL"));
     await member("Արմեն", "Ավետիսյան", "Շեֆ-խոհարար", DEFAULT_ROLE_NAMES[DefaultRole.CHEF], env("CHEF_EMAIL"));
     await member("Կարեն", "Գրիգորյան", "Խոհարար", DEFAULT_ROLE_NAMES[DefaultRole.STAFF], null);
-
-    const unitService = new MeasureUnitService();
-    for (const unit of extraUnits) await unitService.create(companyUuid, unit);
-    const categoryService = new ProductCategoryService();
-    for (const name of extraCategories) await categoryService.create(companyUuid, { name });
 
     const [units, categories] = await Promise.all([
         AppDataSource.getRepository(MeasureUnit).find({ where: { companyUuid } }),

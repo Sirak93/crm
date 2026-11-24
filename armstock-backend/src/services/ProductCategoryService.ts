@@ -18,10 +18,14 @@ export class ProductCategoryService {
         return { uuid: category.uuid, name: category.name };
     }
 
-    /** Runs inside the caller's transaction (company create). */
+    /**
+     * Runs inside the caller's transaction (company create). now() is the same for every row of one transaction,
+     * so each default gets its own millisecond - the list shows them in this order.
+     */
     static async createDefaults(manager: EntityManager, companyUuid: string): Promise<void> {
         const repo = manager.getRepository(ProductCategory);
-        await repo.save(DEFAULT_PRODUCT_CATEGORIES.map((name) => repo.create({ name, companyUuid })));
+        const start = Date.now();
+        await repo.save(DEFAULT_PRODUCT_CATEGORIES.map((name, index) => repo.create({ name, companyUuid, createdAt: new Date(start + index) })));
     }
 
     async findOrFail(companyUuid: string, uuid: string): Promise<ProductCategory> {
@@ -39,8 +43,9 @@ export class ProductCategoryService {
         if (await qb.getExists()) throw new AppError(ErrorCodes.PRODUCT_CATEGORY.NAME_TAKEN);
     }
 
+    /** In the order they were added - the defaults first, in their list order. */
     async list(companyUuid: string): Promise<IProductCategory[]> {
-        const categories = await this.repo.find({ where: { companyUuid }, order: { name: "ASC" } });
+        const categories = await this.repo.find({ where: { companyUuid }, order: { createdAt: "ASC", uuid: "ASC" } });
         return categories.map(ProductCategoryService.toCategory);
     }
 

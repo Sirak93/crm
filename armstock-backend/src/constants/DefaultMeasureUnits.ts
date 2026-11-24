@@ -5,7 +5,4 @@ export const DEFAULT_MEASURE_UNITS = [
     { name: "Գրամ", shortName: "գ", allowsDecimals: true },
     { name: "Լիտր", shortName: "լ", allowsDecimals: true },
     { name: "Միլիլիտր", shortName: "մլ", allowsDecimals: true },
-    { name: "Փաթեթ", shortName: "փաթեթ", allowsDecimals: false },
-    { name: "Տուփ", shortName: "տուփ", allowsDecimals: false },
-    { name: "Շիշ", shortName: "շիշ", allowsDecimals: false },
 ];

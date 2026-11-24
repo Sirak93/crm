@@ -13,10 +13,10 @@ export default (context: ICompanySideContext) => defineSuite("Product categories
     const { storekeeper } = companyA;
     const path = (uuid: string) => `${PATHS.PRODUCT_CATEGORIES}/${uuid}`;
 
-    test("a new company starts with the default categories", async () => {
+    test("a new company starts with the default categories, in their list order", async () => {
         const company = await createCompany(context, "Categories");
         const { data } = await company.owner.api.ok<IProductCategory[]>("GET", PATHS.PRODUCT_CATEGORIES);
-        matches(data.map((c) => c.name).sort(), [...DEFAULT_PRODUCT_CATEGORIES].sort());
+        matches(data.map((c) => c.name), [...DEFAULT_PRODUCT_CATEGORIES]);
     });
 
     test("create, with a trimmed name; bad names refused", async () => {
@@ -52,9 +52,10 @@ export default (context: ICompanySideContext) => defineSuite("Product categories
         await storekeeper.api.rejects("DELETE", path(category.uuid), ErrorCodes.PRODUCT_CATEGORY.NOT_FOUND);
     });
 
-    test("list: every category of the company, sorted as the database sorts", async () => {
+    test("list: every category of the company, oldest first - a new one comes after the defaults", async () => {
         const { data } = await companyA.staff.api.ok<IProductCategory[]>("GET", PATHS.PRODUCT_CATEGORIES);
-        const ordered = await db.query<{ name: string }>("SELECT name FROM product_categories WHERE company_uuid = $1 ORDER BY name", [companyA.uuid]);
+        const ordered = await db.query<{ name: string }>(
+            "SELECT name FROM product_categories WHERE company_uuid = $1 ORDER BY created_at, uuid", [companyA.uuid]);
         matches(data.map((c) => c.name), ordered.map((c) => c.name));
     });
 
