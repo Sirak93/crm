@@ -17,6 +17,9 @@ build/
 
 tmp/
 
+# Local helper scripts (e.g. database reset)
+dev-scripts/
+
 # Netlify CLI local state
 .netlify/
 
