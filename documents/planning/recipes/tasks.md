@@ -43,7 +43,8 @@ Decisions behind these steps: [decisions.md](decisions.md).
   - [x] `PermissionGroup`: Recipes
   - [x] `DefaultRole.CHEF` + its permissions (the 5 recipe permissions)
   - [x] Storekeeper default permissions + `RECIPE_VIEW`
-- [x] Backend: `DEFAULT_ROLE_NAMES` - Chef (Խոհարար); new companies get it
+- [x] Backend: `DEFAULT_ROLE_NAMES` - Chef (Շեֆ-խոհարար); new companies get it; dev seeder
+      adds a head chef with login (`DEV_SEED_CHEF_EMAIL`)
 - [x] Frontend: permission panel and role dialog show the Recipes group
 - [x] Tests: new company has the Chef role with the right permissions and Storekeeper
       has `RECIPE_VIEW`; permissions and

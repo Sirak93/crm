@@ -21,7 +21,7 @@ To keep adding the module later cheap:
 
 ## Chef role
 
-- **Chef** (Խոհարար) is added to the default roles list (`DefaultRole` /
+- **Chef** (Շեֆ-խոհարար, head chef) is added to the default roles list (`DefaultRole` /
   `DEFAULT_ROLE_NAMES`), with the 5 recipe permissions.
 - **Storekeeper** default role also gets `RECIPE_VIEW` (list and details only - no add,
   edit, archive or delete).
@@ -171,7 +171,7 @@ Unique: (`stock_out_uuid`, `recipe_uuid`).
 
 | What | English | Armenian |
 | --- | --- | --- |
-| Chef role | Chef | Խոհարար |
+| Chef role | Head chef | Շեֆ-խոհարար |
 | Recipes menu | Recipes | Բաղադրատոմսեր |
 | Stock-out menu | Stock out by recipe | Ելք բաղադրատոմսով |
 | Mark in the stock-out list | By recipe | Բաղադրատոմսով |
