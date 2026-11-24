@@ -25,6 +25,7 @@ Decisions behind these steps: [decisions.md](decisions.md).
 - [x] Step 1 — Recipe permissions and Chef role
 - [x] Step 2a — Recipes: base (enums, tables, interfaces)
 - [ ] Step 2b — Recipes: list, create, edit, details
+- [ ] Step 2b+ — Recipes: amounts down to 1 mg + unit converter
 - [ ] Step 2c — Recipes: archive, restore, delete
 - [ ] Step 3 — Stock out by recipe: create
 - [ ] Step 4 — By-recipe docs: list mark and view
@@ -83,6 +84,21 @@ Decisions behind these steps: [decisions.md](decisions.md).
 - [ ] Checked in browser: the head chef creates and edits a recipe; a storekeeper opens
       the list and a recipe's details, with no edit actions
 
+## Step 2b+ — Recipes: amounts down to 1 mg + unit converter
+
+- [ ] **To confirm first:** fixed units vs editable units - see decisions.md → "Open - under discussion".
+
+- [ ] Shared: `RECIPE_QUANTITY_DECIMALS = 6` next to `QUANTITY_DECIMALS`
+- [ ] DB: `recipe_lines.quantity` → `numeric(14,6)` (local DB recreated)
+- [ ] Backend: recipe line amounts up to 6 decimals (stock documents stay at 3)
+- [ ] Frontend
+  - [ ] Recipe amount field and details popup show up to 6 decimals
+  - [ ] Converter popover next to each amount: value, from (mg / g / kg, ml / l), to, result, **Use**
+        fills the row; fixed factors in one shared constant; product unit shown as a reminder
+  - [ ] Form hint: small amounts example ("1 g = 0.001 kg")
+- [ ] Tests: 6 decimals saved and returned (e.g. 0.000001), a 7th decimal refused
+- [ ] Checked in browser: salt 0.5 g entered through the converter as 0.0005 kg
+
 ## Step 2c — Recipes: archive, restore, delete
 
 - [ ] Backend: archive, restore, delete
@@ -96,14 +112,14 @@ Decisions behind these steps: [decisions.md](decisions.md).
 
 ## Step 3 — Stock out by recipe: create
 
-- [ ] DB: `stock_out_recipes`, `stock_out_recipe_lines`
+- [ ] DB: `stock_out_recipes`, `stock_out_recipe_lines` (its `quantity` is `numeric(14,6)`, like recipe lines)
 - [ ] Backend
   - [ ] Create endpoint (own router file, `STOCK_OUT_CREATE`): recipe rows + persons, date,
         receiver, note. Reason Issued → Kitchen set by the backend
   - [ ] Rules: at least 1 row; each recipe once; persons whole number > 0; active recipes
         only
-  - [ ] Totals per product summed across recipes, rounded **up** only for units without
-        decimals; saved as normal `stock_out_lines`
+  - [ ] Totals per product summed across recipes, rounded **up** - to a whole number for
+        units without decimals, to 3 decimals for the others; saved as normal `stock_out_lines`
   - [ ] Recipe lines copied into `stock_out_recipe_lines`
   - [ ] Same stock check and product locks as a normal stock-out (same error list)
   - [ ] `/options/recipes` - active recipes, open to every member

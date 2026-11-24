@@ -48,7 +48,13 @@ To keep adding the module later cheap:
 - **Lines** - at least 1. Product + amount **per 1 person**.
   - Amount is in the **product's own unit** (the unit is shown next to the input). No unit
     conversion - for a product in kg, 100 g is typed as `0.1`.
-  - Amount > 0, up to 3 decimals, for **every** unit - "pcs" too (0.1 egg is allowed).
+  - Amount > 0, up to **6 decimals**, for **every** unit - "pcs" too (0.1 egg is allowed). In kg
+    that is down to **1 mg** (0.000001), so salt and spices fit. Only recipe amounts get 6 decimals;
+    stock, stock-in and stock-out stay at 3.
+  - **Converter** next to each amount: a small popover - value + "from" unit → "to" unit, **Use**
+    puts the result into the amount. Fixed units in code: mg, g, kg and ml, l (fixed factors). The
+    user picks the target unit (the product's unit is shown as a reminder) - the app never guesses
+    a product's unit from its name. Only a typing helper; nothing about units is saved.
   - Each product once per recipe (the picker hides products already on other rows).
   - A new line needs an **active** product. A line the recipe already had keeps its product
     even if that product was archived later.
@@ -83,9 +89,10 @@ To keep adding the module later cheap:
   - For each recipe: its products and amounts for that people count - **exact**, not
     rounded.
   - Below: **total per product** across all recipes.
-- **Rounding:** for units without decimals, only the final total is rounded **up**
-  (Dish A 1.1 eggs + Dish B 0.5 eggs = 1.6 → **2**), with a "rounded up" mark. Per-recipe
-  rows are never rounded.
+- **Rounding:** only the final total is rounded, always **up**, with a "rounded up" mark.
+  Per-recipe rows are never rounded.
+  - Units without decimals → whole number (Dish A 1.1 eggs + Dish B 0.5 eggs = 1.6 → **2**).
+  - Units with decimals → 3 decimals, the stock precision (salt 0.0005 kg × 11 = 0.0055 → **0.006**).
 - "Save" creates (or updates) the document. "Back" closes the popup.
 - Not enough stock → the popup stays open and shows the same error list as the normal
   stock-out (e.g. "P1: only 1.2 kg in stock").
@@ -138,7 +145,7 @@ recipes
 | `company_uuid` | uuid | copied, for queries without a join |
 | `product_uuid` | uuid | FK → products, `RESTRICT` (blocks product delete) |
 | `position` | int | row order |
-| `quantity` | numeric(14,3) | per 1 person, in the product's unit |
+| `quantity` | numeric(14,6) | per 1 person, in the product's unit |
 | `created_at` / `updated_at` | timestamp | |
 
 Unique: (`recipe_uuid`, `product_uuid`).
@@ -166,7 +173,7 @@ Unique: (`stock_out_uuid`, `recipe_uuid`).
 | `company_uuid` | uuid | copied |
 | `product_uuid` | uuid | FK → products, `RESTRICT` |
 | `position` | int | same order as in the recipe |
-| `quantity` | numeric(14,3) | per 1 person, copied that day |
+| `quantity` | numeric(14,6) | per 1 person, copied that day |
 | `created_at` / `updated_at` | timestamp | |
 
 ## Names
@@ -308,6 +315,31 @@ Not part of recipes - works for every company.
   it is refused by the database and turned into the same "name taken" error
   (`onUniqueViolation`, key names in `UNIQUE_KEYS`).
 - The unique key replaces the plain `company_uuid` index on those tables (except products).
+
+## Open - under discussion (2026-11-24, not decided)
+
+The user paused here to decide on their own. Do not build any of this until it is settled.
+
+- **Fixed units instead of unit CRUD.** Replace the per-company `measure_units` table and Units page with a
+  fixed list in code (shared enum + constant with type, factor, short name, decimals). Gains: the app knows
+  each unit (weight / volume / count, factor), so the recipe converter can pick the target by itself (or the
+  chef types in g / ml for a kg / l product); no rename problem; less code. Loses: companies can't add their own
+  units. Touches many files (products, pickers, stock pages, permissions `MEASURE_UNIT_*`, tests) - would be its
+  own step before 2b+. Proposed list:
+
+  | Unit | Short | Type | Factor | Decimals | Product unit? |
+  | --- | --- | --- | --- | --- | --- |
+  | Հատ | հատ | count | - | no | yes |
+  | Կիլոգրամ | կգ | weight | 1 (base) | yes | yes |
+  | Գրամ | գ | weight | 0.001 | yes | yes |
+  | Լիտր | լ | volume | 1 (base) | yes | yes |
+  | Միլիլիտր | մլ | volume | 0.001 | yes | yes |
+  | Միլիգրամ | մգ | weight | 0.000001 | yes | no - converter only |
+
+- **If units stay editable:** renaming a unit (name / short name) while products use it is not blocked today -
+  "kg" renamed to "mg" would silently change every product in it. Suggested fix: refuse it like the existing
+  decimals check (`MEASURE_UNIT_DECIMALS_IN_USE`).
+- Step 2b+ (6 decimals + converter) is decided, but its converter design depends on the units decision above.
 
 ## Later
 
