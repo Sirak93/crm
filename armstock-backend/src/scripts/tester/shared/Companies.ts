@@ -6,7 +6,7 @@ import { randomPassword, uniqueEmail, uniqueName } from "./Random";
 import type { ITestCompany } from "../interfaces/ITestCompany";
 import type { ITestContext } from "../interfaces/ITestContext";
 
-const DEFAULT_ROLES = [DefaultRole.STOREKEEPER, DefaultRole.ACCOUNTANT, DefaultRole.HR, DefaultRole.STAFF];
+const DEFAULT_ROLES = [DefaultRole.STOREKEEPER, DefaultRole.ACCOUNTANT, DefaultRole.HR, DefaultRole.STAFF, DefaultRole.CHEF];
 
 /**
  * A company made through the platform API like a real onboarding, with its Owner and one

@@ -6,4 +6,5 @@ export const DEFAULT_ROLE_NAMES: Readonly<Record<DefaultRole, string>> = {
     [DefaultRole.ACCOUNTANT]: "Հաշվապահ",
     [DefaultRole.HR]: "Կադրերի մենեջեր",
     [DefaultRole.STAFF]: "Աշխատակից",
+    [DefaultRole.CHEF]: "Խոհարար",
 };

@@ -37,15 +37,15 @@ Decisions behind these steps: [decisions.md](decisions.md).
 
 ## Step 1 — Recipe permissions and Chef role
 
-- [ ] Shared
-  - [ ] `Permission`: `RECIPE_VIEW`, `RECIPE_ADD`, `RECIPE_EDIT`, `RECIPE_ARCHIVE`,
+- [x] Shared
+  - [x] `Permission`: `RECIPE_VIEW`, `RECIPE_ADD`, `RECIPE_EDIT`, `RECIPE_ARCHIVE`,
         `RECIPE_DELETE`
-  - [ ] `PermissionGroup`: Recipes
-  - [ ] `DefaultRole.CHEF` + its permissions (the 5 recipe permissions)
-  - [ ] Storekeeper default permissions + `RECIPE_VIEW`
-- [ ] Backend: `DEFAULT_ROLE_NAMES` - Chef (Խոհարար); new companies get it
-- [ ] Frontend: permission panel and role dialog show the Recipes group
-- [ ] Tests: new company has the Chef role with the right permissions and Storekeeper
+  - [x] `PermissionGroup`: Recipes
+  - [x] `DefaultRole.CHEF` + its permissions (the 5 recipe permissions)
+  - [x] Storekeeper default permissions + `RECIPE_VIEW`
+- [x] Backend: `DEFAULT_ROLE_NAMES` - Chef (Խոհարար); new companies get it
+- [x] Frontend: permission panel and role dialog show the Recipes group
+- [x] Tests: new company has the Chef role with the right permissions and Storekeeper
       has `RECIPE_VIEW`; permissions and
       roles suites cover the new values
 - [ ] Checked in browser: Recipes group in the permission panel, Chef role in the roles list

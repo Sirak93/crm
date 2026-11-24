@@ -41,4 +41,10 @@ export enum Permission {
     STOCK_OUT_CREATE = 310,
     STOCK_OUT_EDIT = 320,
     STOCK_OUT_DELETE = 330,
+
+    RECIPE_VIEW = 340,
+    RECIPE_ADD = 350,
+    RECIPE_EDIT = 360,
+    RECIPE_ARCHIVE = 370,
+    RECIPE_DELETE = 380,
 }

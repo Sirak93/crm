@@ -796,6 +796,7 @@ const hy: typeof en = {
       suppliers: 'Մատակարարներ',
       supplierContacts: 'Մատակարարների կոնտակտներ',
       stock: 'Պահեստ',
+      recipes: 'Բաղադրատոմսեր',
     },
     items: {
       companyEdit: 'Խմբագրել ընկերության տվյալները',
@@ -831,6 +832,11 @@ const hy: typeof en = {
       stockOutCreate: 'Ստեղծել ելքեր',
       stockOutEdit: 'Խմբագրել սեփական ելքերը',
       stockOutDelete: 'Ջնջել սեփական ելքերը',
+      recipeView: 'Դիտել բաղադրատոմսերը',
+      recipeAdd: 'Ավելացնել բաղադրատոմսեր',
+      recipeEdit: 'Խմբագրել բաղադրատոմսերը',
+      recipeArchive: 'Արխիվացնել և վերականգնել բաղադրատոմսերը',
+      recipeDelete: 'Ջնջել բաղադրատոմսերը',
     },
   },
   health: {

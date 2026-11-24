@@ -63,6 +63,16 @@ export const PERMISSION_GROUPS: ReadonlyArray<{ group: PermissionGroup; permissi
             Permission.STOCK_OUT_DELETE,
         ],
     },
+    {
+        group: PermissionGroup.RECIPES,
+        permissions: [
+            Permission.RECIPE_VIEW,
+            Permission.RECIPE_ADD,
+            Permission.RECIPE_EDIT,
+            Permission.RECIPE_ARCHIVE,
+            Permission.RECIPE_DELETE,
+        ],
+    },
 ];
 
 /** Starting permissions of the default roles - used only when a new company is created. */
@@ -92,6 +102,7 @@ export const DEFAULT_ROLE_PERMISSIONS: Readonly<Record<DefaultRole, readonly Per
         Permission.STOCK_OUT_CREATE,
         Permission.STOCK_OUT_EDIT,
         Permission.STOCK_OUT_DELETE,
+        Permission.RECIPE_VIEW,
     ],
     [DefaultRole.ACCOUNTANT]: [
         Permission.PRODUCT_VIEW,
@@ -109,6 +120,13 @@ export const DEFAULT_ROLE_PERMISSIONS: Readonly<Record<DefaultRole, readonly Per
     ],
     [DefaultRole.HR]: [Permission.USER_VIEW, Permission.USER_ADD],
     [DefaultRole.STAFF]: [],
+    [DefaultRole.CHEF]: [
+        Permission.RECIPE_VIEW,
+        Permission.RECIPE_ADD,
+        Permission.RECIPE_EDIT,
+        Permission.RECIPE_ARCHIVE,
+        Permission.RECIPE_DELETE,
+    ],
 };
 
 /** Only the Company Owner turns these on or off - for a user or a role. */

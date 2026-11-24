@@ -9,6 +9,7 @@ export const PERMISSION_GROUP_LABEL: Record<PermissionGroup, string> = {
   [PermissionGroup.SUPPLIERS]: 'permissions.groups.suppliers',
   [PermissionGroup.SUPPLIER_CONTACTS]: 'permissions.groups.supplierContacts',
   [PermissionGroup.STOCK]: 'permissions.groups.stock',
+  [PermissionGroup.RECIPES]: 'permissions.groups.recipes',
 };
 
 export const PERMISSION_LABEL: Record<Permission, string> = {
@@ -45,4 +46,9 @@ export const PERMISSION_LABEL: Record<Permission, string> = {
   [Permission.STOCK_OUT_CREATE]: 'permissions.items.stockOutCreate',
   [Permission.STOCK_OUT_EDIT]: 'permissions.items.stockOutEdit',
   [Permission.STOCK_OUT_DELETE]: 'permissions.items.stockOutDelete',
+  [Permission.RECIPE_VIEW]: 'permissions.items.recipeView',
+  [Permission.RECIPE_ADD]: 'permissions.items.recipeAdd',
+  [Permission.RECIPE_EDIT]: 'permissions.items.recipeEdit',
+  [Permission.RECIPE_ARCHIVE]: 'permissions.items.recipeArchive',
+  [Permission.RECIPE_DELETE]: 'permissions.items.recipeDelete',
 };

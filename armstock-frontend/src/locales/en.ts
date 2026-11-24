@@ -796,6 +796,7 @@ export default {
       suppliers: 'Suppliers',
       supplierContacts: 'Supplier contacts',
       stock: 'Stock',
+      recipes: 'Recipes',
     },
     items: {
       companyEdit: 'Edit company info',
@@ -831,6 +832,11 @@ export default {
       stockOutCreate: 'Create stock-outs',
       stockOutEdit: 'Edit own stock-outs',
       stockOutDelete: 'Delete own stock-outs',
+      recipeView: 'View recipes',
+      recipeAdd: 'Add recipes',
+      recipeEdit: 'Edit recipes',
+      recipeArchive: 'Archive and restore recipes',
+      recipeDelete: 'Delete recipes',
     },
   },
   health: {

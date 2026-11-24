@@ -1,4 +1,4 @@
-import { ErrorCodes, Permission, UserStatus, type ICompanyUser, type IRole } from "armstock-shared";
+import { DEFAULT_ROLE_PERMISSIONS, DefaultRole, ErrorCodes, Permission, UserStatus, type ICompanyUser, type IRole } from "armstock-shared";
 import { defineSuite } from "../../core/Suite";
 import { equals, hasExactKeys, isTrue, matches } from "../../core/Assert";
 import { createMember } from "../../shared/Accounts";
@@ -38,6 +38,24 @@ export default (context: ICompanySideContext) => defineSuite("Roles", (test) => 
             permissions: [Permission.MANAGE_USER_PERMISSIONS, Permission.USER_VIEW],
             label: "role-manager",
         });
+    });
+
+    test("default roles start with their default permissions - Chef has the recipe ones, Storekeeper may view recipes", async () => {
+        const { data: roles } = await owner.api.ok<IRole[]>("GET", PATHS.ROLES);
+        for (const role of Object.values(DefaultRole).filter((v): v is DefaultRole => typeof v === "number")) {
+            const found = roles.find((r) => r.uuid === companyA.roles[role]);
+            matches(sorted(found?.permissions ?? []), sorted([...DEFAULT_ROLE_PERMISSIONS[role]]), `role ${DefaultRole[role]}`);
+        }
+        matches(sorted([...DEFAULT_ROLE_PERMISSIONS[DefaultRole.CHEF]]), [
+            Permission.RECIPE_VIEW, Permission.RECIPE_ADD, Permission.RECIPE_EDIT, Permission.RECIPE_ARCHIVE, Permission.RECIPE_DELETE,
+        ], "chef permissions");
+        isTrue(DEFAULT_ROLE_PERMISSIONS[DefaultRole.STOREKEEPER].includes(Permission.RECIPE_VIEW), "storekeeper views recipes");
+        isTrue(!DEFAULT_ROLE_PERMISSIONS[DefaultRole.STOREKEEPER].includes(Permission.RECIPE_EDIT), "storekeeper can't edit recipes");
+    });
+
+    test("recipe permissions can be saved on a role", async () => {
+        const role = await createRole(owner, [Permission.RECIPE_VIEW, Permission.RECIPE_DELETE]);
+        matches(sorted(role.permissions), [Permission.RECIPE_VIEW, Permission.RECIPE_DELETE]);
     });
 
     // --- Create ---
