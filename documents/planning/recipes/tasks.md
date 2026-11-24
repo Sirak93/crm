@@ -11,7 +11,6 @@ How to use this file:
 
 Rules for every step:
 
-- Notes → OK → build (see `CLAUDE.md`).
 - Every page has loading, empty, and error states. All texts go through i18n (hy + en).
 - Every request body and query is checked with Zod.
 - Tests: the backend tester (`npm run test -w armstock-backend`) gets a suite or new cases

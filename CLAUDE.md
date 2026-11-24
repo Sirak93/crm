@@ -22,6 +22,11 @@ task wraps up, not after each micro-adjustment.
   short implementation note in the chat — a few bullets naming the files to touch and
   the approach (one or two lines for a small fix). Then wait for the user's go-ahead
   before editing anything. Keep it conversational; this is not a plan file.
+- **Exception: steps from an approved `tasks.md`** (under `documents/planning/`). The
+  step is already the approved plan, so once the user says to start a step, implement it
+  directly — no notes, no waiting. Still stop and ask when a "To confirm" point in the
+  step is open, or when the code forces something the step or `decisions.md` doesn't
+  cover.
 - **Do not ask which mode to use** when the user's message already describes a small,
   clear fix or task — just post the note and proceed once approved.
 - **Plan mode is only for genuinely big tasks** — a lot of files, broad or
