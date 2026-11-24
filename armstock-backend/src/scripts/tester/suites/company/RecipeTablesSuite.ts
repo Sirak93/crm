@@ -1,33 +1,21 @@
 import { RecipeStatus } from "armstock-shared";
 import { defineSuite } from "../../core/Suite";
-import { equals, isTrue } from "../../core/Assert";
+import { equals } from "../../core/Assert";
 import { createMember } from "../../shared/Accounts";
 import { createProduct } from "../../shared/Builders";
+import { expectRefused, PG_FOREIGN_KEY_VIOLATION as FOREIGN_KEY_VIOLATION, PG_UNIQUE_VIOLATION as UNIQUE_VIOLATION } from "../../shared/DatabaseErrors";
 import { PATHS } from "../../shared/Paths";
 import type { ICompanySideContext } from "../../interfaces/ICompanySideContext";
 
-const UNIQUE_VIOLATION = "23505";
-const FOREIGN_KEY_VIOLATION = "23503";
-
 /** Recipe tables at the database level - the API comes in the next step. */
 export default (context: ICompanySideContext) => defineSuite("Recipe tables", (test) => {
-    const { db, companyA } = context;
+    const { db, companyA, companyB } = context;
     const { storekeeper, owner } = companyA;
 
-    /** Runs `sql` and expects Postgres to refuse it with `code`. */
-    const refused = async (sql: string, params: unknown[], code: string, label: string) => {
-        try {
-            await db.query(sql, params);
-        } catch (error) {
-            const found = (error as { code?: string; driverError?: { code?: string } });
-            equals(found.code ?? found.driverError?.code, code, label);
-            return;
-        }
-        isTrue(false, `${label}: expected the database to refuse it`);
-    };
-    const insertRecipe = async (name: string, createdByUuid = owner.uuid) => (await db.query<{ uuid: string; status: number }>(
+    const refused = (sql: string, params: unknown[], code: string, label: string) => expectRefused(db, sql, params, code, label);
+    const insertRecipe = async (name: string, createdByUuid = owner.uuid, companyUuid = companyA.uuid) => (await db.query<{ uuid: string; status: number }>(
         "INSERT INTO recipes (company_uuid, name, created_by_uuid) VALUES ($1, $2, $3) RETURNING uuid, status",
-        [companyA.uuid, name, createdByUuid],
+        [companyUuid, name, createdByUuid],
     ))[0];
     const insertLine = (recipeUuid: string, productUuid: string, quantity: number, position = 1) => db.query(
         "INSERT INTO recipe_lines (recipe_uuid, company_uuid, product_uuid, position, quantity) VALUES ($1, $2, $3, $4, $5)",
@@ -42,6 +30,14 @@ export default (context: ICompanySideContext) => defineSuite("Recipe tables", (t
         const [line] = await db.query<{ quantity: string }>("SELECT quantity FROM recipe_lines WHERE recipe_uuid = $1", [recipe.uuid]);
         equals(Number(line.quantity), 0.125, "quantity");
         await db.query("DELETE FROM recipes WHERE uuid = $1", [recipe.uuid]);
+    });
+
+    test("a name is unique per company ignoring case; another company may use it", async () => {
+        const recipe = await insertRecipe("Dish Case");
+        await refused("INSERT INTO recipes (company_uuid, name, created_by_uuid) VALUES ($1, $2, $3)",
+            [companyA.uuid, "dish case", owner.uuid], UNIQUE_VIOLATION, "same name in another case");
+        const other = await insertRecipe("Dish Case", companyB.owner.uuid, companyB.uuid);
+        await db.query("DELETE FROM recipes WHERE uuid = ANY($1)", [[recipe.uuid, other.uuid]]);
     });
 
     test("a product appears once per recipe", async () => {

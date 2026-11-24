@@ -4,15 +4,16 @@ import {
     Column,
     CreateDateColumn,
     UpdateDateColumn,
-    Index,
+    Unique,
     ManyToOne,
     JoinColumn,
 } from "typeorm";
 import { SupplierStatus } from "armstock-shared";
 import { Company } from "./Company";
+import { UNIQUE_KEYS } from "../constants/UniqueKeys";
 
 @Entity("suppliers")
-@Index("IDX_suppliers_company_uuid", ["companyUuid"])
+@Unique(UNIQUE_KEYS.SUPPLIER_NAME, ["companyUuid", "name"])
 export class Supplier {
     @PrimaryGeneratedColumn("uuid")
     uuid!: string;
@@ -25,7 +26,8 @@ export class Supplier {
     company?: Company;
 
     /** Firm name. */
-    @Column()
+    /** Case-insensitive, so the unique key ignores case. */
+    @Column({ type: "citext" })
     name!: string;
 
     @Column({ name: "tax_id", type: "varchar", nullable: true })

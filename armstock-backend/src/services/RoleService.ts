@@ -18,6 +18,10 @@ import { DEFAULT_ROLE_NAMES } from "../constants/DefaultRoles";
 import { AuthCacheService } from "./AuthCacheService";
 import type { IRequestUser } from "../interfaces/IRequestUser";
 import type { RoleBody } from "../schemas/RoleSchema";
+import { UNIQUE_KEYS } from "../constants/UniqueKeys";
+import { onUniqueViolation } from "../utils/onUniqueViolation";
+
+const UNIQUE_ERRORS = { [UNIQUE_KEYS.ROLE_NAME]: ErrorCodes.ROLE.NAME_TAKEN };
 
 export class RoleService {
     private repo = AppDataSource.getRepository(Role);
@@ -46,7 +50,7 @@ export class RoleService {
     private async assertNameFree(companyUuid: string, name: string, exceptUuid?: string): Promise<void> {
         const qb = this.repo.createQueryBuilder("role")
             .where("role.companyUuid = :companyUuid", { companyUuid })
-            .andWhere("LOWER(role.name) = LOWER(:name)", { name });
+            .andWhere("role.name = :name", { name });
         if (exceptUuid) qb.andWhere("role.uuid != :exceptUuid", { exceptUuid });
         if (await qb.getExists()) throw new AppError(ErrorCodes.ROLE.NAME_TAKEN);
     }
@@ -85,7 +89,7 @@ export class RoleService {
     async create(companyUuid: string, actor: IRequestUser, body: RoleBody): Promise<IRole> {
         await this.assertNameFree(companyUuid, body.name);
         const permissions = keepLocked(body.permissions, [], lockedPermissions(actor.accountType));
-        const role = await this.repo.save(this.repo.create({ companyUuid, name: body.name, permissions }));
+        const role = await this.repo.save(this.repo.create({ companyUuid, name: body.name, permissions })).catch(onUniqueViolation(UNIQUE_ERRORS));
         return RoleService.toRole(role, 0);
     }
 
@@ -116,7 +120,7 @@ export class RoleService {
                 .returning(["uuid", "permissions"])
                 .execute();
             return result.raw as { uuid: string; permissions: Permission[] }[];
-        });
+        }).catch(onUniqueViolation(UNIQUE_ERRORS));
         await Promise.all(updated.map((row) => AuthCacheService.setPermissions([row.uuid], row.permissions)));
 
         return RoleService.toRole(role, await this.countUsers(companyUuid, uuid));

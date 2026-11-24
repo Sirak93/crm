@@ -14,6 +14,13 @@ import { SupplierReturnService } from "./SupplierReturnService";
 import { PICKER_LIMIT } from "../constants/PickerConstants";
 import type { ProductBody, ProductCreateBody, ProductsQuery } from "../schemas/ProductSchema";
 import type { ProductOptionsQuery } from "../schemas/OptionsSchema";
+import { UNIQUE_KEYS } from "../constants/UniqueKeys";
+import { onUniqueViolation } from "../utils/onUniqueViolation";
+
+const UNIQUE_ERRORS = {
+    [UNIQUE_KEYS.PRODUCT_CODE]: ErrorCodes.PRODUCT.CODE_TAKEN,
+    [UNIQUE_KEYS.PRODUCT_BARCODE]: ErrorCodes.PRODUCT.BARCODE_TAKEN,
+};
 
 export class ProductService {
     private repo = AppDataSource.getRepository(Product);
@@ -44,12 +51,12 @@ export class ProductService {
         if (!code) return;
         const qb = this.repo.createQueryBuilder("product")
             .where("product.companyUuid = :companyUuid", { companyUuid })
-            .andWhere("LOWER(product.code) = LOWER(:code)", { code });
+            .andWhere("product.code = :code", { code });
         if (exceptUuid) qb.andWhere("product.uuid != :exceptUuid", { exceptUuid });
         if (await qb.getExists()) throw new AppError(ErrorCodes.PRODUCT.CODE_TAKEN);
     }
 
-    /** Barcode is optional, but unique inside the company when set (the unique index backs this up). */
+    /** Barcode is optional, but unique inside the company when set. */
     private async assertBarcodeFree(companyUuid: string, barcode: string | null, exceptUuid?: string): Promise<void> {
         if (!barcode) return;
         const qb = this.repo.createQueryBuilder("product")
@@ -111,7 +118,7 @@ export class ProductService {
             this.assertCodeFree(companyUuid, body.code),
             this.assertBarcodeFree(companyUuid, body.barcode),
         ]);
-        const product = await this.repo.save(this.repo.create({ ...body, companyUuid }));
+        const product = await this.repo.save(this.repo.create({ ...body, companyUuid })).catch(onUniqueViolation(UNIQUE_ERRORS));
         return ProductService.toProduct(product, unit, category);
     }
 
@@ -125,7 +132,7 @@ export class ProductService {
             this.assertBarcodeFree(companyUuid, body.barcode, uuid),
         ]);
         Object.assign(product, body);
-        await this.repo.save(product);
+        await this.repo.save(product).catch(onUniqueViolation(UNIQUE_ERRORS));
         return ProductService.toProduct(product, unit, category);
     }
 

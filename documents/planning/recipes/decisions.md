@@ -121,7 +121,7 @@ recipes
 | --- | --- | --- |
 | `uuid` | uuid | PK |
 | `company_uuid` | uuid | FK → companies |
-| `name` | varchar | unique per company |
+| `name` | citext | unique per company, ignoring case (unique key + service check) |
 | `note` | text, null | |
 | `status` | int | Active / Archived |
 | `created_by_uuid` | uuid | FK → users, `RESTRICT` (blocks user delete if one is ever added) |
@@ -296,6 +296,16 @@ Not part of recipes - works for every company.
 
 - Date range filter defaults to **this month** (today it starts empty). Can still be
   cleared or changed.
+
+## Unique names (all tables)
+
+- Names that must be unique per company ignoring case are `citext` columns with a database
+  unique key (`company_uuid`, field): `suppliers.name`, `product_categories.name`,
+  `products.code`, `measure_units.name` and `short_name`, `roles.name`, `recipes.name`.
+- The service still checks first, for a clear error. A same-moment duplicate that gets past
+  it is refused by the database and turned into the same "name taken" error
+  (`onUniqueViolation`, key names in `UNIQUE_KEYS`).
+- The unique key replaces the plain `company_uuid` index on those tables (except products).
 
 ## Later
 

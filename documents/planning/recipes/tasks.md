@@ -63,6 +63,8 @@ Decisions behind these steps: [decisions.md](decisions.md).
 - [x] Tests: the scratch database has both tables with their unique keys and foreign keys
       (product delete blocked by a recipe line at the DB level; a recipe's creator can't be
       deleted)
+- [x] Unique names in the database for all tables (`citext` + unique key, see decisions.md
+      → Unique names); "Unique names in the database" suite
 
 ## Step 2b — Recipes: list, create, edit, details
 

@@ -15,6 +15,10 @@ import { AppError } from "../utils/AppError";
 import { PICKER_LIMIT } from "../constants/PickerConstants";
 import type { SupplierBody, SupplierContactBody, SuppliersQuery } from "../schemas/SupplierSchema";
 import type { SupplierOptionsQuery } from "../schemas/OptionsSchema";
+import { UNIQUE_KEYS } from "../constants/UniqueKeys";
+import { onUniqueViolation } from "../utils/onUniqueViolation";
+
+const UNIQUE_ERRORS = { [UNIQUE_KEYS.SUPPLIER_NAME]: ErrorCodes.SUPPLIER.NAME_TAKEN };
 
 export class SupplierService {
     private repo = AppDataSource.getRepository(Supplier);
@@ -54,7 +58,7 @@ export class SupplierService {
     private async assertNameFree(companyUuid: string, name: string, exceptUuid?: string): Promise<void> {
         const qb = this.repo.createQueryBuilder("supplier")
             .where("supplier.companyUuid = :companyUuid", { companyUuid })
-            .andWhere("LOWER(supplier.name) = LOWER(:name)", { name });
+            .andWhere("supplier.name = :name", { name });
         if (exceptUuid) qb.andWhere("supplier.uuid != :exceptUuid", { exceptUuid });
         if (await qb.getExists()) throw new AppError(ErrorCodes.SUPPLIER.NAME_TAKEN);
     }
@@ -94,7 +98,7 @@ export class SupplierService {
 
     async create(companyUuid: string, body: SupplierBody): Promise<ISupplier> {
         await this.assertNameFree(companyUuid, body.name);
-        const supplier = await this.repo.save(this.repo.create({ ...body, companyUuid }));
+        const supplier = await this.repo.save(this.repo.create({ ...body, companyUuid })).catch(onUniqueViolation(UNIQUE_ERRORS));
         return SupplierService.toSupplier(supplier, []);
     }
 
@@ -104,7 +108,7 @@ export class SupplierService {
             this.assertNameFree(companyUuid, body.name, uuid),
         ]);
         Object.assign(supplier, body);
-        await this.repo.save(supplier);
+        await this.repo.save(supplier).catch(onUniqueViolation(UNIQUE_ERRORS));
         const [item] = await this.withContacts([supplier]);
         return item!;
     }

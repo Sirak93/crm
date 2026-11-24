@@ -6,6 +6,13 @@ import { Product } from "../models/Product";
 import { AppError } from "../utils/AppError";
 import { DEFAULT_MEASURE_UNITS } from "../constants/DefaultMeasureUnits";
 import type { MeasureUnitBody } from "../schemas/MeasureUnitSchema";
+import { UNIQUE_KEYS } from "../constants/UniqueKeys";
+import { onUniqueViolation } from "../utils/onUniqueViolation";
+
+const UNIQUE_ERRORS = {
+    [UNIQUE_KEYS.MEASURE_UNIT_NAME]: ErrorCodes.MEASURE_UNIT.NAME_TAKEN,
+    [UNIQUE_KEYS.MEASURE_UNIT_SHORT_NAME]: ErrorCodes.MEASURE_UNIT.NAME_TAKEN,
+};
 
 export class MeasureUnitService {
     private repo = AppDataSource.getRepository(MeasureUnit);
@@ -35,7 +42,7 @@ export class MeasureUnitService {
     private async assertNamesFree(companyUuid: string, body: MeasureUnitBody, exceptUuid?: string): Promise<void> {
         const qb = this.repo.createQueryBuilder("unit")
             .where("unit.companyUuid = :companyUuid", { companyUuid })
-            .andWhere("(LOWER(unit.name) = LOWER(:name) OR LOWER(unit.shortName) = LOWER(:shortName))", body);
+            .andWhere("(unit.name = :name OR unit.shortName = :shortName)", body);
         if (exceptUuid) qb.andWhere("unit.uuid != :exceptUuid", { exceptUuid });
         if (await qb.getExists()) throw new AppError(ErrorCodes.MEASURE_UNIT.NAME_TAKEN);
     }
@@ -47,7 +54,7 @@ export class MeasureUnitService {
 
     async create(companyUuid: string, body: MeasureUnitBody): Promise<IMeasureUnit> {
         await this.assertNamesFree(companyUuid, body);
-        return MeasureUnitService.toUnit(await this.repo.save(this.repo.create({ ...body, companyUuid })));
+        return MeasureUnitService.toUnit(await this.repo.save(this.repo.create({ ...body, companyUuid })).catch(onUniqueViolation(UNIQUE_ERRORS)));
     }
 
     async update(companyUuid: string, uuid: string, body: MeasureUnitBody): Promise<IMeasureUnit> {
@@ -57,7 +64,7 @@ export class MeasureUnitService {
             throw new AppError(ErrorCodes.MEASURE_UNIT.DECIMALS_IN_USE, undefined, undefined, { uuid });
         }
         Object.assign(unit, body);
-        return MeasureUnitService.toUnit(await this.repo.save(unit));
+        return MeasureUnitService.toUnit(await this.repo.save(unit).catch(onUniqueViolation(UNIQUE_ERRORS)));
     }
 
     private isUsed(uuid: string): Promise<boolean> {

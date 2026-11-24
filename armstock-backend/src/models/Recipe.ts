@@ -4,17 +4,18 @@ import {
     Column,
     CreateDateColumn,
     UpdateDateColumn,
-    Index,
+    Unique,
     ManyToOne,
     JoinColumn,
 } from "typeorm";
 import { RecipeStatus } from "armstock-shared";
 import { Company } from "./Company";
+import { UNIQUE_KEYS } from "../constants/UniqueKeys";
 import { User } from "./User";
 
-/** Amounts are per 1 person; the name is unique per company ignoring case - checked by the service. */
+/** Amounts are per 1 person. */
 @Entity("recipes")
-@Index("IDX_recipes_company_uuid", ["companyUuid"])
+@Unique(UNIQUE_KEYS.RECIPE_NAME, ["companyUuid", "name"])
 export class Recipe {
     @PrimaryGeneratedColumn("uuid")
     uuid!: string;
@@ -26,7 +27,8 @@ export class Recipe {
     @JoinColumn({ name: "company_uuid" })
     company?: Company;
 
-    @Column()
+    /** Case-insensitive, so the unique key ignores case. */
+    @Column({ type: "citext" })
     name!: string;
 
     @Column({ type: "text", nullable: true })

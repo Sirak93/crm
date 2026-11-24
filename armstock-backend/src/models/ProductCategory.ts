@@ -4,15 +4,16 @@ import {
     Column,
     CreateDateColumn,
     UpdateDateColumn,
-    Index,
+    Unique,
     ManyToOne,
     JoinColumn,
 } from "typeorm";
 import { Company } from "./Company";
+import { UNIQUE_KEYS } from "../constants/UniqueKeys";
 
 /** A flat list per company - no sub-categories. */
 @Entity("product_categories")
-@Index("IDX_product_categories_company_uuid", ["companyUuid"])
+@Unique(UNIQUE_KEYS.PRODUCT_CATEGORY_NAME, ["companyUuid", "name"])
 export class ProductCategory {
     @PrimaryGeneratedColumn("uuid")
     uuid!: string;
@@ -24,7 +25,8 @@ export class ProductCategory {
     @JoinColumn({ name: "company_uuid" })
     company?: Company;
 
-    @Column()
+    /** Case-insensitive, so the unique key ignores case. */
+    @Column({ type: "citext" })
     name!: string;
 
     @CreateDateColumn({ name: "created_at" })

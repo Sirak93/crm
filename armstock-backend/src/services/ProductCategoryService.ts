@@ -6,6 +6,10 @@ import { Product } from "../models/Product";
 import { AppError } from "../utils/AppError";
 import { DEFAULT_PRODUCT_CATEGORIES } from "../constants/DefaultProductCategories";
 import type { ProductCategoryBody } from "../schemas/ProductCategorySchema";
+import { UNIQUE_KEYS } from "../constants/UniqueKeys";
+import { onUniqueViolation } from "../utils/onUniqueViolation";
+
+const UNIQUE_ERRORS = { [UNIQUE_KEYS.PRODUCT_CATEGORY_NAME]: ErrorCodes.PRODUCT_CATEGORY.NAME_TAKEN };
 
 export class ProductCategoryService {
     private repo = AppDataSource.getRepository(ProductCategory);
@@ -30,7 +34,7 @@ export class ProductCategoryService {
     private async assertNameFree(companyUuid: string, name: string, exceptUuid?: string): Promise<void> {
         const qb = this.repo.createQueryBuilder("category")
             .where("category.companyUuid = :companyUuid", { companyUuid })
-            .andWhere("LOWER(category.name) = LOWER(:name)", { name });
+            .andWhere("category.name = :name", { name });
         if (exceptUuid) qb.andWhere("category.uuid != :exceptUuid", { exceptUuid });
         if (await qb.getExists()) throw new AppError(ErrorCodes.PRODUCT_CATEGORY.NAME_TAKEN);
     }
@@ -42,14 +46,14 @@ export class ProductCategoryService {
 
     async create(companyUuid: string, body: ProductCategoryBody): Promise<IProductCategory> {
         await this.assertNameFree(companyUuid, body.name);
-        return ProductCategoryService.toCategory(await this.repo.save(this.repo.create({ ...body, companyUuid })));
+        return ProductCategoryService.toCategory(await this.repo.save(this.repo.create({ ...body, companyUuid })).catch(onUniqueViolation(UNIQUE_ERRORS)));
     }
 
     async update(companyUuid: string, uuid: string, body: ProductCategoryBody): Promise<IProductCategory> {
         const category = await this.findOrFail(companyUuid, uuid);
         await this.assertNameFree(companyUuid, body.name, uuid);
         Object.assign(category, body);
-        return ProductCategoryService.toCategory(await this.repo.save(category));
+        return ProductCategoryService.toCategory(await this.repo.save(category).catch(onUniqueViolation(UNIQUE_ERRORS)));
     }
 
     async delete(companyUuid: string, uuid: string): Promise<void> {

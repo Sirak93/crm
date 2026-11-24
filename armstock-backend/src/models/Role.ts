@@ -4,16 +4,17 @@ import {
     Column,
     CreateDateColumn,
     UpdateDateColumn,
-    Index,
+    Unique,
     ManyToOne,
     JoinColumn,
 } from "typeorm";
 import { Permission } from "armstock-shared";
 import { Company } from "./Company";
+import { UNIQUE_KEYS } from "../constants/UniqueKeys";
 
 /** A company role: a name plus the starting permissions copied to its users - a template only. */
 @Entity("roles")
-@Index("IDX_roles_company_uuid", ["companyUuid"])
+@Unique(UNIQUE_KEYS.ROLE_NAME, ["companyUuid", "name"])
 export class Role {
     @PrimaryGeneratedColumn("uuid")
     uuid!: string;
@@ -25,7 +26,8 @@ export class Role {
     @JoinColumn({ name: "company_uuid" })
     company?: Company;
 
-    @Column()
+    /** Case-insensitive, so the unique key ignores case. */
+    @Column({ type: "citext" })
     name!: string;
 
     @Column({ type: "int", array: true, default: () => "'{}'" })

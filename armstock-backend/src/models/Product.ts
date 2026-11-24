@@ -5,11 +5,13 @@ import {
     CreateDateColumn,
     UpdateDateColumn,
     Index,
+    Unique,
     ManyToOne,
     JoinColumn,
 } from "typeorm";
 import { ProductStatus } from "armstock-shared";
 import { Company } from "./Company";
+import { UNIQUE_KEYS } from "../constants/UniqueKeys";
 import { MeasureUnit } from "./MeasureUnit";
 import { ProductCategory } from "./ProductCategory";
 
@@ -18,7 +20,8 @@ import { ProductCategory } from "./ProductCategory";
 @Index("IDX_products_company_uuid", ["companyUuid"])
 @Index("IDX_products_measure_unit_uuid", ["measureUnitUuid"])
 @Index("IDX_products_category_uuid", ["categoryUuid"])
-@Index("UQ_products_company_barcode", ["companyUuid", "barcode"], { unique: true })
+@Index(UNIQUE_KEYS.PRODUCT_BARCODE, ["companyUuid", "barcode"], { unique: true })
+@Unique(UNIQUE_KEYS.PRODUCT_CODE, ["companyUuid", "code"])
 export class Product {
     @PrimaryGeneratedColumn("uuid")
     uuid!: string;
@@ -33,7 +36,8 @@ export class Product {
     @Column()
     name!: string;
 
-    @Column({ type: "varchar", nullable: true })
+    /** Case-insensitive, so the unique key ignores case. */
+    @Column({ type: "citext", nullable: true })
     code!: string | null;
 
     /** Factory barcode, separate from the company's own code/SKU. */

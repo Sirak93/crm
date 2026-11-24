@@ -4,15 +4,17 @@ import {
     Column,
     CreateDateColumn,
     UpdateDateColumn,
-    Index,
+    Unique,
     ManyToOne,
     JoinColumn,
 } from "typeorm";
 import { Company } from "./Company";
+import { UNIQUE_KEYS } from "../constants/UniqueKeys";
 
 /** Each company has its own list; new companies get the defaults. */
 @Entity("measure_units")
-@Index("IDX_measure_units_company_uuid", ["companyUuid"])
+@Unique(UNIQUE_KEYS.MEASURE_UNIT_NAME, ["companyUuid", "name"])
+@Unique(UNIQUE_KEYS.MEASURE_UNIT_SHORT_NAME, ["companyUuid", "shortName"])
 export class MeasureUnit {
     @PrimaryGeneratedColumn("uuid")
     uuid!: string;
@@ -24,10 +26,11 @@ export class MeasureUnit {
     @JoinColumn({ name: "company_uuid" })
     company?: Company;
 
-    @Column()
+    /** Case-insensitive, so the unique keys ignore case. */
+    @Column({ type: "citext" })
     name!: string;
 
-    @Column({ name: "short_name" })
+    @Column({ name: "short_name", type: "citext" })
     shortName!: string;
 
     @Column({ name: "allows_decimals", default: false })
