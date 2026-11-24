@@ -193,6 +193,20 @@ export const ErrorCodes = {
             STATUS: 409,
         },
     },
+    RECIPE: {
+        NOT_FOUND: {
+            CODE: "RECIPE_NOT_FOUND",
+            STATUS: 404,
+        },
+        NAME_TAKEN: {
+            CODE: "RECIPE_NAME_TAKEN",
+            STATUS: 409,
+        },
+        IN_USE: {
+            CODE: "RECIPE_IN_USE",
+            STATUS: 409,
+        },
+    },
     SUPPLIER_CONTACT: {
         NOT_FOUND: {
             CODE: "SUPPLIER_CONTACT_NOT_FOUND",

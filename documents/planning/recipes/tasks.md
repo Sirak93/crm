@@ -22,8 +22,10 @@ Decisions behind these steps: [decisions.md](decisions.md).
 
 ## Progress
 
-- [ ] Step 1 — Recipe permissions and Chef role
-- [ ] Step 2 — Recipes (backend + UI)
+- [x] Step 1 — Recipe permissions and Chef role
+- [x] Step 2a — Recipes: base (enums, tables, interfaces)
+- [ ] Step 2b — Recipes: list, create, edit, details
+- [ ] Step 2c — Recipes: archive, restore, delete
 - [ ] Step 3 — Stock out by recipe: create
 - [ ] Step 4 — By-recipe docs: list mark and view
 - [ ] Step 5 — By-recipe docs: edit
@@ -49,28 +51,45 @@ Decisions behind these steps: [decisions.md](decisions.md).
 - [x] Tests: new company has the Chef role with the right permissions and Storekeeper
       has `RECIPE_VIEW`; permissions and
       roles suites cover the new values
-- [ ] Checked in browser: Recipes group in the permission panel, Chef role in the roles list
+- [x] Checked in browser: Recipes group in the permission panel, Chef role in the roles list
 
-## Step 2 — Recipes (backend + UI)
+## Step 2a — Recipes: base (enums, tables, interfaces)
 
-- [ ] Shared: `RecipeStatus` enum (Active / Archived), recipe interfaces
-- [ ] DB: `recipes`, `recipe_lines` (see decisions.md → Tables)
+- [x] Shared: `RecipeStatus` enum (Active / Archived), recipe interfaces (list item,
+      details, line)
+- [x] DB: `Recipe` and `RecipeLine` models - `recipes`, `recipe_lines` (see decisions.md →
+      Tables), with their unique keys, indexes and `RESTRICT` / `CASCADE` foreign keys
+- [x] Backend: recipe error codes (not found, name taken, ...) - hy + en client messages
+- [x] Tests: the scratch database has both tables with their unique keys and foreign keys
+      (product delete blocked by a recipe line at the DB level; a recipe's creator can't be
+      deleted)
+
+## Step 2b — Recipes: list, create, edit, details
+
 - [ ] Backend (own router file, so a module check can be added later in one line)
-  - [ ] List (search, status filter, pagination), details, create, edit, archive,
-        restore, delete
-  - [ ] Rules: name unique per company; at least 1 line; product once; amount > 0, up to
-        3 decimals for every unit; products must be the company's
-  - [ ] Delete only while never used in a stock-out (else archive)
-  - [ ] `/options/recipes` - active recipes, open to every member
-  - [ ] Product delete blocked while a recipe uses it
+  - [ ] List (search, status filter, pagination), details, create, edit
+  - [ ] Zod schemas. Rules: name unique per company (any case); at least 1 line; product
+        once; amount > 0, up to 3 decimals for every unit; products must be the company's
 - [ ] Frontend
   - [ ] Menu "Recipes" (Բաղադրատոմսեր) - `RECIPE_VIEW`
   - [ ] List page (like products), form with product lines (unit shown next to the
-        amount), archive / restore / delete actions
+        amount)
   - [ ] Details popup: "View" row action + row click; name, status, note, all lines
-- [ ] Tests: `RecipesSuite` - CRUD, every rule above, permissions, other company's recipe → not found, options endpoint
-- [ ] Checked in browser: a chef creates, edits, archives and deletes a recipe; a
-      storekeeper opens the list and a recipe's details, with no edit actions
+- [ ] Tests: `RecipesSuite` - list / details / create / edit, every rule above,
+      permissions, other company's recipe → not found
+- [ ] Checked in browser: the head chef creates and edits a recipe; a storekeeper opens
+      the list and a recipe's details, with no edit actions
+
+## Step 2c — Recipes: archive, restore, delete
+
+- [ ] Backend: archive, restore, delete
+  - [ ] Delete only while never used in a stock-out (else archive) - the check is wired
+        now, it starts refusing once Step 3 saves by-recipe docs
+  - [ ] Product delete blocked while a recipe uses it - clear error, not a DB error
+- [ ] Frontend: archive / restore / delete row actions, by permission
+- [ ] Tests: archive / restore / delete, permissions, product delete refused while used
+- [ ] Checked in browser: the head chef archives, restores and deletes a recipe; deleting a
+      product used in a recipe shows the error
 
 ## Step 3 — Stock out by recipe: create
 
@@ -84,6 +103,7 @@ Decisions behind these steps: [decisions.md](decisions.md).
         decimals; saved as normal `stock_out_lines`
   - [ ] Recipe lines copied into `stock_out_recipe_lines`
   - [ ] Same stock check and product locks as a normal stock-out (same error list)
+  - [ ] `/options/recipes` - active recipes, open to every member
   - [ ] Preview endpoint (or shared calculation) so the popup shows exactly what will be
         saved
 - [ ] Frontend
@@ -94,7 +114,7 @@ Decisions behind these steps: [decisions.md](decisions.md).
   - [ ] "Confirm" checks the form only (no stock check), then opens the preview popup: exact amounts per recipe, totals with "rounded up" mark;
         Save / Back; stock error list shown inside the popup
 - [ ] Tests: `StockOutByRecipeSuite` - totals and rounding (incl. 1.1 + 0.5 → 2 for pcs),
-      copy saved, duplicates and archived recipes refused, not enough stock,
+      copy saved, duplicates and archived recipes refused, options endpoint, not enough stock,
       permissions, stock balance goes down
 - [ ] Checked in browser: create a doc for 2 recipes, see the popup, save
 
