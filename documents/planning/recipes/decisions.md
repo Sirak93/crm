@@ -6,8 +6,8 @@ changes while we discuss and build. Steps: [tasks.md](tasks.md).
 ## What it is
 
 A chef writes recipes: which products, and how much of each, one person needs. A
-storekeeper then makes a stock-out by picking recipes and people counts, not products.
-The app works out the product totals and creates a normal stock-out document.
+storekeeper then adds recipes and people counts to a stock-out (next to normal product
+lines). The app works out the product amounts; the storekeeper can set the actual amounts given.
 
 Not every business cooks, so later this becomes a **module** the platform admin turns on
 per company (see "Later → Module switch"). For now only one company uses the platform, so
@@ -15,8 +15,8 @@ recipes are open to every company, controlled by permissions only.
 
 To keep adding the module later cheap:
 
-- All recipe routes live in their own router files (recipes, by-recipe stock-out), so the
-  module check is one line per router.
+- Recipe routes live in their own router file, so the module check is one line. The recipes
+  block in the stock-out form is hidden when the module is off.
 - The recipe menu items sit together in `navigation.ts`.
 
 ## Chef role
@@ -36,8 +36,82 @@ To keep adding the module later cheap:
 - Chef needs no `PRODUCT_VIEW`: the product picker uses `/options/products`, which is open
   to every company member.
 - New `/options/recipes` (active recipes only), open to every company member.
-- Stock out by recipe has **no new permission**: create needs `STOCK_OUT_CREATE`, edit
-  needs `STOCK_OUT_EDIT` (same as normal stock-outs, same "only the creator edits" rule).
+- Stock-out with recipes has **no new permission**: it is the normal stock-out (`STOCK_OUT_CREATE`,
+  `STOCK_OUT_EDIT`, same "only the creator edits" rule).
+
+## Units (fixed list, decided 2026-11-25)
+
+- Units are a **fixed list in code** (shared enum + constant), not per-company data. The
+  `measure_units` table, the Units page and the `MEASURE_UNIT_*` permissions go away. Products
+  store the unit's enum number.
+- The list:
+
+  | Long name | Short | Type | Factor | Decimals | Product unit? |
+  | --- | --- | --- | --- | --- | --- |
+  | Հատ | հատ | count | - | no | yes |
+  | Տուփ | տուփ | count | - | no | yes |
+  | Կապ | կապ | count | - | no | yes |
+  | Կիլոգրամ | կգ | weight | 1 (base) | yes | yes |
+  | Գրամ | գ | weight | 0.001 | yes | yes |
+  | Լիտր | լ | volume | 1 (base) | yes | yes |
+  | Միլիլիտր | մլ | volume | 0.001 | yes | yes |
+  | Միլիգրամ | մգ | weight | 0.000001 | yes | no - converter only |
+
+- **Factor** = how big the unit is next to the base unit of its type (1 գ = 0.001 կգ). Written in
+  code only; users never see or change it.
+- No package units (Փաթեթ, Շիշ, Բանկա, Պարկ): a package is not a measure. Use kg / l / a count unit
+  and type the package size on stock-in (see "Stock-in by packs").
+- **Adding a unit later** = a code change + deploy (enum, constant, hy/en names); every company gets
+  it. No DB change. Units are never removed or renamed once used.
+- **Converter:** wherever an amount is typed in a weight or volume unit, a small unit picker next to
+  the field offers the units of the **same type** (kg product → կգ / գ / մգ; l product → լ / մլ). It
+  starts on the product's unit. The value is always saved in the product's unit (350 գ → 0.35 կգ).
+  Count units get no picker.
+- **Rule:** every amount field shows which unit it is typed in, and every amount is saved in the
+  product's unit and converted only by the factors in code - so all counting stays correct.
+
+## Products (decided 2026-11-25)
+
+- **Unit = how the product is counted in stock and goes out.** Weighed → Կիլոգրամ, poured →
+  Լիտր, counted → Հատ, given as whole boxes / bunches → Տուփ / Կապ. Prefer the big unit (kg, l);
+  Գրամ / Միլիլիտր only for tiny items (e.g. saffron).
+- **One product per item and per firm** (the accountant needs firms apart). Package sizes do not
+  make separate products - "Oil Firm A" is one product for 0.5 l, 1 l and 5 l bottles.
+- The product form stays as today; Unit is picked from the fixed list (no Միլիգրամ). No pack size
+  on the product.
+- A product's unit cannot change once it has stock or documents.
+- Examples: Tea Ahmad / Tea Greenfield → Հատ (bags; box of 15 / 30 typed as packs on stock-in), or
+  Տուփ if only whole boxes go out; Eggs → Հատ (tray 5 × 30); Ketchup / Mayonnaise → Կիլոգրամ
+  (bottle, bucket or soft pack typed as packs); Parsley → Կապ.
+
+## Stock-in by packs (decided 2026-11-25)
+
+- Every stock-in line: **Packs × In one pack = Amount**. Packs and In one pack are typed; Amount is
+  calculated, in the product's unit, and is what stock counts.
+  ```
+  Eggs           5  × 30 հատ    = 150 հատ
+  Sunflower oil  6  × 500 մլ    = 3 լ        (converter: 500 մլ → 0.5 լ)
+  Mayonnaise     2  × 3 կգ      = 6 կգ
+  Meat (loose)   1  × 12.4 կգ   = 12.4 կգ
+  ```
+- "In one pack" has the converter (see Units). The doc keeps the pack info (packs and pack size)
+  so it shows what really came in.
+- The same product may be on several lines (0.5 l and 5 l bottles in one delivery) - already allowed
+  today.
+
+## Prices (decided 2026-11-25)
+
+- **Removed everywhere**: product, stock-in lines (price, total), stock-out lines, the stock balance
+  page (price, value), interfaces, schemas, tests, seed data and texts. Storekeepers do not work
+  with prices. The DB columns go away through the models (MVP auto-sync).
+
+## Barcode scanner (decided 2026-11-25)
+
+- **Hidden, not deleted**, by one switch in code (`SCANNER_ENABLED = false`): the header connect
+  button, scan in stock-in / stock-out lines, scan search on the products page, and the product's
+  **Barcode field** (and any barcode column / search). The DB column and the code stay.
+- If it is turned on again later: a scan should add +1 **pack** to the last line with that product
+  (stock-in is by packs now) - to confirm then.
 
 ## Recipe
 
@@ -51,11 +125,14 @@ To keep adding the module later cheap:
   - Amount > 0, up to **6 decimals**, for **every** unit - "pcs" too (0.1 egg is allowed). In kg
     that is down to **1 mg** (0.000001), so salt and spices fit. Only recipe amounts get 6 decimals;
     stock, stock-in and stock-out stay at 3.
-  - **Converter** next to each amount: a small popover - value + "from" unit → "to" unit, **Use**
-    puts the result into the amount. Fixed units in code: mg, g, kg and ml, l (fixed factors). The
-    user picks the target unit (the product's unit is shown as a reminder) - the app never guesses
-    a product's unit from its name. Only a typing helper; nothing about units is saved.
+  - **Converter** next to each amount: the same unit picker as everywhere (see "Units → Converter").
+    The amount is always saved in the product's unit.
+  - **Small units in recipes:** amounts are per 1 person, so in recipes the picker **starts on the
+    small unit** - kg product → գ, l product → մլ (the chef types 5, not 0.005). Count units stay as
+    they are. The details popup also shows the small unit ("Salt: 5 գ").
   - Each product once per recipe (the picker hides products already on other rows).
+  - A line is **one product** (one firm). If the kitchen switches to another firm's oil, the chef
+    edits the recipe. Old documents keep their saved copy, so nothing breaks.
   - A new line needs an **active** product. A line the recipe already had keeps its product
     even if that product was archived later.
 - **Delete** - only while the recipe was never used in a stock-out document. Otherwise
@@ -67,50 +144,65 @@ To keep adding the module later cheap:
   status, note, and all lines as "Product (unit) | per 1 person" (scrolls for long
   recipes). Edit / Archive / Delete stay in the row actions, by permission.
 
-## Stock out by recipe (Ելք բաղադրատոմսով)
+## Stock-out with recipes (one form, decided 2026-11-25)
 
-### Form (create and edit)
+There is **no separate "Ելք բաղադրատոմսով" form or menu**. The normal stock-out form gets an
+optional **Recipes** block. One document can have recipes, extra products, or both. A doc
+without recipes is a normal stock-out, like today.
 
-- Recipe rows: recipe + people count. Each recipe only once per document (a used recipe
-  is hidden in the picker; the backend refuses duplicates too).
-- No general people number. The first row's persons starts **empty**; each "Add row"
-  copies the persons number from the row above. Every row can be changed.
-- Empty or 0 persons is refused on save - in the form (field marked) and in the backend
-  (whole number > 0).
-- Date (default now, an earlier date allowed), receiver (optional), note (optional).
-- Reason and department are **fixed**: Issued → Kitchen. Not shown in the form.
-- No product lines in the form.
+### Recipes block
 
-### Preview popup
+- Recipe rows: recipe + people count.
+- For each picked recipe, the form shows its products with two amounts:
+  - **Calculated** - recipe amount × persons (read only).
+  - **Actual** - what is really given out. Starts filled with the calculated amount; the
+    storekeeper changes it when the real amount differs (e.g. calculated P1 15 g, P2 90 g →
+    actual 100 g, 100 g).
+- **Stock goes down by the actual amount.** The document keeps both numbers, so the
+  difference can be seen later.
 
-- "Confirm" first checks the form only (at least 1 row, a recipe in every row, persons a
-  whole number > 0, date set) - no stock check. Problems → fields marked, no popup.
-  All good → it opens a popup:
-  - For each recipe: its products and amounts for that people count - **exact**, not
-    rounded.
-  - Below: **total per product** across all recipes.
-- **Rounding:** only the final total is rounded, always **up**, with a "rounded up" mark.
-  Per-recipe rows are never rounded.
-  - Units without decimals → whole number (Dish A 1.1 eggs + Dish B 0.5 eggs = 1.6 → **2**).
-  - Units with decimals → 3 decimals, the stock precision (salt 0.0005 kg × 11 = 0.0055 → **0.006**).
-- "Save" creates (or updates) the document. "Back" closes the popup.
-- Not enough stock → the popup stays open and shows the same error list as the normal
-  stock-out (e.g. "P1: only 1.2 kg in stock").
+### Extra products
 
-### Document
+- Normal product lines (product + amount), as in today's stock-out form - for products given
+  out without a recipe.
+- The same product can be both in a recipe and in the extras (oil from Dish A + 2 l extra).
+  The document shows them **separately** (recipe part and extras part); stock goes down by the
+  **total**.
 
-- A normal stock-out document. Its `stock_out_lines` hold the rounded totals; stock counts
-  it like any other stock-out.
-- It also stores which recipes and people counts it was made for, and a **copy** of each
-  recipe's amounts on that day.
-- Shows in the **normal stock-out list** with a "Բաղադրատոմսով" (By recipe) mark.
-- Detail view: the normal document, plus a recipes block (recipe × people) with the
-  per-recipe breakdown from that day.
-- **Edit** opens the by-recipe form, never the normal one. Recipe rows already in the
-  document are recalculated from their **saved copy**; newly added rows use the current
-  recipe.
+### From the earlier plan - re-check when the open points below are settled
+
+These were decided for the separate by-recipe form. They probably still hold, but must be
+checked against the one-form design before Step 3:
+
+- Each recipe only once per document (hidden in the picker, refused by the backend).
+- The first row's persons starts empty; "Add row" copies persons from the row above; empty or
+  0 refused (whole number > 0).
+- Active recipes only in the picker.
+- The document saves which recipes and persons it was made for, plus a **copy** of each
+  recipe's amounts that day, so editing a recipe never changes saved documents. Edit
+  recalculates rows already in the doc from their saved copy; new rows use the current recipe.
+- "By recipe" (Բաղադրատոմսով) mark in the stock-out list for docs with recipes; detail view
+  shows the recipes block.
+- Preview popup on "Confirm" and the "round up the total" rule (1.1 + 0.5 eggs → 2). With the
+  Actual field these may change or go away.
+- Same stock check and error list as a normal stock-out.
+
+### Open (stock-out)
+
+- **Reason and department** when the doc has recipes: fixed Issued → Kitchen (suggested) or
+  chosen by the user?
+- **Actual amount per recipe or per product total?** When 2 recipes use the same product, is
+  there one Actual per recipe line, or one per product across all recipes?
+- **Converter on stock-out** amounts (type 300 g for a kg product) - suggested yes, not
+  confirmed.
+- **Kitchen balance** - where the difference between actual and calculated goes (a stock
+  balance for the kitchen?). Not defined yet; to discuss.
 
 ## Tables
+
+> `stock_out_recipes` / `stock_out_recipe_lines` below were planned for the separate by-recipe
+> form. With the one-form design (calculated + actual amounts, recipe part and extras kept apart)
+> they will change - redefine at Step 3. `recipes` / `recipe_lines` are built.
 
 `stock_outs` and `stock_out_lines` stay as they are.
 
@@ -182,7 +274,6 @@ Unique: (`stock_out_uuid`, `recipe_uuid`).
 | --- | --- | --- |
 | Chef role | Head chef | Շեֆ-խոհարար |
 | Recipes menu | Recipes | Բաղադրատոմսեր |
-| Stock-out menu | Stock out by recipe | Ելք բաղադրատոմսով |
 | Mark in the stock-out list | By recipe | Բաղադրատոմսով |
 | Stock movement page | Stock movement | Ապրանքների շարժ |
 
@@ -316,30 +407,15 @@ Not part of recipes - works for every company.
   (`onUniqueViolation`, key names in `UNIQUE_KEYS`).
 - The unique key replaces the plain `company_uuid` index on those tables (except products).
 
-## Open - under discussion (2026-11-24, not decided)
+## Open - under discussion
 
-The user paused here to decide on their own. Do not build any of this until it is settled.
+Do not build any of this until it is settled.
 
-- **Fixed units instead of unit CRUD.** Replace the per-company `measure_units` table and Units page with a
-  fixed list in code (shared enum + constant with type, factor, short name, decimals). Gains: the app knows
-  each unit (weight / volume / count, factor), so the recipe converter can pick the target by itself (or the
-  chef types in g / ml for a kg / l product); no rename problem; less code. Loses: companies can't add their own
-  units. Touches many files (products, pickers, stock pages, permissions `MEASURE_UNIT_*`, tests) - would be its
-  own step before 2b+. Proposed list:
-
-  | Unit | Short | Type | Factor | Decimals | Product unit? |
-  | --- | --- | --- | --- | --- | --- |
-  | Հատ | հատ | count | - | no | yes |
-  | Կիլոգրամ | կգ | weight | 1 (base) | yes | yes |
-  | Գրամ | գ | weight | 0.001 | yes | yes |
-  | Լիտր | լ | volume | 1 (base) | yes | yes |
-  | Միլիլիտր | մլ | volume | 0.001 | yes | yes |
-  | Միլիգրամ | մգ | weight | 0.000001 | yes | no - converter only |
-
-- **If units stay editable:** renaming a unit (name / short name) while products use it is not blocked today -
-  "kg" renamed to "mg" would silently change every product in it. Suggested fix: refuse it like the existing
-  decimals check (`MEASURE_UNIT_DECIMALS_IN_USE`).
-- Step 2b+ (6 decimals + converter) is decided, but its converter design depends on the units decision above.
+- **Kitchen balance** - where the difference between actual and calculated recipe amounts goes.
+  To discuss / define.
+- The stock-out open points listed in "Stock-out with recipes → Open (stock-out)".
+- **Unit hint** under the product form's Unit field ("pick the unit it goes out in") - suggested,
+  not confirmed.
 
 ## Later
 
@@ -347,7 +423,7 @@ The user paused here to decide on their own. Do not build any of this until it i
   - Shared enum `CompanyModule` (`RECIPES = 10`), column `companies.modules int[]`
     default `{}`.
   - Only the **platform admin** turns modules on or off (checkboxes on the company page).
-  - Module **off**: the Recipes page, the "Ելք բաղադրատոմսով" menu and the Recipes
+  - Module **off**: the Recipes page, the recipes block in the stock-out form and the Recipes
     permission group are hidden and blocked; editing old by-recipe docs is blocked;
     deleting them stays allowed with `STOCK_OUT_DELETE`.
   - **Always visible:** the Stock movement page, the product popup, and old by-recipe docs

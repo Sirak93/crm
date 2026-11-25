@@ -25,11 +25,15 @@ Decisions behind these steps: [decisions.md](decisions.md).
 - [x] Step 1 — Recipe permissions and Chef role
 - [x] Step 2a — Recipes: base (enums, tables, interfaces)
 - [ ] Step 2b — Recipes: list, create, edit, details
+- [ ] Step U1 — Remove prices
+- [ ] Step U2 — Hide barcode scanner and barcode field
+- [ ] Step U3 — Fixed units (replace the Units page)
+- [ ] Step U4 — Stock-in by packs + unit converter
 - [ ] Step 2b+ — Recipes: amounts down to 1 mg + unit converter
 - [ ] Step 2c — Recipes: archive, restore, delete
-- [ ] Step 3 — Stock out by recipe: create
-- [ ] Step 4 — By-recipe docs: list mark and view
-- [ ] Step 5 — By-recipe docs: edit
+- [ ] Step 3 — Stock out by recipe: create  *(to redefine - one form)*
+- [ ] Step 4 — By-recipe docs: list mark and view  *(to redefine - one form)*
+- [ ] Step 5 — By-recipe docs: edit  *(to redefine - one form)*
 - [ ] Step 6 — Date on stock lines + "this month" default on stock lists
 - [ ] Step 7 — Stock movement page
 - [ ] Step 8 — Product movement popup
@@ -84,17 +88,72 @@ Decisions behind these steps: [decisions.md](decisions.md).
 - [ ] Checked in browser: the head chef creates and edits a recipe; a storekeeper opens
       the list and a recipe's details, with no edit actions
 
+## Step U1 — Remove prices
+
+- [ ] Shared: price / total / value fields out of the stock-in, stock-out and stock balance
+      interfaces and payloads
+- [ ] DB: price columns out of the models (`products` if any, `stock_in_lines` price + total,
+      `stock_out_lines`) - local DB recreated
+- [ ] Backend: schemas, services and options without prices; stock balance without price / value
+- [ ] Frontend: stock-in form and lines table, stock balance table, `format.ts` money helpers if
+      unused; their i18n keys removed (hy + en)
+- [ ] Tests and seed data without prices; tester README updated
+- [ ] Checked in browser: stock-in form, stock-in doc and stock balance show no prices
+
+## Step U2 — Hide barcode scanner and barcode field
+
+- [ ] Frontend: one constant `SCANNER_ENABLED = false`; it hides the header connect button, scan in
+      stock-in / stock-out lines, scan search on the products page, the product form's Barcode
+      field and any barcode column / search. Code and DB column stay
+- [ ] Checked in browser: no scanner or barcode anywhere; switch on → all back
+
+## Step U3 — Fixed units (replace the Units page)
+
+- [ ] Shared: `MeasureUnit` enum (starts at 10, steps of 10) + constant with long / short name
+      (hy + en), type (count / weight / volume), factor, decimals, "product unit" flag - list in
+      decisions.md → Units
+- [ ] DB: `products.measure_unit_uuid` → unit enum column; `measure_units` model removed - local DB
+      recreated
+- [ ] Backend: `MeasureUnit` routes / controller / service / schema / default units removed;
+      `MEASURE_UNIT_*` permissions and their error codes removed; products, options, stock-in,
+      stock-out, stock balance and recipes read unit data from the constant
+- [ ] Frontend: Units page, dialog, table, service and menu item removed; product form picks
+      from the fixed list (no Միլիգրամ); everywhere a unit is shown uses the constant; stale i18n
+      keys removed
+- [ ] Tests: `MeasureUnitsSuite` removed; products / stock / recipes suites use the enum; unknown
+      or converter-only unit refused for a product
+- [ ] Seeder uses the enum
+- [ ] Checked in browser: products, stock-in, stock-out, balance and recipes show the right units
+
+## Step U4 — Stock-in by packs + unit converter
+
+- [ ] **To confirm first:** how pack info is stored on the line (packs + pack size in the
+      product's unit, amount = packs × size)
+- [ ] Shared: converter helper - units of the same type, value → product unit by factor
+- [ ] DB: `stock_in_lines` gets packs and pack size - local DB recreated
+- [ ] Backend: stock-in create / edit / details with packs; amount calculated by the backend;
+      Zod rules (packs > 0, pack size > 0, whole numbers for count units)
+- [ ] Frontend
+  - [ ] Unit converter component: number field + unit picker (same type only, starts on the
+        product's unit, none for count units)
+  - [ ] Stock-in line: Packs × In one pack (with converter) = Amount (shown only)
+  - [ ] Stock-in doc view shows packs × size
+- [ ] Tests: amount = packs × size, 500 մլ → 0.5 լ, same product on two lines, count units refuse
+      decimals in pack size
+- [ ] Checked in browser: 6 × 500 մլ oil → 3 լ in stock
+
 ## Step 2b+ — Recipes: amounts down to 1 mg + unit converter
 
-- [ ] **To confirm first:** fixed units vs editable units - see decisions.md → "Open - under discussion".
+- [x] ~~To confirm first: fixed units vs editable units~~ - fixed units decided (Step U3)
 
 - [ ] Shared: `RECIPE_QUANTITY_DECIMALS = 6` next to `QUANTITY_DECIMALS`
 - [ ] DB: `recipe_lines.quantity` → `numeric(14,6)` (local DB recreated)
 - [ ] Backend: recipe line amounts up to 6 decimals (stock documents stay at 3)
 - [ ] Frontend
   - [ ] Recipe amount field and details popup show up to 6 decimals
-  - [ ] Converter popover next to each amount: value, from (mg / g / kg, ml / l), to, result, **Use**
-        fills the row; fixed factors in one shared constant; product unit shown as a reminder
+  - [ ] The unit converter component from Step U4 on each amount, **starting on the small
+        unit** (գ for kg products, մլ for l products; count units unchanged)
+  - [ ] Details popup shows amounts in the small unit (5 գ, not 0.005 կգ)
   - [ ] Form hint: small amounts example ("1 g = 0.001 kg")
 - [ ] Tests: 6 decimals saved and returned (e.g. 0.000001), a 7th decimal refused
 - [ ] Checked in browser: salt 0.5 g entered through the converter as 0.0005 kg
@@ -111,6 +170,12 @@ Decisions behind these steps: [decisions.md](decisions.md).
       product used in a recipe shows the error
 
 ## Step 3 — Stock out by recipe: create
+
+> **To redefine before starting.** Steps 3-5 below were written for a separate by-recipe form.
+> Decided 2026-11-25: one stock-out form with an optional recipes block, calculated + actual
+> amounts, extras kept apart (decisions.md → "Stock-out with recipes"). Rewrite Steps 3-5 once
+> its open points (reason / department, actual per recipe or per product, converter, kitchen
+> balance) are settled.
 
 - [ ] DB: `stock_out_recipes`, `stock_out_recipe_lines` (its `quantity` is `numeric(14,6)`, like recipe lines)
 - [ ] Backend

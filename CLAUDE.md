@@ -42,6 +42,10 @@ task wraps up, not after each micro-adjustment.
   and architecture, not for how something looks. If a task mixes the two, the
   functional part still follows the notes-then-wait workflow; the visual part does not.
 - **Never enter plan mode in response to a question or during an open discussion.**
+- **Decisions live in the docs, not in chat or memory.** As soon as a point is decided or
+  opened in a discussion, write it into the feature's `documents/planning/<feature>/decisions.md`
+  (and `tasks.md` when steps change) without being asked. The user continues work in other
+  sessions and on other devices, so only the repo docs carry the context.
 - **When a plan is used:** print it in full in the conversation (never only in a temp
   file the user has to go open), and execute it as approved — if reality forces a
   deviation, stop, explain, and get approval for the revised plan.
