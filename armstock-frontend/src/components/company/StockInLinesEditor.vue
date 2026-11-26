@@ -177,20 +177,6 @@ const setProductRef = (key: number, el: unknown) => {
           <span v-else class="cell-text cell-text--muted">—</span>
         </template>
       </el-table-column>
-      <el-table-column v-if="showsPacks" :label="$t('stockIn.lines.inOnePack')" min-width="190">
-        <template #default="{ row }">
-          <UnitAmountInput
-            v-if="usesPacks(row as IStockInLineForm)"
-            v-model="row.pack.quantity"
-            v-model:unit="row.pack.unit"
-            :product-unit="row.product?.measureUnit ?? null"
-            :disabled="!row.productUuid"
-            :invalid="showErrors && !(row.pack.quantity > 0)"
-            :label="$t('stockIn.lines.inOnePack')"
-          />
-          <span v-else class="cell-text cell-text--muted">—</span>
-        </template>
-      </el-table-column>
       <el-table-column v-if="showsPacks" :label="$t('stockIn.lines.packs')" min-width="96">
         <template #default="{ row }">
           <el-input-number
@@ -204,6 +190,20 @@ const setProductRef = (key: number, el: unknown) => {
             :aria-label="$t('stockIn.lines.packs')"
             :class="{ 'is-invalid': showErrors && !(row.pack.count > 0) }"
             class="lines-editor__number"
+          />
+          <span v-else class="cell-text cell-text--muted">—</span>
+        </template>
+      </el-table-column>
+      <el-table-column v-if="showsPacks" :label="$t('stockIn.lines.inOnePack')" min-width="190">
+        <template #default="{ row }">
+          <UnitAmountInput
+            v-if="usesPacks(row as IStockInLineForm)"
+            v-model="row.pack.quantity"
+            v-model:unit="row.pack.unit"
+            :product-unit="row.product?.measureUnit ?? null"
+            :disabled="!row.productUuid"
+            :invalid="showErrors && !(row.pack.quantity > 0)"
+            :label="$t('stockIn.lines.inOnePack')"
           />
           <span v-else class="cell-text cell-text--muted">—</span>
         </template>
