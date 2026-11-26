@@ -1,4 +1,4 @@
-import { DefaultRole, MeasureUnit } from "armstock-shared";
+import { DefaultRole, MeasureUnit, ProductReceivedAs } from "armstock-shared";
 import { AppDataSource } from "../config/database";
 import { Company } from "../models/Company";
 import { ProductCategory } from "../models/ProductCategory";
@@ -80,6 +80,7 @@ export const seedDevCompany = async () => {
             code: null,
             barcode: null,
             measureUnit: MeasureUnit[product.unit as keyof typeof MeasureUnit],
+            receivedAs: ProductReceivedAs.LOOSE,
             categoryUuid: findByName(categories, product.category),
         });
     }

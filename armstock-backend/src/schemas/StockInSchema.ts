@@ -6,12 +6,14 @@ import { StockDocumentFiltersSchema, DocumentDateSchema, isNotFuture, LineQuanti
 const StockInLineSchema = z
     .object({
         productUuid: z.uuid(),
-        packQuantity: LineQuantitySchema,
-        packUnit: z.enum(MeasureUnit),
-        packCount: z.number().int().positive().max(PACK_COUNT_MAX),
+        pack: z.object({
+            quantity: LineQuantitySchema,
+            unit: z.enum(MeasureUnit),
+            count: z.number().int().positive().max(PACK_COUNT_MAX),
+        }),
     })
-    .transform((line) => ({ ...line, quantity: Number((line.packQuantity * line.packCount).toFixed(QUANTITY_DECIMALS)) }))
-    .refine((line) => line.quantity <= QUANTITY_MAX, { path: ["packCount"], message: "total is too big" });
+    .transform((line) => ({ ...line, quantity: Number((line.pack.quantity * line.pack.count).toFixed(QUANTITY_DECIMALS)) }))
+    .refine((line) => line.quantity <= QUANTITY_MAX, { path: ["pack", "count"], message: "total is too big" });
 
 export const StockInBodySchema = z
     .object({

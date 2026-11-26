@@ -19,7 +19,7 @@ import { NotificationService } from '../../services/NotificationService';
 import { useAuthStore } from '../../stores/auth';
 import { AppLogger } from '../../utils/AppLogger';
 import type { IStockInLineForm } from '../../interfaces/IStockInLineForm';
-import { emptyLine, lineTotal } from '../../utils/stockInLines';
+import { emptyLine, lineTotal, usesPacks } from '../../utils/stockInLines';
 import { toLineProduct, withScannedProduct } from '../../utils/stockLines';
 import { formatQuantity } from '../../utils/format';
 import { OptionsService } from '../../services/OptionsService';
@@ -42,6 +42,9 @@ const authStore = useAuthStore();
 const productRefs = new Map<number, { focus: () => void }>();
 
 const canCreateProduct = computed(() => !!authStore.user?.can(Permission.PRODUCT_ADD));
+// Loose rows fill Quantity, the others In one pack × Packs; a column shows only while a row needs it.
+const showsQuantity = computed(() => !lines.value.length || lines.value.some((line) => !usesPacks(line)));
+const showsPacks = computed(() => lines.value.some(usesPacks));
 const isProductDialogOpen = ref(false);
 const newProductName = ref('');
 /** null = the product comes from a scan and goes onto the lines like any scanned product. */
@@ -65,9 +68,11 @@ const removeLine = (key: number) => {
 
 const onProductSelect = (line: IStockInLineForm, product: IStockLineProduct) => {
   line.product = product;
+  // Packs already typed stay visible, even if the new product is Loose.
+  if ((line.pack.count ?? 1) > 1) line.keepsPacks = true;
   // A whole-number unit drops any decimals typed for the previous product.
-  if (!MEASURE_UNITS[product.measureUnit].allowsDecimals && line.packQuantity !== undefined) {
-    line.packQuantity = Math.round(line.packQuantity);
+  if (!MEASURE_UNITS[product.measureUnit].allowsDecimals && line.pack.quantity !== undefined) {
+    line.pack.quantity = Math.round(line.pack.quantity);
   }
 };
 
@@ -101,7 +106,13 @@ const onProductCreated = (product: IProduct) => {
 };
 
 const addScannedProduct = (product: IStockLineProduct) => {
-  lines.value = withScannedProduct(lines.value, product, emptyLine, 'packCount').lines;
+  lines.value = withScannedProduct(lines.value, product, emptyLine, {
+    get: (line) => line.pack.count,
+    set: (line, value) => {
+      line.pack.count = value;
+      if (value > 1) line.keepsPacks = true;
+    },
+  }).lines;
 };
 
 const onScan = async (barcode: string) => {
@@ -152,31 +163,49 @@ const setProductRef = (key: number, el: unknown) => {
           <span v-else class="cell-text cell-text--muted">—</span>
         </template>
       </el-table-column>
-      <el-table-column :label="$t('stockIn.lines.amount')" min-width="190">
+      <el-table-column v-if="showsQuantity" :label="$t('stockIn.lines.quantity')" min-width="190">
         <template #default="{ row }">
           <UnitAmountInput
-            v-model="row.packQuantity"
-            v-model:unit="row.packUnit"
+            v-if="!usesPacks(row as IStockInLineForm)"
+            v-model="row.pack.quantity"
+            v-model:unit="row.pack.unit"
             :product-unit="row.product?.measureUnit ?? null"
             :disabled="!row.productUuid"
-            :invalid="showErrors && !(row.packQuantity > 0)"
-            :label="$t('stockIn.lines.amount')"
+            :invalid="showErrors && !(row.pack.quantity > 0)"
+            :label="$t('stockIn.lines.quantity')"
           />
+          <span v-else class="cell-text cell-text--muted">—</span>
         </template>
       </el-table-column>
-      <el-table-column :label="$t('stockIn.lines.count')" min-width="96">
+      <el-table-column v-if="showsPacks" :label="$t('stockIn.lines.inOnePack')" min-width="190">
+        <template #default="{ row }">
+          <UnitAmountInput
+            v-if="usesPacks(row as IStockInLineForm)"
+            v-model="row.pack.quantity"
+            v-model:unit="row.pack.unit"
+            :product-unit="row.product?.measureUnit ?? null"
+            :disabled="!row.productUuid"
+            :invalid="showErrors && !(row.pack.quantity > 0)"
+            :label="$t('stockIn.lines.inOnePack')"
+          />
+          <span v-else class="cell-text cell-text--muted">—</span>
+        </template>
+      </el-table-column>
+      <el-table-column v-if="showsPacks" :label="$t('stockIn.lines.packs')" min-width="96">
         <template #default="{ row }">
           <el-input-number
-            v-model="row.packCount"
+            v-if="usesPacks(row as IStockInLineForm)"
+            v-model="row.pack.count"
             :controls="false"
             :disabled="!row.productUuid"
             :min="1"
             :max="PACK_COUNT_MAX"
             :precision="0"
-            :aria-label="$t('stockIn.lines.count')"
-            :class="{ 'is-invalid': showErrors && !(row.packCount > 0) }"
+            :aria-label="$t('stockIn.lines.packs')"
+            :class="{ 'is-invalid': showErrors && !(row.pack.count > 0) }"
             class="lines-editor__number"
           />
+          <span v-else class="cell-text cell-text--muted">—</span>
         </template>
       </el-table-column>
       <el-table-column :label="$t('stockIn.lines.total')" min-width="110" align="right">

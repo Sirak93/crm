@@ -2,7 +2,7 @@
 import { computed, ref, watch } from 'vue';
 import { useI18n } from 'vue-i18n';
 import type { FormInstance, FormRules } from 'element-plus';
-import { PRODUCT_MEASURE_UNITS, type IProduct, type IProductCategory, type MeasureUnit } from 'armstock-shared';
+import { PRODUCT_MEASURE_UNITS, ProductReceivedAs, type IProduct, type IProductCategory, type MeasureUnit } from 'armstock-shared';
 import { Barcode, Package, ScanBarcode } from 'lucide-vue-next';
 import AppDialog from '../AppDialog.vue';
 import { ProductService } from '../../services/ProductService';
@@ -11,6 +11,7 @@ import { useApiErrorMessage } from '../../composables/useApiErrorMessage';
 import { useMeasureUnits } from '../../composables/useMeasureUnits';
 import { BARCODE_MAX_LENGTH } from 'armstock-shared';
 import { BARCODE_INPUT_ATTR, REQUIRED_RULE_TRIGGER, SCANNER_ENABLED } from '../../constants/constants';
+import { PRODUCT_RECEIVED_AS, PRODUCT_RECEIVED_AS_LABEL } from '../../constants/productReceivedAs';
 
 const props = defineProps<{
   /** null = add a new product. */
@@ -32,12 +33,20 @@ const { unitName, unitShortName } = useMeasureUnits();
 
 const formRef = ref<FormInstance>();
 const isSaving = ref(false);
-const form = ref<{ name: string; code: string; barcode: string; measureUnit: MeasureUnit | undefined; categoryUuid: string }>({
+const form = ref<{
+  name: string;
+  code: string;
+  barcode: string;
+  measureUnit: MeasureUnit | undefined;
+  categoryUuid: string;
+  receivedAs: ProductReceivedAs;
+}>({
   name: '',
   code: '',
   barcode: '',
   measureUnit: undefined,
   categoryUuid: '',
+  receivedAs: ProductReceivedAs.LOOSE,
 });
 
 const isEdit = computed(() => !!props.product);
@@ -59,6 +68,7 @@ watch(open, (isOpen) => {
     barcode: p?.barcode ?? props.initialBarcode ?? '',
     measureUnit: p?.measureUnit,
     categoryUuid: p?.category.uuid ?? '',
+    receivedAs: p?.receivedAs ?? ProductReceivedAs.LOOSE,
   };
   formRef.value?.clearValidate();
 });
@@ -71,6 +81,7 @@ const save = async () => {
     code: form.value.code.trim() || null,
     barcode: form.value.barcode.trim() || null,
     categoryUuid: form.value.categoryUuid,
+    receivedAs: form.value.receivedAs,
   };
 
   isSaving.value = true;
@@ -151,6 +162,13 @@ const save = async () => {
           </el-select>
         </el-form-item>
       </div>
+
+      <el-form-item :label="$t('products.form.receivedAs')" prop="receivedAs">
+        <el-select v-model="form.receivedAs" class="full-width">
+          <el-option v-for="value in PRODUCT_RECEIVED_AS" :key="value" :label="$t(PRODUCT_RECEIVED_AS_LABEL[value])" :value="value" />
+        </el-select>
+        <p class="field-hint">{{ $t('products.form.receivedAsHint') }}</p>
+      </el-form-item>
 
       <!-- Lets Enter submit the form. -->
       <button type="submit" hidden />

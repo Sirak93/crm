@@ -1,11 +1,7 @@
-import type { MeasureUnit } from "../enums/MeasureUnit";
+import type { IStockInPack } from "./IStockInPack";
 
-/** The backend works out the total (packQuantity × packCount). */
+/** The backend works out the total (pack.quantity × pack.count). */
 export interface IStockInLinePayload {
     productUuid: string;
-    /** One pack's amount, in the product's unit. */
-    packQuantity: number;
-    /** The unit the amount was typed in; same type as the product's unit. */
-    packUnit: MeasureUnit;
-    packCount: number;
+    pack: IStockInPack;
 }

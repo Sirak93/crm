@@ -57,7 +57,7 @@ const isPurchase = computed(() => form.value.reason === StockInReason.PURCHASE);
 const snapshotOf = () => JSON.stringify({
   ...form.value,
   date: form.value.date?.getTime(),
-  lines: lines.value.map(({ productUuid, packQuantity, packUnit, packCount }) => ({ productUuid, packQuantity, packUnit, packCount })),
+  lines: lines.value.map(({ productUuid, pack }) => ({ productUuid, pack })),
 });
 const savedSnapshot = ref(snapshotOf());
 const isDirty = computed(() => snapshotOf() !== savedSnapshot.value);
@@ -129,9 +129,7 @@ const toPayload = (): IStockInPayload => ({
   note: form.value.note.trim() || null,
   lines: lines.value.map((line) => ({
     productUuid: line.productUuid,
-    packQuantity: line.packQuantity!,
-    packUnit: line.packUnit!,
-    packCount: line.packCount!,
+    pack: { quantity: line.pack.quantity!, unit: line.pack.unit!, count: line.pack.count! },
   })),
 });
 

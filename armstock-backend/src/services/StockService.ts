@@ -44,6 +44,7 @@ export class StockService {
             code: product.code,
             status: product.status,
             measureUnit: product.measureUnit,
+            receivedAs: product.receivedAs,
         };
     }
 

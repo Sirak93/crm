@@ -109,6 +109,10 @@ To keep adding the module later cheap:
   `LOOSE = 10`, `PACKS = 20`, `LOOSE_OR_PACKS = 30`; new products start on Loose. The stock-in line
   shows: Loose → only Quantity; In packs → In one pack × Packs; Loose or in packs → In one pack ×
   Packs with Packs prefilled 1. Why: "In one pack" on loose goods (25 kg potatoes) reads wrong.
+  - **Line table** (Step U4b): columns Quantity | In one pack | Packs | Total. A Loose row fills
+    Quantity, the others In one pack × Packs; the other cells show "—". A column shows only while a
+    row needs it. A row without a product counts as Loose. A row that has had Packs > 1 (old doc,
+    product switch, scan) keeps its pack fields, so they don't vanish while typing.
   - Editable any time, like the name - it changes no amounts or stock.
   - **Form setting only:** the backend saves it on the product but never refuses a stock-in line
     because of it (else an old doc with 6 packs could not be saved after the product turns Loose).
@@ -124,6 +128,10 @@ To keep adding the module later cheap:
   - `pack_count` `int` - the count (6)
   - `quantity` stays = total, calculated by the backend (pack_quantity × pack_count); stock reads
     only `quantity`.
+  - **In the API and code** (decided 2026-11-26, Step U4b): nested `pack: { quantity, unit, count }`
+    on the line + `quantity` (total). DB columns stay flat (TypeORM embedded). Built with
+    `prefix: false` and the full column names on the embedded class: TypeORM's default naming turns a
+    `pack_` prefix into camelCase (`packQuantity`), not `pack_quantity`.
 - Amount has the converter (see Units). The doc keeps the pack info (packs and pack size)
   so it shows what really came in.
 - The same product may be on several lines (0.5 l and 5 l bottles in one delivery) - already allowed

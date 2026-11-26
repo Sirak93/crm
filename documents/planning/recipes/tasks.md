@@ -36,7 +36,7 @@ read only once.
 - [x] Step U1 — Remove prices
 - [ ] Step U3 — Fixed units (replace the Units page)
 - [x] Step U4 — Stock-in by packs + unit converter
-- [ ] Step U4b — "Received as" on the product (Loose / In packs / Loose or in packs)
+- [ ] Step U4b — Nested `pack` on stock-in lines + "Received as" on the product
 - [ ] Step 2b+ — Recipes: amounts down to 1 mg + unit converter
 - [ ] Step 3 — Stock-out: recipes block + totals list (create)
 - [ ] Step 4 — Stock-out with recipes: list mark and view
@@ -152,23 +152,34 @@ read only once.
       decimals, wrong unit type refused
 - [x] Checked in browser: 6 × 500 մլ oil → 3 լ in stock
 
-## Step U4b — "Received as" on the product
+## Step U4b — Nested `pack` on stock-in lines + "Received as" on the product
 
-Decisions: decisions.md → Stock-in by packs → "Received as" on the product.
+Decisions: decisions.md → Stock-in by packs → Storage and "Received as" on the product.
+The `pack` restructure goes first - both parts touch the same code, so it is renamed once.
 
-- [ ] Shared: enum `ProductReceivedAs` (`LOOSE = 10`, `PACKS = 20`, `LOOSE_OR_PACKS = 30`) + hy / en
+- [x] `pack` restructure (no DB change)
+  - [x] Shared: `IStockInPack` (`quantity`, `unit`, `count`) in its own file; `IStockInLine` and
+        `IStockInLinePayload` use `pack: IStockInPack` + `quantity` (total)
+  - [x] Backend: TypeORM embedded `StockInPack` (same columns `pack_quantity`, `pack_unit`,
+        `pack_count` - `prefix: false` + full column names, see decisions.md); nested Zod `pack`
+        object; service reads / saves `line.pack.*`
+  - [x] Frontend: form row `pack: { quantity, unit, count }`, payload, snapshot, doc view; scanner
+        helper adds +1 to `pack.count`
+  - [x] Tests: builders send `pack`; field paths `lines.0.pack.count` etc.; all suites pass
+- [x] Shared: enum `ProductReceivedAs` (`LOOSE = 10`, `PACKS = 20`, `LOOSE_OR_PACKS = 30`) + hy / en
       names; field on the product interfaces, product payload and `IStockLineProduct`
-- [ ] DB: `products.received_as` int, default Loose - local DB recreated
-- [ ] Backend: product create / edit / list / details save and return it (Zod: one of the enum);
+- [x] DB: `products.received_as` int, default Loose (auto-sync adds it with the default; recreate
+      the local DB if wanted)
+- [x] Backend: product create / edit / list / details save and return it (Zod: one of the enum);
       product pickers return it. Stock-in does **not** check it
-- [ ] Frontend
-  - [ ] Product form: "Received as" select (3 options, default Loose) with a short hint; editable
+- [x] Frontend
+  - [x] Product form: "Received as" select (3 options, default Loose) with a short hint; editable
         any time
-  - [ ] Stock-in line by the product's value: Loose → only Quantity (with converter); In packs →
+  - [x] Stock-in line by the product's value: Loose → only Quantity (with converter); In packs →
         In one pack × Packs; Loose or in packs → In one pack × Packs, Packs prefilled 1. A line
         with Packs > 1 always shows the pack fields (old docs)
-  - [ ] Column names / i18n (hy + en): Quantity, In one pack, Packs, Total - stale keys removed
-- [ ] Tests: Products suite - default Loose, each value saved and returned, edited later, a bad
+  - [x] Column names / i18n (hy + en): Quantity, In one pack, Packs, Total - stale keys removed
+- [x] Tests: Products suite - default Loose, each value saved and returned, edited later, a bad
       value refused; Stock-in suite - a Loose product with Packs > 1 is still saved
 - [ ] Checked in browser: potatoes (Loose) 25 կգ; oil (In packs) 500 մլ × 6 = 3 լ; meat (Loose or
       in packs) 12.4 կգ × 1

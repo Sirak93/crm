@@ -8,9 +8,9 @@ import {
     ManyToOne,
     JoinColumn,
 } from "typeorm";
-import { MeasureUnit } from "armstock-shared";
 import { StockIn } from "./StockIn";
 import { Product } from "./Product";
+import { StockInPack } from "./StockInPack";
 import { numericTransformer } from "../utils/numericTransformer";
 
 @Entity("stock_in_lines")
@@ -42,18 +42,10 @@ export class StockInLine {
     @Column({ type: "int" })
     position!: number;
 
-    /** One pack's amount, in the product's unit. */
-    @Column({ name: "pack_quantity", type: "numeric", precision: 14, scale: 3, transformer: numericTransformer })
-    packQuantity!: number;
+    @Column(() => StockInPack, { prefix: false })
+    pack!: StockInPack;
 
-    /** The unit the amount was typed in - for showing only. */
-    @Column({ name: "pack_unit", type: "int" })
-    packUnit!: MeasureUnit;
-
-    @Column({ name: "pack_count", type: "int" })
-    packCount!: number;
-
-    /** packQuantity × packCount - what stock counts. */
+    /** pack.quantity × pack.count - what stock counts. */
     @Column({ type: "numeric", precision: 14, scale: 3, transformer: numericTransformer })
     quantity!: number;
 

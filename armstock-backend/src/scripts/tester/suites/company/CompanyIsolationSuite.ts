@@ -1,4 +1,4 @@
-import { DefaultRole, ErrorCodes, type IProduct, type IRecipeDetails, type IRole, type IStockInDetails, type IStockOutDetails, type ISupplier, type ISupplierContact } from "armstock-shared";
+import { DefaultRole, ErrorCodes, ProductReceivedAs, type IProduct, type IRecipeDetails, type IRole, type IStockInDetails, type IStockOutDetails, type ISupplier, type ISupplierContact } from "armstock-shared";
 import { defineSuite } from "../../core/Suite";
 import { AssertionError, matches } from "../../core/Assert";
 import { createNoLoginUser } from "../../shared/Accounts";
@@ -137,7 +137,7 @@ export default (context: ICompanySideContext) => defineSuite("Company isolation"
         await ownerA.api.rejects(HttpMethod.POST, PATHS.PRODUCTS, ErrorCodes.PRODUCT_CATEGORY.NOT_FOUND,
             { name: uniqueName("Product"), categoryUuid: categoryB, measureUnit: PIECES_UNIT });
         await ownerA.api.rejects(HttpMethod.PUT, `${PATHS.PRODUCTS}/${refs.productUuid}`, ErrorCodes.PRODUCT_CATEGORY.NOT_FOUND,
-            { name: uniqueName("Product"), categoryUuid: categoryB });
+            { name: uniqueName("Product"), categoryUuid: categoryB, receivedAs: ProductReceivedAs.LOOSE });
     });
 
     test("a user can't get company B's role", async () => {

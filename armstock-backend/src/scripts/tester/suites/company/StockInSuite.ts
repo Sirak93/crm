@@ -4,6 +4,7 @@ import {
     ErrorCodes,
     MeasureUnit,
     PACK_COUNT_MAX,
+    ProductReceivedAs,
     ProductStatus,
     QUANTITY_MAX,
     StockInReason,
@@ -115,14 +116,14 @@ export default (context: ICompanySideContext) => defineSuite("Stock-in", (test) 
         await storekeeper.api.rejects("POST", PATHS.STOCK_INS, ErrorCodes.PRODUCT.QUANTITY_NOT_WHOLE, stockInBody([line(pieces, 1.5)]));
         await createStockIn(storekeeper, [line(kilos, 0.125)]);
         await expectStock(db, kilos.uuid, 1.375);
-        await storekeeper.api.rejectsField("POST", PATHS.STOCK_INS, "lines.0.packQuantity", stockInBody([line(kilos, 0.1255)]));
-        await storekeeper.api.rejectsField("POST", PATHS.STOCK_INS, "lines.0.packQuantity", stockInBody([line(kilos, 0)]));
+        await storekeeper.api.rejectsField("POST", PATHS.STOCK_INS, "lines.0.pack.quantity", stockInBody([line(kilos, 0.1255)]));
+        await storekeeper.api.rejectsField("POST", PATHS.STOCK_INS, "lines.0.pack.quantity", stockInBody([line(kilos, 0)]));
     });
 
     // --- Packs: Amount × Count = Total ---
 
-    const packLine = (product: IProduct, packQuantity: number, packCount: number, packUnit: MeasureUnit = product.measureUnit) =>
-        ({ productUuid: product.uuid, packQuantity, packUnit, packCount });
+    const packLine = (product: IProduct, quantity: number, count: number, unit: MeasureUnit = product.measureUnit) =>
+        ({ productUuid: product.uuid, pack: { quantity, unit, count } });
     const postLines = (lines: unknown[]) => storekeeper.api.ok<IStockInDetails>("POST", PATHS.STOCK_INS, { ...stockInBody([]), lines });
 
     test("packs: the backend works out the total; 6 × 500 ml of a litre product is 3 l", async () => {
@@ -132,13 +133,20 @@ export default (context: ICompanySideContext) => defineSuite("Stock-in", (test) 
         ]);
         const { data } = await postLines([packLine(oil, 0.5, 6, MeasureUnit.MILLILITER), packLine(eggs, 30, 5)]);
         matches(data.lines, [
-            { product: { uuid: oil.uuid }, packQuantity: 0.5, packUnit: MeasureUnit.MILLILITER, packCount: 6, quantity: 3 },
-            { product: { uuid: eggs.uuid }, packQuantity: 30, packUnit: PIECES_UNIT, packCount: 5, quantity: 150 },
+            { product: { uuid: oil.uuid }, pack: { quantity: 0.5, unit: MeasureUnit.MILLILITER, count: 6 }, quantity: 3 },
+            { product: { uuid: eggs.uuid }, pack: { quantity: 30, unit: PIECES_UNIT, count: 5 }, quantity: 150 },
         ]);
         await expectStock(db, oil.uuid, 3);
         await expectStock(db, eggs.uuid, 150);
         const { data: saved } = await storekeeper.api.ok<IStockInDetails>("GET", path(data.uuid));
-        matches(saved.lines[0]!, { packQuantity: 0.5, packUnit: MeasureUnit.MILLILITER, packCount: 6, quantity: 3 });
+        matches(saved.lines[0]!, { pack: { quantity: 0.5, unit: MeasureUnit.MILLILITER, count: 6 }, quantity: 3 });
+    });
+
+    test("packs: received as is a form setting only - a Loose product with 3 packs is still saved", async () => {
+        const potatoes = await createProduct(storekeeper, { allowsDecimals: true, body: { receivedAs: ProductReceivedAs.LOOSE } });
+        const { data } = await postLines([packLine(potatoes, 25, 3)]);
+        matches(data.lines, [{ product: { uuid: potatoes.uuid, receivedAs: ProductReceivedAs.LOOSE }, pack: { quantity: 25, count: 3 }, quantity: 75 }]);
+        await expectStock(db, potatoes.uuid, 75);
     });
 
     test("packs: the same product on two lines (0.5 l and 5 l bottles) adds up", async () => {
@@ -151,11 +159,11 @@ export default (context: ICompanySideContext) => defineSuite("Stock-in", (test) 
     test("packs: the count is a whole number above 0; a count unit refuses a fractional amount", async () => {
         const reject = (field: string, lines: unknown[]) =>
             storekeeper.api.rejectsField("POST", PATHS.STOCK_INS, field, { ...stockInBody([]), lines });
-        await reject("lines.0.packCount", [packLine(kilos, 1, 1.5)]);
-        await reject("lines.0.packCount", [packLine(kilos, 1, 0)]);
-        await reject("lines.0.packCount", [packLine(kilos, 1, PACK_COUNT_MAX + 1)]);
-        await reject("lines.0.packCount", [packLine(kilos, QUANTITY_MAX, 2)]);
-        await reject("lines.0.packUnit", [packLine(kilos, 1, 1, 999 as MeasureUnit)]);
+        await reject("lines.0.pack.count", [packLine(kilos, 1, 1.5)]);
+        await reject("lines.0.pack.count", [packLine(kilos, 1, 0)]);
+        await reject("lines.0.pack.count", [packLine(kilos, 1, PACK_COUNT_MAX + 1)]);
+        await reject("lines.0.pack.count", [packLine(kilos, QUANTITY_MAX, 2)]);
+        await reject("lines.0.pack.unit", [packLine(kilos, 1, 1, 999 as MeasureUnit)]);
         await storekeeper.api.rejects("POST", PATHS.STOCK_INS, ErrorCodes.PRODUCT.QUANTITY_NOT_WHOLE,
             { ...stockInBody([]), lines: [packLine(pieces, 0.5, 2)] });
     });

@@ -353,6 +353,11 @@ export default {
       category: 'Category',
       status: 'Status',
     },
+    receivedAs: {
+      loose: 'Loose',
+      packs: 'In packs',
+      looseOrPacks: 'Loose or in packs',
+    },
     table: {
       name: 'Name',
       code: 'Code',
@@ -375,6 +380,8 @@ export default {
       category: 'Category',
       categoryPlaceholder: 'Choose a category',
       categoryRequired: 'Choose a category',
+      receivedAs: 'Received as',
+      receivedAsHint: 'Which fields stock-in shows. Can be changed any time.\nPotatoes → Loose\nOil in bottles → In packs',
     },
   },
   recipes: {
@@ -566,8 +573,8 @@ export default {
       productPlaceholder: 'Search by name or code',
       code: 'Code',
       quantity: 'Quantity',
-      amount: 'Amount',
-      count: 'Count',
+      inOnePack: 'In one pack',
+      packs: 'Packs',
       total: 'Total',
       add: 'Add row',
       remove: 'Remove row {row}',

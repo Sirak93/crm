@@ -16,7 +16,7 @@ import { PATHS } from "../../shared/Paths";
 import { uniqueName } from "../../shared/Random";
 import type { ICompanySideContext } from "../../interfaces/ICompanySideContext";
 
-const PRODUCT_OPTION_KEYS = ["uuid", "name", "code", "status", "measureUnit"];
+const PRODUCT_OPTION_KEYS = ["uuid", "name", "code", "status", "measureUnit", "receivedAs"];
 
 /** Pickers are open to every member, so the caller here is Staff - a member with no permissions. */
 export default (context: ICompanySideContext) => defineSuite("Options (pickers)", (test) => {

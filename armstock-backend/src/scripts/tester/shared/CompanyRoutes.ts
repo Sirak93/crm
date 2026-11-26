@@ -1,4 +1,4 @@
-import { ErrorCodes, Permission, ProductStatus, RecipeStatus, SupplierStatus, UserStatus } from "armstock-shared";
+import { ErrorCodes, Permission, ProductReceivedAs, ProductStatus, RecipeStatus, SupplierStatus, UserStatus } from "armstock-shared";
 import { HttpMethod } from "../enums/HttpMethod";
 import { RouteTarget } from "../enums/RouteTarget";
 import { recipeBody, stockInBody, stockOutBody } from "./Builders";
@@ -66,7 +66,7 @@ export const COMPANY_ROUTES: ICompanyRoute[] = [
     { method: POST, path: () => PATHS.PRODUCTS, permission: P.PRODUCT_ADD },
     {
         method: PUT, path: (ids) => `${PATHS.PRODUCTS}/${ids.uuid}`, permission: P.PRODUCT_EDIT, target: T.PRODUCT,
-        body: (refs) => ({ name: NAME, categoryUuid: refs.categoryUuid }),
+        body: (refs) => ({ name: NAME, categoryUuid: refs.categoryUuid, receivedAs: ProductReceivedAs.LOOSE }),
     },
     {
         method: PATCH, path: (ids) => `${PATHS.PRODUCTS}/${ids.uuid}/status`, permission: P.PRODUCT_ARCHIVE, target: T.PRODUCT,

@@ -9,7 +9,7 @@ import {
     ManyToOne,
     JoinColumn,
 } from "typeorm";
-import { MeasureUnit, ProductStatus } from "armstock-shared";
+import { MeasureUnit, ProductReceivedAs, ProductStatus } from "armstock-shared";
 import { Company } from "./Company";
 import { UNIQUE_KEYS } from "../constants/UniqueKeys";
 import { ProductCategory } from "./ProductCategory";
@@ -44,6 +44,10 @@ export class Product {
     /** Fixed after create - stock is counted in this unit. */
     @Column({ name: "measure_unit", type: "int" })
     measureUnit!: MeasureUnit;
+
+    /** Which fields the stock-in line shows - a form setting, stock-in never checks it. */
+    @Column({ name: "received_as", type: "int", default: ProductReceivedAs.LOOSE })
+    receivedAs!: ProductReceivedAs;
 
     @Column({ name: "category_uuid", type: "uuid" })
     categoryUuid!: string;

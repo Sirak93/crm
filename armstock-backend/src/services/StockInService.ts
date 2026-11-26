@@ -67,9 +67,9 @@ export class StockInService {
             if (product.status === ProductStatus.ARCHIVED && !existing?.productUuids.has(product.uuid)) {
                 throw new AppError(ErrorCodes.PRODUCT.ARCHIVED, undefined, undefined, { uuid: product.uuid });
             }
-            StockService.assertQuantityFitsUnit(product, line.packQuantity);
-            if (!canConvert(line.packUnit, product.measureUnit)) {
-                throw new AppError(ErrorCodes.STOCK_IN.PACK_UNIT_MISMATCH, undefined, undefined, { uuid: product.uuid, packUnit: line.packUnit });
+            StockService.assertQuantityFitsUnit(product, line.pack.quantity);
+            if (!canConvert(line.pack.unit, product.measureUnit)) {
+                throw new AppError(ErrorCodes.STOCK_IN.PACK_UNIT_MISMATCH, undefined, undefined, { uuid: product.uuid, packUnit: line.pack.unit });
             }
         }
 
@@ -193,9 +193,7 @@ export class StockInService {
             lines: lines.map((line): IStockInLine => ({
                 uuid: line.uuid,
                 product: StockService.toLineProduct(productMap.get(line.productUuid)!),
-                packQuantity: line.packQuantity,
-                packUnit: line.packUnit,
-                packCount: line.packCount,
+                pack: { quantity: line.pack.quantity, unit: line.pack.unit, count: line.pack.count },
                 quantity: line.quantity,
             })),
         };

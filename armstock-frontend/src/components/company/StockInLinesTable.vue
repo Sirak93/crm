@@ -17,9 +17,10 @@ const amount = (value: number, unit: MeasureUnit) => `${formatQuantity(value)} $
 
 /** Count 1 → the amount as typed (12.4 կգ); more → 500 մլ × 6 = 3 լ. */
 const lineText = (line: IStockInLine): string => {
-  const typed = amount(convertQuantity(line.packQuantity, line.product.measureUnit, line.packUnit, TYPED_DECIMALS), line.packUnit);
-  if (line.packCount === 1) return typed;
-  return `${typed} × ${formatQuantity(line.packCount)} = ${amount(line.quantity, line.product.measureUnit)}`;
+  const { pack } = line;
+  const typed = amount(convertQuantity(pack.quantity, line.product.measureUnit, pack.unit, TYPED_DECIMALS), pack.unit);
+  if (pack.count === 1) return typed;
+  return `${typed} × ${formatQuantity(pack.count)} = ${amount(line.quantity, line.product.measureUnit)}`;
 };
 </script>
 

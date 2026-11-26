@@ -1,4 +1,4 @@
-import { BARCODE_MAX_LENGTH, ErrorCodes, MeasureUnit, PRODUCT_MEASURE_UNITS, ProductStatus, type IProduct } from "armstock-shared";
+import { BARCODE_MAX_LENGTH, ErrorCodes, MeasureUnit, PRODUCT_MEASURE_UNITS, ProductReceivedAs, ProductStatus, type IProduct } from "armstock-shared";
 import { defineSuite } from "../../core/Suite";
 import { anyDate, equals, hasExactKeys, isNull, isTrue, matches } from "../../core/Assert";
 import { createCategory, createProduct, createStockIn, createStockOut, findCategory, KILOS_UNIT, PIECES_UNIT, lineOf } from "../../shared/Builders";
@@ -6,7 +6,7 @@ import { PATHS } from "../../shared/Paths";
 import { randomUuid, uniqueName } from "../../shared/Random";
 import type { ICompanySideContext } from "../../interfaces/ICompanySideContext";
 
-const PRODUCT_KEYS = ["uuid", "name", "code", "barcode", "status", "measureUnit", "category", "createdAt"];
+const PRODUCT_KEYS = ["uuid", "name", "code", "barcode", "status", "measureUnit", "receivedAs", "category", "createdAt"];
 const NAME_MAX = 200;
 
 export default (context: ICompanySideContext) => defineSuite("Products", (test) => {
@@ -19,7 +19,7 @@ export default (context: ICompanySideContext) => defineSuite("Products", (test) 
     let categoryUuid: string;
     const body = (fields: Record<string, unknown> = {}) => ({ name: uniqueName(tag), categoryUuid, measureUnit: KILOS_UNIT, ...fields });
     const editBody = (product: IProduct, fields: Record<string, unknown> = {}) =>
-        ({ name: product.name, code: product.code, barcode: product.barcode, categoryUuid: product.category.uuid, ...fields });
+        ({ name: product.name, code: product.code, barcode: product.barcode, categoryUuid: product.category.uuid, receivedAs: product.receivedAs, ...fields });
 
     test("prepares a category", async () => {
         categoryUuid = (await findCategory(storekeeper)).uuid;
@@ -27,7 +27,7 @@ export default (context: ICompanySideContext) => defineSuite("Products", (test) 
 
     // --- Create ---
 
-    test("create: saved active, with its unit and category; empty code and barcode stored as null", async () => {
+    test("create: saved active and Loose, with its unit and category; empty code and barcode stored as null", async () => {
         const name = uniqueName(tag);
         const { data } = await storekeeper.api.ok<IProduct>("POST", PATHS.PRODUCTS, body({ name: `  ${name} `, code: " ", barcode: "" }));
         hasExactKeys(data, PRODUCT_KEYS);
@@ -37,6 +37,7 @@ export default (context: ICompanySideContext) => defineSuite("Products", (test) 
             barcode: isNull,
             status: ProductStatus.ACTIVE,
             measureUnit: KILOS_UNIT,
+            receivedAs: ProductReceivedAs.LOOSE,
             category: { uuid: categoryUuid },
             createdAt: anyDate,
         });
@@ -53,6 +54,18 @@ export default (context: ICompanySideContext) => defineSuite("Products", (test) 
         await post("measureUnit", { measureUnit: "KILOGRAM" });
         // Converter-only, not a product unit.
         await post("measureUnit", { measureUnit: MeasureUnit.MILLIGRAM });
+        await post("receivedAs", { receivedAs: 999 });
+        await post("receivedAs", { receivedAs: "PACKS" });
+    });
+
+    test("received as: each value is saved and returned, also by the list and the picker", async () => {
+        for (const receivedAs of [ProductReceivedAs.LOOSE, ProductReceivedAs.PACKS, ProductReceivedAs.LOOSE_OR_PACKS]) {
+            const { data } = await storekeeper.api.ok<IProduct>("POST", PATHS.PRODUCTS, body({ receivedAs }));
+            equals(data.receivedAs, receivedAs, `received as ${receivedAs}`);
+            const search = encodeURIComponent(data.name);
+            matches((await storekeeper.api.ok<IProduct[]>("GET", `${PATHS.PRODUCTS}?search=${search}`)).data, [{ uuid: data.uuid, receivedAs }]);
+            matches((await storekeeper.api.ok<unknown[]>("GET", `${PATHS.OPTIONS}/products?search=${search}`)).data, [{ uuid: data.uuid, receivedAs }]);
+        }
     });
 
     test("every product unit is accepted", async () => {
@@ -100,6 +113,15 @@ export default (context: ICompanySideContext) => defineSuite("Products", (test) 
         await storekeeper.api.rejects("PUT", path(b.uuid), ErrorCodes.PRODUCT.CODE_TAKEN, editBody(b, { code: code("k1") }));
         await storekeeper.api.rejects("PUT", path(b.uuid), ErrorCodes.PRODUCT.BARCODE_TAKEN, editBody(b, { barcode: a.barcode }));
         await storekeeper.api.ok("PUT", path(a.uuid), editBody(a, { name: `${tag} Same code` }));
+    });
+
+    test("edit: received as can change any time - even with stock; a bad value is refused", async () => {
+        const product = await createProduct(storekeeper, { allowsDecimals: true });
+        await createStockIn(storekeeper, [lineOf(product, 2)]);
+        const { data } = await storekeeper.api.ok<IProduct>("PUT", path(product.uuid), editBody(product, { receivedAs: ProductReceivedAs.PACKS }));
+        equals(data.receivedAs, ProductReceivedAs.PACKS, "received as");
+        await storekeeper.api.rejectsField("PUT", path(product.uuid), "receivedAs", editBody(product, { receivedAs: 0 }));
+        await storekeeper.api.rejectsField("PUT", path(product.uuid), "receivedAs", editBody(product, { receivedAs: undefined }));
     });
 
     test("edit to an unknown category is refused", async () => {
@@ -165,7 +187,7 @@ export default (context: ICompanySideContext) => defineSuite("Products", (test) 
 
     test("an unknown uuid gives 404, a malformed one 422", async () => {
         const unknown = randomUuid();
-        await storekeeper.api.rejects("PUT", path(unknown), ErrorCodes.PRODUCT.NOT_FOUND, { name: tag, categoryUuid });
+        await storekeeper.api.rejects("PUT", path(unknown), ErrorCodes.PRODUCT.NOT_FOUND, { name: tag, categoryUuid, receivedAs: ProductReceivedAs.LOOSE });
         await storekeeper.api.rejects("PATCH", `${path(unknown)}/status`, ErrorCodes.PRODUCT.NOT_FOUND, { status: ProductStatus.ACTIVE });
         await storekeeper.api.rejectsField("DELETE", path("nope"), "uuid");
     });

@@ -77,7 +77,7 @@ export const lineOf = (product: Pick<IProduct, "uuid" | "measureUnit">, quantity
 export const stockInBody = (lines: ILineInput[], fields: Record<string, unknown> = {}) => ({
     reason: fields.supplierUuid ? StockInReason.PURCHASE : StockInReason.INITIAL_STOCK,
     date: new Date().toISOString(),
-    lines: lines.map(({ productUuid, measureUnit, quantity }) => ({ productUuid, packQuantity: quantity, packUnit: measureUnit, packCount: 1 })),
+    lines: lines.map(({ productUuid, measureUnit, quantity }) => ({ productUuid, pack: { quantity, unit: measureUnit, count: 1 } })),
     ...fields,
 });
 

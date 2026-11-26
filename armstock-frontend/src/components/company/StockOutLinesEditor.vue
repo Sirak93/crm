@@ -62,7 +62,10 @@ const onScan = async (barcode: string) => {
       NotificationService.error(t('scanner.notFound', { barcode }));
       return;
     }
-    const result = withScannedProduct(lines.value, product, emptyOutLine, 'quantity');
+    const result = withScannedProduct(lines.value, product, emptyOutLine, {
+      get: (line) => line.quantity,
+      set: (line, value) => { line.quantity = value; },
+    });
     lines.value = result.lines;
   } catch (error) {
     NotificationService.error(parseError(error, 'scanner.lookupError'));

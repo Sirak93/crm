@@ -1,5 +1,5 @@
 import { z } from "zod";
-import { BARCODE_MAX_LENGTH, MEASURE_UNITS, MeasureUnit, ProductStatus } from "armstock-shared";
+import { BARCODE_MAX_LENGTH, MEASURE_UNITS, MeasureUnit, ProductReceivedAs, ProductStatus } from "armstock-shared";
 import { BarcodeQuerySchema, optionalText, PaginatedSearchQuerySchema } from "./SharedSchema";
 
 export const ProductBodySchema = z.object({
@@ -7,11 +7,13 @@ export const ProductBodySchema = z.object({
     code: optionalText(50),
     barcode: optionalText(BARCODE_MAX_LENGTH),
     categoryUuid: z.uuid(),
+    receivedAs: z.enum(ProductReceivedAs),
 });
 
 export const ProductCreateBodySchema = ProductBodySchema.extend({
     // Converter-only units (e.g. mg) can't be a product's unit.
     measureUnit: z.enum(MeasureUnit).refine((unit) => MEASURE_UNITS[unit].isProductUnit),
+    receivedAs: z.enum(ProductReceivedAs).default(ProductReceivedAs.LOOSE),
 });
 
 export const ProductStatusBodySchema = z.object({

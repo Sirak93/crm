@@ -33,6 +33,7 @@ export class ProductService {
             barcode: product.barcode,
             status: product.status,
             measureUnit: product.measureUnit,
+            receivedAs: product.receivedAs,
             category: ProductCategoryService.toCategory(category),
             createdAt: product.createdAt.toISOString(),
         };

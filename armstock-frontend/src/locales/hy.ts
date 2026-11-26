@@ -353,6 +353,11 @@ const hy: typeof en = {
       category: 'Կատեգորիա',
       status: 'Կարգավիճակ',
     },
+    receivedAs: {
+      loose: 'Չափածո',
+      packs: 'Տուփերով',
+      looseOrPacks: 'Չափածո կամ տուփերով',
+    },
     table: {
       name: 'Անվանում',
       code: 'Կոդ',
@@ -375,6 +380,8 @@ const hy: typeof en = {
       category: 'Կատեգորիա',
       categoryPlaceholder: 'Ընտրեք կատեգորիան',
       categoryRequired: 'Ընտրեք կատեգորիան',
+      receivedAs: 'Ստացվում է',
+      receivedAsHint: 'Որ դաշտերն է ցույց տալիս մուտքը։ Կարելի է փոխել ցանկացած պահի։\nԿարտոֆիլ → Չափածո\nՁեթ շշերով → Տուփերով',
     },
   },
   recipes: {
@@ -566,8 +573,8 @@ const hy: typeof en = {
       productPlaceholder: 'Որոնել ըստ անվանման կամ կոդի',
       code: 'Կոդ',
       quantity: 'Քանակ',
-      amount: 'Քանակ',
-      count: 'Թիվ',
+      inOnePack: 'Մեկ տուփում',
+      packs: 'Տուփեր',
       total: 'Ընդամենը',
       add: 'Ավելացնել տող',
       remove: 'Հեռացնել {row}-րդ տողը',
