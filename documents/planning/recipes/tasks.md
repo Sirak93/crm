@@ -8,6 +8,8 @@ How to use this file:
 - Tick a box (`[x]`) as soon as that item is done, so work can continue in a new session.
 - A step is done when all its boxes are ticked, including tests and "Checked in browser".
 - **To confirm** = a small open point, settled at the start of that step.
+- **When a step is done**, end the session with: a draft commit message (Conventional
+  Commits), and the exact prompt to start the next step in a new session.
 
 Rules for every step:
 
@@ -22,16 +24,19 @@ Decisions behind these steps: [decisions.md](decisions.md).
 
 ## Progress
 
+Work in this order, **one session per line** (a line with two steps = one session, one commit per
+step). Start a new session and say which step(s) to do. Smallest first, and each step's code is
+read only once.
+
 - [x] Step 1 — Recipe permissions and Chef role
 - [x] Step 2a — Recipes: base (enums, tables, interfaces)
-- [ ] Step 2b — Recipes: list, create, edit, details
+- [x] Step 2b — Recipes: list, create, edit, details
+- [ ] Step 2c — Recipes: archive, restore, delete
+- [ ] Step U5 — Remove the HR default role  +  Step U2 — Hide barcode scanner and barcode field  *(both small, one session)*
 - [ ] Step U1 — Remove prices
-- [ ] Step U2 — Hide barcode scanner and barcode field
 - [ ] Step U3 — Fixed units (replace the Units page)
 - [ ] Step U4 — Stock-in by packs + unit converter
-- [ ] Step U5 — Remove the HR default role
 - [ ] Step 2b+ — Recipes: amounts down to 1 mg + unit converter
-- [ ] Step 2c — Recipes: archive, restore, delete
 - [ ] Step 3 — Stock-out: recipes block + totals list (create)
 - [ ] Step 4 — Stock-out with recipes: list mark and view
 - [ ] Step 5 — Stock-out with recipes: edit and delete
@@ -87,7 +92,7 @@ Decisions behind these steps: [decisions.md](decisions.md).
   - [x] Details popup: "View" row action + row click; name, status, note, all lines
 - [x] Tests: `RecipesSuite` - list / details / create / edit, every rule above,
       permissions, other company's recipe → not found
-- [ ] Checked in browser: the head chef creates and edits a recipe; a storekeeper opens
+- [x] Checked in browser: the head chef creates and edits a recipe; a storekeeper opens
       the list and a recipe's details, with no edit actions
 
 ## Step U1 — Remove prices
