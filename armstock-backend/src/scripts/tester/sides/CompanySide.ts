@@ -13,7 +13,6 @@ import rolesSuite from "../suites/company/RolesSuite";
 import productsSuite from "../suites/company/ProductsSuite";
 import suppliersSuite from "../suites/company/SuppliersSuite";
 import productCategoriesSuite from "../suites/company/ProductCategoriesSuite";
-import measureUnitsSuite from "../suites/company/MeasureUnitsSuite";
 import optionsSuite from "../suites/company/OptionsSuite";
 import recipeTablesSuite from "../suites/company/RecipeTablesSuite";
 import recipesSuite from "../suites/company/RecipesSuite";
@@ -44,7 +43,6 @@ export const companySide: ITestSide<ICompanySideContext> = {
         productsSuite,
         suppliersSuite,
         productCategoriesSuite,
-        measureUnitsSuite,
         optionsSuite,
         recipeTablesSuite,
         recipesSuite,

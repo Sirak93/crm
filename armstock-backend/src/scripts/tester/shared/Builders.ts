@@ -1,8 +1,8 @@
 import {
+    MeasureUnit,
     StockInReason,
     StockOutDepartment,
     StockOutReason,
-    type IMeasureUnit,
     type IProduct,
     type IProductCategory,
     type IRecipeDetails,
@@ -21,28 +21,14 @@ import type { ITestUser } from "../interfaces/ITestUser";
  * case can send a slightly wrong body without repeating the defaults.
  */
 
-/** A company's default unit: pieces (no decimals) or one that allows decimals. */
-export const findUnit = async (actor: ITestUser, allowsDecimals: boolean): Promise<IMeasureUnit> => {
-    const { data } = await actor.api.ok<IMeasureUnit[]>("GET", PATHS.MEASURE_UNITS);
-    const unit = data.find((u) => u.allowsDecimals === allowsDecimals);
-    if (!unit) throw new Error(`no measure unit with allowsDecimals=${allowsDecimals}`);
-    return unit;
-};
+/** The unit createProduct picks: pieces (no decimals) or kilograms (decimals). */
+export const PIECES_UNIT = MeasureUnit.PIECE;
+export const KILOS_UNIT = MeasureUnit.KILOGRAM;
 
 export const findCategory = async (actor: ITestUser): Promise<IProductCategory> => {
     const { data } = await actor.api.ok<IProductCategory[]>("GET", PATHS.PRODUCT_CATEGORIES);
     if (!data[0]) throw new Error("the company has no product category");
     return data[0];
-};
-
-export const createUnit = async (actor: ITestUser, body: Record<string, unknown> = {}): Promise<IMeasureUnit> => {
-    const { data } = await actor.api.ok<IMeasureUnit>("POST", PATHS.MEASURE_UNITS, {
-        name: uniqueName("Unit"),
-        shortName: uniqueName("u").slice(-8),
-        allowsDecimals: false,
-        ...body,
-    });
-    return data;
 };
 
 export const createCategory = async (actor: ITestUser, body: Record<string, unknown> = {}): Promise<IProductCategory> => {
@@ -56,11 +42,11 @@ interface IProductOptions {
 }
 
 export const createProduct = async (actor: ITestUser, { allowsDecimals = false, body = {} }: IProductOptions = {}): Promise<IProduct> => {
-    const [unit, category] = await Promise.all([findUnit(actor, allowsDecimals), findCategory(actor)]);
+    const category = await findCategory(actor);
     const { data } = await actor.api.ok<IProduct>("POST", PATHS.PRODUCTS, {
         name: uniqueName("Product"),
         categoryUuid: category.uuid,
-        measureUnitUuid: unit.uuid,
+        measureUnit: allowsDecimals ? KILOS_UNIT : PIECES_UNIT,
         ...body,
     });
     return data;

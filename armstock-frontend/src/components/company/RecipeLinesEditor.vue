@@ -6,6 +6,7 @@ import ProductSelect from './ProductSelect.vue';
 import CodeBadge from '../CodeBadge.vue';
 import type { IStockOutLineForm } from '../../interfaces/IStockOutLineForm';
 import { emptyOutLine } from '../../utils/stockOutLines';
+import { useMeasureUnits } from '../../composables/useMeasureUnits';
 
 defineProps<{
   /** Highlight rows that are not filled in correctly - set after a failed save. */
@@ -14,6 +15,8 @@ defineProps<{
 
 // Same row shape as a stock-out: product + quantity.
 const lines = defineModel<IStockOutLineForm[]>({ required: true });
+
+const { unitShortName } = useMeasureUnits();
 
 const productRefs = new Map<number, { focus: () => void }>();
 
@@ -84,7 +87,7 @@ const setProductRef = (key: number, el: unknown) => {
       </el-table-column>
       <el-table-column :label="$t('recipes.lines.unit')" min-width="70">
         <template #default="{ row }">
-          <span :class="['cell-text', { 'cell-text--muted': !row.product }]">{{ row.product?.unitShortName ?? '—' }}</span>
+          <span :class="['cell-text', { 'cell-text--muted': !row.product }]">{{ row.product ? unitShortName(row.product.measureUnit) : '—' }}</span>
         </template>
       </el-table-column>
       <el-table-column width="56" align="center">

@@ -1,7 +1,7 @@
 import { ErrorCodes, StockInReason, StockOutReason, type IProduct, type IStockInDetails, type IStockOutDetails, type ISupplier } from "armstock-shared";
 import { defineSuite } from "../../core/Suite";
 import { matches } from "../../core/Assert";
-import { createProduct, createStockIn, createStockOut, createSupplier, findUnit, stockInBody } from "../../shared/Builders";
+import { createProduct, createStockIn, createStockOut, createSupplier, KILOS_UNIT, stockInBody } from "../../shared/Builders";
 import { PATHS } from "../../shared/Paths";
 import { expectStock } from "../../shared/Stock";
 import type { ICompanySideContext } from "../../interfaces/ICompanySideContext";
@@ -16,7 +16,6 @@ export default (context: ICompanySideContext) => defineSuite("Stock-in after ret
     let other: IProduct;
     let s1: ISupplier;
     let s2: ISupplier;
-    let unit: string;
     let purchase: IStockInDetails;
     let returned: IStockOutDetails;
 
@@ -27,7 +26,7 @@ export default (context: ICompanySideContext) => defineSuite("Stock-in after ret
         const response = await storekeeper.api.rejects(method, url, ErrorCodes.STOCK_IN.BELOW_RETURNED, body);
         matches(response.body.error.meta, {
             supplierName: s1.name,
-            products: [{ name: beer.name, unitShortName: unit, quantity: 15 }],
+            products: [{ name: beer.name, measureUnit: KILOS_UNIT, quantity: 15 }],
         });
         await storekeeper.api.ok("GET", path(purchase.uuid));
     };
@@ -39,7 +38,6 @@ export default (context: ICompanySideContext) => defineSuite("Stock-in after ret
             createSupplier(companyA.accountant),
             createSupplier(companyA.accountant),
         ]);
-        unit = (await findUnit(storekeeper, true)).shortName;
         purchase = await createStockIn(storekeeper, beerLine(20), { supplierUuid: s1.uuid });
         // Initial stock, so the plain stock check is never what blocks these edits.
         await createStockIn(storekeeper, beerLine(100));

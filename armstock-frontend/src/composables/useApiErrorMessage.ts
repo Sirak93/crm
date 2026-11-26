@@ -3,6 +3,7 @@ import { useI18n } from 'vue-i18n';
 import { ErrorCodes, type IStockShortage, type ISupplierReturnError } from 'armstock-shared';
 import { NotificationService } from '../services/NotificationService';
 import { formatQuantity } from '../utils/format';
+import { useMeasureUnits } from './useMeasureUnits';
 
 /** "Not enough stock" texts: a stock-out takes too much; a stock-in edit/delete takes back goods that already went out. */
 export const STOCK_SHORTAGE_TEXT = {
@@ -15,6 +16,7 @@ type StockShortageText = typeof STOCK_SHORTAGE_TEXT[keyof typeof STOCK_SHORTAGE_
 /** The translated message for an API error code (`errors.<CODE>`), or the fallback key's text. */
 export const useApiErrorMessage = () => {
   const { t, te } = useI18n();
+  const { unitShortName } = useMeasureUnits();
 
   /** An object `meta` fills the text's placeholders (e.g. `{userCount}`). */
   const parseError = (error: unknown, fallbackKey: string): string => {
@@ -34,7 +36,7 @@ export const useApiErrorMessage = () => {
         t(shortageText.text),
         (meta as IStockShortage[]).map((s) => ({
           label: s.name,
-          value: t(shortageText.value, { quantity: formatQuantity(s.available), unit: s.unitShortName }),
+          value: t(shortageText.value, { quantity: formatQuantity(s.available), unit: unitShortName(s.measureUnit) }),
         })),
       );
       return true;
@@ -51,7 +53,7 @@ export const useApiErrorMessage = () => {
       t(`supplierReturn.${textKey}`),
       data.products.map((p) => ({
         label: p.name,
-        value: t(`supplierReturn.${valueKey}`, { quantity: formatQuantity(p.quantity), unit: p.unitShortName }),
+        value: t(`supplierReturn.${valueKey}`, { quantity: formatQuantity(p.quantity), unit: unitShortName(p.measureUnit) }),
       })),
     );
     return true;

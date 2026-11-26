@@ -3,7 +3,6 @@ import { Permission, PermissionGroup } from 'armstock-shared';
 export const PERMISSION_GROUP_LABEL: Record<PermissionGroup, string> = {
   [PermissionGroup.COMPANY]: 'permissions.groups.company',
   [PermissionGroup.USERS]: 'permissions.groups.users',
-  [PermissionGroup.MEASURE_UNITS]: 'permissions.groups.measureUnits',
   [PermissionGroup.PRODUCT_CATEGORIES]: 'permissions.groups.productCategories',
   [PermissionGroup.PRODUCTS]: 'permissions.groups.products',
   [PermissionGroup.SUPPLIERS]: 'permissions.groups.suppliers',
@@ -18,9 +17,6 @@ export const PERMISSION_LABEL: Record<Permission, string> = {
   [Permission.USER_ADD]: 'permissions.items.userAdd',
   [Permission.USER_EDIT]: 'permissions.items.userEdit',
   [Permission.MANAGE_USER_PERMISSIONS]: 'permissions.items.manageUserPermissions',
-  [Permission.MEASURE_UNIT_ADD]: 'permissions.items.measureUnitAdd',
-  [Permission.MEASURE_UNIT_EDIT]: 'permissions.items.measureUnitEdit',
-  [Permission.MEASURE_UNIT_DELETE]: 'permissions.items.measureUnitDelete',
   [Permission.PRODUCT_CATEGORY_ADD]: 'permissions.items.productCategoryAdd',
   [Permission.PRODUCT_CATEGORY_EDIT]: 'permissions.items.productCategoryEdit',
   [Permission.PRODUCT_CATEGORY_DELETE]: 'permissions.items.productCategoryDelete',

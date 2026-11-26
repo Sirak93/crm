@@ -1,7 +1,7 @@
 import { ErrorCodes, StockOutReason, type IProduct, type IStockOutDetails, type ISupplier } from "armstock-shared";
 import { defineSuite } from "../../core/Suite";
 import { matches } from "../../core/Assert";
-import { createProduct, createStockIn, createStockOut, createSupplier, findUnit, stockOutBody } from "../../shared/Builders";
+import { createProduct, createStockIn, createStockOut, createSupplier, KILOS_UNIT, stockOutBody } from "../../shared/Builders";
 import { PATHS } from "../../shared/Paths";
 import { expectStock } from "../../shared/Stock";
 import type { ICompanySideContext } from "../../interfaces/ICompanySideContext";
@@ -16,7 +16,6 @@ export default (context: ICompanySideContext) => defineSuite("Returns to a suppl
     let neverBrought: IProduct;
     let s1: ISupplier;
     let s2: ISupplier;
-    let unit: string;
     let lastReturn: IStockOutDetails;
 
     const returnTo = (supplier: ISupplier, product: IProduct, quantity: number) =>
@@ -27,7 +26,7 @@ export default (context: ICompanySideContext) => defineSuite("Returns to a suppl
         const response = await storekeeper.api.rejects(method, url, ErrorCodes.STOCK_OUT.RETURN_EXCEEDS_SUPPLIER, returnTo(supplier, product, quantity));
         matches(response.body.error.meta, {
             supplierName: supplier.name,
-            products: [{ name: product.name, unitShortName: unit, quantity: canReturn }],
+            products: [{ name: product.name, measureUnit: KILOS_UNIT, quantity: canReturn }],
         });
     };
 
@@ -38,7 +37,6 @@ export default (context: ICompanySideContext) => defineSuite("Returns to a suppl
             createSupplier(companyA.accountant),
             createSupplier(companyA.accountant),
         ]);
-        unit = (await findUnit(storekeeper, true)).shortName;
         await createStockIn(storekeeper, [{ productUuid: beer.uuid, quantity: 20 }], { supplierUuid: s1.uuid });
         // Initial stock, so the plain stock check is never what blocks these returns.
         await createStockIn(storekeeper, [{ productUuid: beer.uuid, quantity: 100 }, { productUuid: neverBrought.uuid, quantity: 50 }]);

@@ -70,6 +70,9 @@ To keep adding the module later cheap:
 - **The same converter is used on every amount field in the app** (decided 2026-11-26): recipe
   amounts, stock-in "In one pack", stock-out extras and stock-out totals. One shared component,
   so the storekeeper learns it once.
+- **In code** (Step U3): the API sends only the unit's enum number (`measureUnit`); each app reads
+  names, decimals and factor from the shared `MEASURE_UNITS` constant. English short names: pc, box,
+  bunch, kg, g, l, ml, mg.
 - **Rule:** every amount field shows which unit it is typed in, and every amount is saved in the
   product's unit and converted only by the factors in code - so all counting stays correct.
 

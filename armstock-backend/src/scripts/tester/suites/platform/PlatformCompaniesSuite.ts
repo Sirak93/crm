@@ -38,7 +38,7 @@ export default (context: ITestContext) => defineSuite("Platform: companies and t
 
     // --- Companies ---
 
-    test("create: the company, its Owner who can log in, and the default units, categories and roles", async () => {
+    test("create: the company, its Owner who can log in, and the default categories and roles", async () => {
         const body = createBody({ taxId: "01234567", phone: " ", address: "Gyumri" });
         const { data } = await api.ok<ICompany>("POST", PATHS.PLATFORM_COMPANIES, body);
         hasExactKeys(data, COMPANY_KEYS);
@@ -50,7 +50,6 @@ export default (context: ITestContext) => defineSuite("Platform: companies and t
         matches(row, { account_type: AccountType.COMPANY_OWNER, company_uuid: data.uuid });
 
         const count = (table: string) => db.count(table, "company_uuid = $1", [data.uuid]);
-        isTrue(await count("measure_units") > 0, "default units");
         isTrue(await count("product_categories") > 0, "default categories");
         const { data: roles } = await api.ok<INamedRef[]>("GET", `${path(data.uuid)}/roles`);
         matches(roles.map((r) => r.name).sort(), Object.values(DEFAULT_ROLE_NAMES).sort(), "default roles");

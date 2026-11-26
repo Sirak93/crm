@@ -14,7 +14,6 @@ import SupplierRoutes from "./routes/SupplierRoutes";
 import StockInRoutes from "./routes/StockInRoutes";
 import StockOutRoutes from "./routes/StockOutRoutes";
 import StockRoutes from "./routes/StockRoutes";
-import MeasureUnitRoutes from "./routes/MeasureUnitRoutes";
 import { ErrorHandler } from "./middlewares/ErrorHandler";
 import { ApiLogMiddleware } from "./middlewares/ApiLogMiddleware";
 import { allowedOrigins } from "./utils/allowedOrigins";
@@ -63,7 +62,6 @@ app.use(`${API_PATH}/suppliers`, SupplierRoutes);
 app.use(`${API_PATH}/stock-ins`, StockInRoutes);
 app.use(`${API_PATH}/stock-outs`, StockOutRoutes);
 app.use(`${API_PATH}/stock`, StockRoutes);
-app.use(`${API_PATH}/measure-units`, MeasureUnitRoutes);
 
 // Must be last.
 app.use(ErrorHandler);

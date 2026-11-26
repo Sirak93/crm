@@ -2,10 +2,13 @@
 import { ProductStatus, type IStockInLine } from 'armstock-shared';
 import CodeBadge from '../CodeBadge.vue';
 import { formatQuantity } from '../../utils/format';
+import { useMeasureUnits } from '../../composables/useMeasureUnits';
 
 defineProps<{
   lines: IStockInLine[];
 }>();
+
+const { unitShortName } = useMeasureUnits();
 </script>
 
 <template>
@@ -29,7 +32,7 @@ defineProps<{
       <template #default="{ row }"><span class="cell-text">{{ formatQuantity(row.quantity) }}</span></template>
     </el-table-column>
     <el-table-column :label="$t('stockIn.lines.unit')" min-width="70">
-      <template #default="{ row }"><span class="cell-text cell-text--muted">{{ row.product.unitShortName }}</span></template>
+      <template #default="{ row }"><span class="cell-text cell-text--muted">{{ unitShortName(row.product.measureUnit) }}</span></template>
     </el-table-column>
   </el-table>
 </template>

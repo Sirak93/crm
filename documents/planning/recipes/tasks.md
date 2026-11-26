@@ -117,20 +117,20 @@ read only once.
 
 ## Step U3 — Fixed units (replace the Units page)
 
-- [ ] Shared: `MeasureUnit` enum (starts at 10, steps of 10) + constant with long / short name
+- [x] Shared: `MeasureUnit` enum (starts at 10, steps of 10) + constant with long / short name
       (hy + en), type (count / weight / volume), factor, decimals, "product unit" flag - list in
       decisions.md → Units
 - [ ] DB: `products.measure_unit_uuid` → unit enum column; `measure_units` model removed - local DB
       recreated
-- [ ] Backend: `MeasureUnit` routes / controller / service / schema / default units removed;
+- [x] Backend: `MeasureUnit` routes / controller / service / schema / default units removed;
       `MEASURE_UNIT_*` permissions and their error codes removed; products, options, stock-in,
       stock-out, stock balance and recipes read unit data from the constant
-- [ ] Frontend: Units page, dialog, table, service and menu item removed; product form picks
+- [x] Frontend: Units page, dialog, table, service and menu item removed; product form picks
       from the fixed list (no Միլիգրամ) with the unit hint under it; everywhere a unit is shown uses the constant; stale i18n
       keys removed
-- [ ] Tests: `MeasureUnitsSuite` removed; products / stock / recipes suites use the enum; unknown
+- [x] Tests: `MeasureUnitsSuite` removed; products / stock / recipes suites use the enum; unknown
       or converter-only unit refused for a product
-- [ ] Seeder uses the enum
+- [x] Seeder uses the enum
 - [ ] Checked in browser: products, stock-in, stock-out, balance and recipes show the right units
 
 ## Step U4 — Stock-in by packs + unit converter

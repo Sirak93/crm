@@ -1,6 +1,8 @@
 import { Brackets, In, type EntityManager, type ObjectLiteral, type SelectQueryBuilder } from "typeorm";
 import {
     ErrorCodes,
+    MEASURE_UNITS,
+    MeasureUnit,
     ProductStatus,
     QUANTITY_DECIMALS,
     type IPaginationMeta,
@@ -10,7 +12,6 @@ import {
     type IStockShortage,
 } from "armstock-shared";
 import { AppDataSource } from "../config/database";
-import { MeasureUnit } from "../models/MeasureUnit";
 import { Product } from "../models/Product";
 import { ProductCategory } from "../models/ProductCategory";
 import { StockInLine } from "../models/StockInLine";
@@ -28,7 +29,7 @@ interface IBalanceRow {
     code: string | null;
     status: ProductStatus;
     categoryUuid: string;
-    measureUnitUuid: string;
+    measureUnit: MeasureUnit;
     quantity: string;
 }
 
@@ -36,21 +37,18 @@ interface IBalanceRow {
 export class StockService {
     private productRepo = AppDataSource.getRepository(Product);
 
-    /** Needs the product's measureUnit loaded. */
     static toLineProduct(product: Product): IStockLineProduct {
         return {
             uuid: product.uuid,
             name: product.name,
             code: product.code,
             status: product.status,
-            unitShortName: product.measureUnit!.shortName,
-            allowsDecimals: product.measureUnit!.allowsDecimals,
+            measureUnit: product.measureUnit,
         };
     }
 
-    /** Needs the product's measureUnit loaded. */
     static assertQuantityFitsUnit(product: Product, quantity: number): void {
-        if (!product.measureUnit!.allowsDecimals && !Number.isInteger(quantity)) {
+        if (!MEASURE_UNITS[product.measureUnit].allowsDecimals && !Number.isInteger(quantity)) {
             throw new AppError(ErrorCodes.PRODUCT.QUANTITY_NOT_WHOLE, undefined, undefined, { uuid: product.uuid, quantity });
         }
     }
@@ -103,22 +101,21 @@ export class StockService {
 
         const qb = manager
             .createQueryBuilder(Product, "product")
-            .innerJoin("product.measureUnit", "unit")
             .select("product.uuid", "uuid")
             .addSelect("product.name", "name")
-            .addSelect("unit.shortName", "unitShortName")
+            .addSelect("product.measureUnit", "measureUnit")
             .addSelect(QUANTITY, "quantity")
             .where("product.companyUuid = :companyUuid", { companyUuid })
             .andWhere("product.uuid IN (:...productUuids)", { productUuids })
             .andWhere(`${QUANTITY} < 0`)
             .orderBy("product.name", "ASC");
         const negative = await StockService.joinStock(qb, "line.productUuid IN (:...productUuids)")
-            .getRawMany<{ uuid: string; name: string; unitShortName: string; quantity: string }>();
+            .getRawMany<{ uuid: string; name: string; measureUnit: MeasureUnit; quantity: string }>();
 
         if (negative.length) {
             const shortages: IStockShortage[] = negative.map((row) => ({
                 name: row.name,
-                unitShortName: row.unitShortName,
+                measureUnit: row.measureUnit,
                 available: Math.round((Number(row.quantity) + addBack.get(row.uuid)!) * QUANTITY_SCALE) / QUANTITY_SCALE,
             }));
             throw new AppError(ErrorCodes.STOCK.NOT_ENOUGH, undefined, undefined, { productUuids: negative.map((r) => r.uuid) }, shortages);
@@ -159,15 +156,12 @@ export class StockService {
         return qb;
     }
 
-    /** Units and categories of one page, by bounded `uuid IN (...)` lookups instead of joins on the paginated query. */
+    /** Categories of one page, by a bounded `uuid IN (...)` lookup instead of a join on the paginated query. */
     private async toBalances(companyUuid: string, rows: IBalanceRow[]): Promise<IStockBalance[]> {
-        const unitUuids = [...new Set(rows.map((r) => r.measureUnitUuid))];
         const categoryUuids = [...new Set(rows.map((r) => r.categoryUuid))];
-        const [units, categories] = await Promise.all([
-            unitUuids.length ? AppDataSource.getRepository(MeasureUnit).find({ where: { uuid: In(unitUuids), companyUuid } }) : [],
-            categoryUuids.length ? AppDataSource.getRepository(ProductCategory).find({ where: { uuid: In(categoryUuids), companyUuid } }) : [],
-        ]);
-        const unitMap = new Map(units.map((u) => [u.uuid, u.shortName]));
+        const categories = categoryUuids.length
+            ? await AppDataSource.getRepository(ProductCategory).find({ where: { uuid: In(categoryUuids), companyUuid } })
+            : [];
         const categoryMap = new Map(categories.map((c) => [c.uuid, c.name]));
 
         return rows.map((row) => ({
@@ -176,7 +170,7 @@ export class StockService {
             code: row.code,
             status: row.status,
             categoryName: categoryMap.get(row.categoryUuid) ?? "",
-            unitShortName: unitMap.get(row.measureUnitUuid) ?? "",
+            measureUnit: row.measureUnit,
             quantity: Number(row.quantity),
         }));
     }
@@ -201,7 +195,7 @@ export class StockService {
                 .addSelect("product.code", "code")
                 .addSelect("product.status", "status")
                 .addSelect("product.categoryUuid", "categoryUuid")
-                .addSelect("product.measureUnitUuid", "measureUnitUuid")
+                .addSelect("product.measureUnit", "measureUnit")
                 .addSelect(QUANTITY, "quantity")
                 .orderBy("product.name", "ASC")
                 .addOrderBy("product.uuid", "ASC")

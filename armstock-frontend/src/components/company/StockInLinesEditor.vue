@@ -2,10 +2,9 @@
 import { computed, nextTick, ref } from 'vue';
 import { useI18n } from 'vue-i18n';
 import {
-  QUANTITY_DECIMALS,
+  MEASURE_UNITS,
   Permission,
   QUANTITY_MAX,
-  type IMeasureUnit,
   type IProduct,
   type IProductCategory,
   type IStockLineProduct,
@@ -14,17 +13,17 @@ import { Plus, Trash2 } from 'lucide-vue-next';
 import ProductSelect from './ProductSelect.vue';
 import CodeBadge from '../CodeBadge.vue';
 import ProductDialog from './ProductDialog.vue';
-import { MeasureUnitService } from '../../services/MeasureUnitService';
 import { ProductCategoryService } from '../../services/ProductCategoryService';
 import { NotificationService } from '../../services/NotificationService';
 import { useAuthStore } from '../../stores/auth';
 import { AppLogger } from '../../utils/AppLogger';
 import type { IStockInLineForm } from '../../interfaces/IStockInLineForm';
 import { emptyLine } from '../../utils/stockInLines';
-import { toLineProduct, withScannedProduct } from '../../utils/stockLines';
+import { quantityPrecision, toLineProduct, withScannedProduct } from '../../utils/stockLines';
 import { OptionsService } from '../../services/OptionsService';
 import { useApiErrorMessage } from '../../composables/useApiErrorMessage';
 import { useBarcodeScanner } from '../../composables/useBarcodeScanner';
+import { useMeasureUnits } from '../../composables/useMeasureUnits';
 
 defineProps<{
   /** Highlight rows that are not filled in correctly - set after a failed save. */
@@ -35,6 +34,7 @@ const lines = defineModel<IStockInLineForm[]>({ required: true });
 
 const { t } = useI18n();
 const { parseError } = useApiErrorMessage();
+const { unitShortName } = useMeasureUnits();
 const authStore = useAuthStore();
 
 const productRefs = new Map<number, { focus: () => void }>();
@@ -46,7 +46,6 @@ const newProductName = ref('');
 const newProductRowKey = ref<number | null>(null);
 const newProductBarcode = ref('');
 const isScanning = ref(false);
-const units = ref<IMeasureUnit[]>([]);
 const categories = ref<IProductCategory[]>([]);
 
 // Like 1C: the new row goes at the bottom and the cursor jumps to its product.
@@ -65,18 +64,18 @@ const removeLine = (key: number) => {
 const onProductSelect = (line: IStockInLineForm, product: IStockLineProduct) => {
   line.product = product;
   // A whole-number unit drops any decimals typed for the previous product.
-  if (!product.allowsDecimals && line.quantity !== undefined) {
+  if (!MEASURE_UNITS[product.measureUnit].allowsDecimals && line.quantity !== undefined) {
     line.quantity = Math.round(line.quantity);
   }
 };
 
-// Units and categories are needed only for the dialog, so they load the first time it opens.
+// Categories are needed only for the dialog, so they load the first time it opens.
 const openProductDialog = async (line: IStockInLineForm | null, name: string, barcode = '') => {
-  if (!units.value.length || !categories.value.length) {
+  if (!categories.value.length) {
     try {
-      [units.value, categories.value] = await Promise.all([MeasureUnitService.list(), ProductCategoryService.list()]);
+      categories.value = await ProductCategoryService.list();
     } catch (error) {
-      AppLogger.error('Failed to load units and categories:', error);
+      AppLogger.error('Failed to load categories:', error);
       NotificationService.error(t('stockIn.lines.productDataError'));
       return;
     }
@@ -159,7 +158,7 @@ const setProductRef = (key: number, el: unknown) => {
             :disabled="!row.productUuid"
             :min="0"
             :max="QUANTITY_MAX"
-            :precision="row.product?.allowsDecimals === false ? 0 : QUANTITY_DECIMALS"
+            :precision="quantityPrecision(row.product)"
             :aria-label="$t('stockIn.lines.quantity')"
             :class="{ 'is-invalid': showErrors && !(row.quantity > 0) }"
             class="lines-editor__number"
@@ -168,7 +167,7 @@ const setProductRef = (key: number, el: unknown) => {
       </el-table-column>
       <el-table-column :label="$t('stockIn.lines.unit')" min-width="70">
         <template #default="{ row }">
-          <span :class="['cell-text', { 'cell-text--muted': !row.product }]">{{ row.product?.unitShortName ?? '—' }}</span>
+          <span :class="['cell-text', { 'cell-text--muted': !row.product }]">{{ row.product ? unitShortName(row.product.measureUnit) : '—' }}</span>
         </template>
       </el-table-column>
       <el-table-column width="56" align="center">
@@ -195,7 +194,6 @@ const setProductRef = (key: number, el: unknown) => {
     <ProductDialog
       v-model="isProductDialogOpen"
       :product="null"
-      :units="units"
       :categories="categories"
       :initial-name="newProductName"
       :initial-barcode="newProductBarcode"

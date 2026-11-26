@@ -9,7 +9,6 @@ import { PATHS } from "../../shared/Paths";
 import { randomUuid } from "../../shared/Random";
 import { HttpMethod } from "../../enums/HttpMethod";
 import companyRouter from "../../../../routes/CompanyRoutes";
-import measureUnitRouter from "../../../../routes/MeasureUnitRoutes";
 import optionsRouter from "../../../../routes/OptionsRoutes";
 import productCategoryRouter from "../../../../routes/ProductCategoryRoutes";
 import productRouter from "../../../../routes/ProductRoutes";
@@ -39,7 +38,6 @@ const COMPANY_ROUTERS: [string, Router][] = [
     [`${API_PATH}/stock-ins`, stockInRouter],
     [`${API_PATH}/stock-outs`, stockOutRouter],
     [`${API_PATH}/stock`, stockRouter],
-    [`${API_PATH}/measure-units`, measureUnitRouter],
 ];
 
 /** "PUT /api/products/:uuid" for every route the routers really have. */

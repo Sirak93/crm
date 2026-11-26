@@ -49,15 +49,6 @@ export const COMPANY_ROUTES: ICompanyRoute[] = [
     },
     { method: DELETE, path: (ids) => `${PATHS.ROLES}/${ids.uuid}`, permission: P.MANAGE_USER_PERMISSIONS, target: T.ROLE },
 
-    // Measure units - every member reads them
-    { method: GET, path: () => PATHS.MEASURE_UNITS, permission: null },
-    { method: POST, path: () => PATHS.MEASURE_UNITS, permission: P.MEASURE_UNIT_ADD },
-    {
-        method: PUT, path: (ids) => `${PATHS.MEASURE_UNITS}/${ids.uuid}`, permission: P.MEASURE_UNIT_EDIT, target: T.MEASURE_UNIT,
-        body: () => ({ name: NAME, shortName: "t", allowsDecimals: false }),
-    },
-    { method: DELETE, path: (ids) => `${PATHS.MEASURE_UNITS}/${ids.uuid}`, permission: P.MEASURE_UNIT_DELETE, target: T.MEASURE_UNIT },
-
     // Product categories - every member reads them
     { method: GET, path: () => PATHS.PRODUCT_CATEGORIES, permission: null },
     { method: POST, path: () => PATHS.PRODUCT_CATEGORIES, permission: P.PRODUCT_CATEGORY_ADD },
@@ -158,7 +149,6 @@ export const TARGET_NOT_FOUND: Record<RouteTarget, { CODE: string; STATUS: numbe
     [T.PRODUCT]: ErrorCodes.PRODUCT.NOT_FOUND,
     [T.SUPPLIER]: ErrorCodes.SUPPLIER.NOT_FOUND,
     [T.SUPPLIER_CONTACT]: ErrorCodes.SUPPLIER.NOT_FOUND,
-    [T.MEASURE_UNIT]: ErrorCodes.MEASURE_UNIT.NOT_FOUND,
     [T.PRODUCT_CATEGORY]: ErrorCodes.PRODUCT_CATEGORY.NOT_FOUND,
     [T.ROLE]: ErrorCodes.ROLE.NOT_FOUND,
     [T.USER]: ErrorCodes.USER.NOT_FOUND,

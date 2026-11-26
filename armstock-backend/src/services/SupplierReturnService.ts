@@ -113,7 +113,7 @@ export class SupplierReturnService {
     ): Promise<never> {
         const [supplier, products] = await Promise.all([
             manager.findOne(Supplier, { where: { uuid: supplierUuid } }),
-            manager.find(Product, { where: { uuid: In(quantities.map(([uuid]) => uuid)) }, relations: { measureUnit: true } }),
+            manager.find(Product, { where: { uuid: In(quantities.map(([uuid]) => uuid)) } }),
         ]);
         const productMap = new Map(products.map((p) => [p.uuid, p]));
         const data: ISupplierReturnError = {
@@ -121,7 +121,7 @@ export class SupplierReturnService {
             products: quantities
                 .map(([uuid, quantity]): IProductQuantity => ({
                     name: productMap.get(uuid)?.name ?? "",
-                    unitShortName: productMap.get(uuid)?.measureUnit?.shortName ?? "",
+                    measureUnit: productMap.get(uuid)!.measureUnit,
                     quantity,
                 }))
                 .sort((a, b) => a.name.localeCompare(b.name)),

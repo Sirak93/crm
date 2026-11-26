@@ -7,7 +7,6 @@ import { AppError } from "../../utils/AppError";
 import { BCRYPT_ROUNDS } from "../../constants/AuthConstants";
 import { AuthCacheService } from "../AuthCacheService";
 import { CompanyService } from "../CompanyService";
-import { MeasureUnitService } from "../MeasureUnitService";
 import { ProductCategoryService } from "../ProductCategoryService";
 import { RoleService } from "../RoleService";
 import type { CompanyBody, CompanyCreateBody } from "../../schemas/CompanySchema";
@@ -35,7 +34,7 @@ export class PlatformCompaniesService {
         };
     }
 
-    /** The company with its one Owner and its default units, product categories, and roles, saved together. */
+    /** The company with its one Owner and its default product categories, and roles, saved together. */
     async create(body: CompanyCreateBody): Promise<ICompany> {
         const { owner, ...companyData } = body;
         if (await AppDataSource.getRepository(User).exists({ where: { email: owner.email } })) {
@@ -55,7 +54,6 @@ export class PlatformCompaniesService {
                 email: owner.email,
                 password,
             }));
-            await MeasureUnitService.createDefaults(manager, saved.uuid);
             await ProductCategoryService.createDefaults(manager, saved.uuid);
             await RoleService.createDefaults(manager, saved.uuid);
             return saved;

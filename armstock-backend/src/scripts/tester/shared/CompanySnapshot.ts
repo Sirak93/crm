@@ -5,7 +5,6 @@ const COMPANY_TABLES: Record<string, string> = {
     companies: "uuid = $1",
     users: "company_uuid = $1",
     roles: "company_uuid = $1",
-    measure_units: "company_uuid = $1",
     product_categories: "company_uuid = $1",
     products: "company_uuid = $1",
     suppliers: "company_uuid = $1",

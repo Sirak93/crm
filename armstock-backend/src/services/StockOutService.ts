@@ -53,7 +53,7 @@ export class StockOutService {
     private async assertReferences(companyUuid: string, body: StockOutBody, existingSupplierUuid: string | null): Promise<void> {
         const productUuids = [...new Set(body.lines.map((line) => line.productUuid))];
         const [products, supplier, receiverExists] = await Promise.all([
-            this.productRepo.find({ where: { uuid: In(productUuids), companyUuid }, relations: { measureUnit: true } }),
+            this.productRepo.find({ where: { uuid: In(productUuids), companyUuid } }),
             body.supplierUuid ? this.supplierRepo.findOne({ where: { uuid: body.supplierUuid, companyUuid } }) : null,
             body.receiverUuid ? this.userRepo.exists({ where: { uuid: body.receiverUuid, companyUuid } }) : true,
         ]);
@@ -190,7 +190,7 @@ export class StockOutService {
         const [[header], products] = await Promise.all([
             this.toHeaders([doc]),
             productUuids.length
-                ? this.productRepo.find({ where: { uuid: In(productUuids) }, relations: { measureUnit: true } })
+                ? this.productRepo.find({ where: { uuid: In(productUuids) } })
                 : [],
         ]);
         const productMap = new Map(products.map((p) => [p.uuid, p]));

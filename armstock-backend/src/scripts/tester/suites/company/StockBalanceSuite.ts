@@ -1,7 +1,7 @@
 import { ErrorCodes, ProductStatus, StockOutReason, type IProduct, type IProductCategory, type IStockBalance, type IStockBalanceSummary } from "armstock-shared";
 import { defineSuite } from "../../core/Suite";
 import { equals, isTrue, matches } from "../../core/Assert";
-import { createCategory, createProduct, createStockIn, createStockOut, findCategory, findUnit } from "../../shared/Builders";
+import { createCategory, createProduct, createStockIn, createStockOut, findCategory, KILOS_UNIT, PIECES_UNIT } from "../../shared/Builders";
 import { PATHS } from "../../shared/Paths";
 import { uniqueName } from "../../shared/Random";
 import { stockOf } from "../../shared/Stock";
@@ -19,8 +19,6 @@ export default (context: ICompanySideContext) => defineSuite("Stock balance", (t
 
     let category: IProductCategory;
     let ownCategory: IProductCategory;
-    let piecesUnit: string;
-    let kilosUnit: string;
     // A: came in twice, partly used. B: used up. C: never came in.
     // D: archived with stock. E: archived at 0. F: in its own category. G: came in once.
     const products: Record<"A" | "B" | "C" | "D" | "E" | "F" | "G", IProduct> = {} as never;
@@ -33,12 +31,7 @@ export default (context: ICompanySideContext) => defineSuite("Stock balance", (t
     const nameOf = (key: keyof typeof products) => `${tag} ${key}`;
 
     test("prepares products with stock-ins and stock-outs", async () => {
-        [category, ownCategory, piecesUnit, kilosUnit] = await Promise.all([
-            findCategory(storekeeper),
-            createCategory(storekeeper),
-            findUnit(storekeeper, false).then((u) => u.shortName),
-            findUnit(storekeeper, true).then((u) => u.shortName),
-        ]);
+        [category, ownCategory] = await Promise.all([findCategory(storekeeper), createCategory(storekeeper)]);
         const make = (key: keyof typeof products, allowsDecimals = false, body: Record<string, unknown> = {}) =>
             createProduct(storekeeper, { allowsDecimals, body: { name: nameOf(key), categoryUuid: category.uuid, ...body } })
                 .then((product) => { products[key] = product; });
@@ -77,10 +70,10 @@ export default (context: ICompanySideContext) => defineSuite("Stock balance", (t
             code,
             status: ProductStatus.ACTIVE,
             categoryName: category.name,
-            unitShortName: piecesUnit,
+            measureUnit: PIECES_UNIT,
             quantity: 15,
         }, "A");
-        matches(byName.get(nameOf("B")), { quantity: 0, unitShortName: kilosUnit }, "B");
+        matches(byName.get(nameOf("B")), { quantity: 0, measureUnit: KILOS_UNIT }, "B");
         matches(byName.get(nameOf("C")), { quantity: 0 }, "C");
         matches(byName.get(nameOf("D")), { status: ProductStatus.ARCHIVED, quantity: 3 }, "D");
         matches(byName.get(nameOf("F")), { categoryName: ownCategory.name, quantity: 1 }, "F");

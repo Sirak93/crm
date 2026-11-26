@@ -2,7 +2,6 @@
 export enum PermissionGroup {
     COMPANY = 10,
     USERS = 20,
-    MEASURE_UNITS = 30,
     PRODUCT_CATEGORIES = 40,
     PRODUCTS = 50,
     SUPPLIERS = 60,

@@ -15,7 +15,7 @@ import {
 import { defineSuite } from "../../core/Suite";
 import { equals, isNull, isTrue, matches } from "../../core/Assert";
 import { createMember, createNoLoginUser } from "../../shared/Accounts";
-import { createProduct, createStockIn, createStockOut, createSupplier, findUnit, stockOutBody } from "../../shared/Builders";
+import { createProduct, createStockIn, createStockOut, createSupplier, KILOS_UNIT, PIECES_UNIT, stockOutBody } from "../../shared/Builders";
 import { PATHS } from "../../shared/Paths";
 import { randomUuid } from "../../shared/Random";
 import { expectStock, stockOf } from "../../shared/Stock";
@@ -35,8 +35,6 @@ export default (context: ICompanySideContext) => defineSuite("Stock-out", (test)
     let kilos: IProduct;
     let supplier: ISupplier;
     let productOfB: IProduct;
-    let piecesUnit: string;
-    let kilosUnit: string;
 
     const lines = (product: IProduct, quantity: number) => [{ productUuid: product.uuid, quantity }];
     const stockOutCount = async () => db.count("stock_outs", "company_uuid = $1", [companyA.uuid]);
@@ -48,8 +46,6 @@ export default (context: ICompanySideContext) => defineSuite("Stock-out", (test)
             createSupplier(companyA.accountant),
             createProduct(companyB.storekeeper),
         ]);
-        piecesUnit = (await findUnit(storekeeper, false)).shortName;
-        kilosUnit = (await findUnit(storekeeper, true)).shortName;
 
         await createStockIn(storekeeper, [{ productUuid: pieces.uuid, quantity: 10 }], { supplierUuid: supplier.uuid });
         await createStockIn(storekeeper, [{ productUuid: kilos.uuid, quantity: 5.5 }]);
@@ -69,7 +65,7 @@ export default (context: ICompanySideContext) => defineSuite("Stock-out", (test)
             receiver: isNull,
             productCount: 1,
             createdBy: { uuid: storekeeper.uuid },
-            lines: [{ product: { uuid: pieces.uuid, unitShortName: piecesUnit }, quantity: 3 }],
+            lines: [{ product: { uuid: pieces.uuid, measureUnit: PIECES_UNIT }, quantity: 3 }],
         });
         isTrue(NUMBER_FORMAT.test(doc.number), `number "${doc.number}" has the OUT-YYYY-NNNN form`);
         await expectStock(db, pieces.uuid, 7);
@@ -126,7 +122,7 @@ export default (context: ICompanySideContext) => defineSuite("Stock-out", (test)
     test("more than in stock: refused with what is available, nothing saved", async () => {
         const before = await stockOutCount();
         const response = await storekeeper.api.rejects("POST", PATHS.STOCK_OUTS, ErrorCodes.STOCK.NOT_ENOUGH, stockOutBody(lines(pieces, 5)));
-        matches(response.body.error.meta, [{ name: pieces.name, unitShortName: piecesUnit, available: 4 }]);
+        matches(response.body.error.meta, [{ name: pieces.name, measureUnit: PIECES_UNIT, available: 4 }]);
         equals(await stockOutCount(), before, "stock-out count");
         await expectStock(db, pieces.uuid, 4);
     });
@@ -141,7 +137,7 @@ export default (context: ICompanySideContext) => defineSuite("Stock-out", (test)
     test("only the short products are listed, each with its own amount", async () => {
         const response = await storekeeper.api.rejects("POST", PATHS.STOCK_OUTS, ErrorCodes.STOCK.NOT_ENOUGH,
             stockOutBody([{ productUuid: pieces.uuid, quantity: 1 }, { productUuid: kilos.uuid, quantity: 4.001 }]));
-        matches(response.body.error.meta, [{ name: kilos.name, unitShortName: kilosUnit, available: 4 }]);
+        matches(response.body.error.meta, [{ name: kilos.name, measureUnit: KILOS_UNIT, available: 4 }]);
         await expectStock(db, pieces.uuid, 4);
     });
 

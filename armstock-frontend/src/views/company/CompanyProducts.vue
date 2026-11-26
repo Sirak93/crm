@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { computed, onMounted, ref } from 'vue';
 import { useI18n } from 'vue-i18n';
-import { Permission, ProductStatus, type IMeasureUnit, type IPaginationMeta, type IProduct, type IProductCategory } from 'armstock-shared';
+import { Permission, ProductStatus, type IPaginationMeta, type IProduct, type IProductCategory } from 'armstock-shared';
 import { Package, Plus } from 'lucide-vue-next';
 import PageHeader from '../../components/PageHeader.vue';
 import AppCard from '../../components/AppCard.vue';
@@ -10,7 +10,6 @@ import ProductFilters from '../../components/company/ProductFilters.vue';
 import ProductsTable from '../../components/company/ProductsTable.vue';
 import ProductDialog from '../../components/company/ProductDialog.vue';
 import { ProductService } from '../../services/ProductService';
-import { MeasureUnitService } from '../../services/MeasureUnitService';
 import { ProductCategoryService } from '../../services/ProductCategoryService';
 import { NotificationService } from '../../services/NotificationService';
 import { useApiErrorMessage } from '../../composables/useApiErrorMessage';
@@ -31,7 +30,6 @@ const canArchive = computed(() => !!authStore.user?.can(Permission.PRODUCT_ARCHI
 const canDelete = computed(() => !!authStore.user?.can(Permission.PRODUCT_DELETE));
 
 const products = ref<IProduct[]>([]);
-const units = ref<IMeasureUnit[]>([]);
 const categories = ref<IProductCategory[]>([]);
 const meta = ref<IPaginationMeta>({ page: 1, pageSize: DEFAULT_PAGE_SIZE, total: 0, totalPages: 0 });
 const filters = ref<IProductFilters>({});
@@ -63,12 +61,12 @@ const load = async (page = meta.value.page) => {
   }
 };
 
-/** Units and categories for the filters and the dialog. */
+/** Categories for the filters and the dialog. */
 const loadLookups = async () => {
   try {
-    [units.value, categories.value] = await Promise.all([MeasureUnitService.list(), ProductCategoryService.list()]);
+    categories.value = await ProductCategoryService.list();
   } catch (error) {
-    AppLogger.error('Failed to load units and categories:', error);
+    AppLogger.error('Failed to load categories:', error);
     hasError.value = true;
   }
 };
@@ -208,7 +206,6 @@ onMounted(loadLookups);
       v-if="canAdd || canEdit"
       v-model="isDialogOpen"
       :product="editingProduct"
-      :units="units"
       :categories="categories"
       :initial-barcode="newProductBarcode"
       @saved="onSaved"

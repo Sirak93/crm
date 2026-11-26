@@ -1,7 +1,7 @@
 import { createRouter, createWebHistory, type RouteRecordRaw } from 'vue-router';
 import { AccountType, COMPANY_ACCOUNT_TYPES, Permission } from 'armstock-shared';
 import { ROUTE_NAME } from '../constants/constants';
-import { MEASURE_UNIT_PERMISSIONS, PRODUCT_CATEGORY_PERMISSIONS } from '../constants/pagePermissions';
+import { PRODUCT_CATEGORY_PERMISSIONS } from '../constants/pagePermissions';
 import { useAuthStore } from '../stores/auth';
 import { AppLogger } from '../utils/AppLogger';
 import { canOpen } from '../utils/canOpen';
@@ -158,12 +158,6 @@ const routes: RouteRecordRaw[] = [
         name: ROUTE_NAME.COMPANY_STOCK_BALANCE,
         component: () => import('../views/company/CompanyStockBalance.vue'),
         meta: { accountTypes: COMPANY_ACCOUNT_TYPES, permissions: [Permission.STOCK_BALANCE_VIEW] },
-      },
-      {
-        path: 'measure-units',
-        name: ROUTE_NAME.COMPANY_MEASURE_UNITS,
-        component: () => import('../views/company/CompanyMeasureUnits.vue'),
-        meta: { accountTypes: COMPANY_ACCOUNT_TYPES, permissions: [...MEASURE_UNIT_PERMISSIONS] },
       },
       {
         path: 'product-categories',

@@ -2,19 +2,19 @@
 import { computed, ref, watch } from 'vue';
 import { useI18n } from 'vue-i18n';
 import type { FormInstance, FormRules } from 'element-plus';
-import type { IMeasureUnit, IProduct, IProductCategory } from 'armstock-shared';
+import { PRODUCT_MEASURE_UNITS, type IProduct, type IProductCategory, type MeasureUnit } from 'armstock-shared';
 import { Barcode, Package, ScanBarcode } from 'lucide-vue-next';
 import AppDialog from '../AppDialog.vue';
 import { ProductService } from '../../services/ProductService';
 import { NotificationService } from '../../services/NotificationService';
 import { useApiErrorMessage } from '../../composables/useApiErrorMessage';
+import { useMeasureUnits } from '../../composables/useMeasureUnits';
 import { BARCODE_MAX_LENGTH } from 'armstock-shared';
 import { BARCODE_INPUT_ATTR, REQUIRED_RULE_TRIGGER, SCANNER_ENABLED } from '../../constants/constants';
 
 const props = defineProps<{
   /** null = add a new product. */
   product: IProduct | null;
-  units: IMeasureUnit[];
   categories: IProductCategory[];
   /** Pre-fills the name of a new product, e.g. with what was typed in a search. */
   initialName?: string;
@@ -28,10 +28,17 @@ const open = defineModel<boolean>({ required: true });
 
 const { t } = useI18n();
 const { parseError } = useApiErrorMessage();
+const { unitName, unitShortName } = useMeasureUnits();
 
 const formRef = ref<FormInstance>();
 const isSaving = ref(false);
-const form = ref({ name: '', code: '', barcode: '', measureUnitUuid: '', categoryUuid: '' });
+const form = ref<{ name: string; code: string; barcode: string; measureUnit: MeasureUnit | undefined; categoryUuid: string }>({
+  name: '',
+  code: '',
+  barcode: '',
+  measureUnit: undefined,
+  categoryUuid: '',
+});
 
 const isEdit = computed(() => !!props.product);
 
@@ -39,7 +46,7 @@ const required = (key: string) => [{ required: true, whitespace: true, message: 
 
 const rules: FormRules = {
   name: required('products.form.nameRequired'),
-  measureUnitUuid: required('products.form.unitRequired'),
+  measureUnit: [{ required: true, message: () => t('products.form.unitRequired'), trigger: REQUIRED_RULE_TRIGGER }],
   categoryUuid: required('products.form.categoryRequired'),
 };
 
@@ -50,7 +57,7 @@ watch(open, (isOpen) => {
     name: p?.name ?? props.initialName ?? '',
     code: p?.code ?? '',
     barcode: p?.barcode ?? props.initialBarcode ?? '',
-    measureUnitUuid: p?.measureUnit.uuid ?? '',
+    measureUnit: p?.measureUnit,
     categoryUuid: p?.category.uuid ?? '',
   };
   formRef.value?.clearValidate();
@@ -70,7 +77,7 @@ const save = async () => {
   try {
     const saved = props.product
       ? await ProductService.update(props.product.uuid, payload)
-      : await ProductService.create({ ...payload, measureUnitUuid: form.value.measureUnitUuid });
+      : await ProductService.create({ ...payload, measureUnit: form.value.measureUnit! });
     NotificationService.success(t(isEdit.value ? 'products.updated' : 'products.created'));
     emit('saved', saved);
     open.value = false;
@@ -121,17 +128,22 @@ const save = async () => {
       </div>
 
       <div class="form-row">
-        <el-form-item :label="$t('products.form.unit')" prop="measureUnitUuid">
+        <el-form-item :label="$t('products.form.unit')" prop="measureUnit">
           <el-select
-            v-model="form.measureUnitUuid"
+            v-model="form.measureUnit"
             :disabled="isEdit"
             :placeholder="$t('products.form.unitPlaceholder')"
             filterable
             class="full-width"
           >
-            <el-option v-for="unit in units" :key="unit.uuid" :label="`${unit.name} (${unit.shortName})`" :value="unit.uuid" />
+            <el-option
+              v-for="unit in PRODUCT_MEASURE_UNITS"
+              :key="unit"
+              :label="`${unitName(unit)} (${unitShortName(unit)})`"
+              :value="unit"
+            />
           </el-select>
-          <p v-if="isEdit" class="field-hint">{{ $t('products.form.unitLocked') }}</p>
+          <p class="field-hint">{{ $t(isEdit ? 'products.form.unitLocked' : 'products.form.unitHint') }}</p>
         </el-form-item>
         <el-form-item :label="$t('products.form.category')" prop="categoryUuid">
           <el-select v-model="form.categoryUuid" :placeholder="$t('products.form.categoryPlaceholder')" filterable class="full-width">

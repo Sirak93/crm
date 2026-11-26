@@ -1,5 +1,5 @@
+import type { MeasureUnit } from "../enums/MeasureUnit";
 import type { ProductStatus } from "../enums/ProductStatus";
-import type { IMeasureUnit } from "./IMeasureUnit";
 import type { IProductCategory } from "./IProductCategory";
 
 export interface IProduct {
@@ -10,7 +10,7 @@ export interface IProduct {
     /** Optional factory barcode, unique inside the company. */
     barcode: string | null;
     status: ProductStatus;
-    measureUnit: IMeasureUnit;
+    measureUnit: MeasureUnit;
     category: IProductCategory;
     createdAt: string;
 }

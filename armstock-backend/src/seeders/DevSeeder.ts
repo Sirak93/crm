@@ -1,7 +1,6 @@
-import { DefaultRole } from "armstock-shared";
+import { DefaultRole, MeasureUnit } from "armstock-shared";
 import { AppDataSource } from "../config/database";
 import { Company } from "../models/Company";
-import { MeasureUnit } from "../models/MeasureUnit";
 import { ProductCategory } from "../models/ProductCategory";
 import { Role } from "../models/Role";
 import { User } from "../models/User";
@@ -73,17 +72,14 @@ export const seedDevCompany = async () => {
     await member("Արմեն", "Ավետիսյան", "Շեֆ-խոհարար", DEFAULT_ROLE_NAMES[DefaultRole.CHEF], env("CHEF_EMAIL"));
     await member("Կարեն", "Գրիգորյան", "Խոհարար", DEFAULT_ROLE_NAMES[DefaultRole.STAFF], null);
 
-    const [units, categories] = await Promise.all([
-        AppDataSource.getRepository(MeasureUnit).find({ where: { companyUuid } }),
-        AppDataSource.getRepository(ProductCategory).find({ where: { companyUuid } }),
-    ]);
+    const categories = await AppDataSource.getRepository(ProductCategory).find({ where: { companyUuid } });
     const productService = new ProductService();
     for (const product of products) {
         await productService.create(companyUuid, {
             name: product.name,
             code: null,
             barcode: null,
-            measureUnitUuid: findByName(units, product.unit),
+            measureUnit: MeasureUnit[product.unit as keyof typeof MeasureUnit],
             categoryUuid: findByName(categories, product.category),
         });
     }

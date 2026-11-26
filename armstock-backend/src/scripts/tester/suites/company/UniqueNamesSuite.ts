@@ -1,7 +1,7 @@
 import { ErrorCodes, type IRole } from "armstock-shared";
 import { defineSuite } from "../../core/Suite";
 import { equals, isTrue } from "../../core/Assert";
-import { createCategory, createProduct, createSupplier, createUnit } from "../../shared/Builders";
+import { createCategory, createProduct, createSupplier } from "../../shared/Builders";
 import { expectRefused, PG_UNIQUE_VIOLATION } from "../../shared/DatabaseErrors";
 import { PATHS } from "../../shared/Paths";
 import { uniqueName } from "../../shared/Random";
@@ -20,7 +20,7 @@ export default (context: ICompanySideContext) => defineSuite("Unique names in th
     const clash = (table: string, column: string, uuid: string, value: string) => expectRefused(db,
         `UPDATE ${table} SET ${column} = $1 WHERE uuid = $2`, [value, uuid], PG_UNIQUE_VIOLATION, `${table}.${column}`);
 
-    test("suppliers, categories, units, product codes and roles refuse the same name in another case", async () => {
+    test("suppliers, categories, product codes and roles refuse the same name in another case", async () => {
         const supplierName = uniqueName("Supplier");
         const [, supplier] = await Promise.all([createSupplier(owner, { name: supplierName }), createSupplier(owner)]);
         await clash("suppliers", "name", supplier.uuid, supplierName.toUpperCase());
@@ -28,11 +28,6 @@ export default (context: ICompanySideContext) => defineSuite("Unique names in th
         const categoryName = uniqueName("Category");
         const [, category] = await Promise.all([createCategory(owner, { name: categoryName }), createCategory(owner)]);
         await clash("product_categories", "name", category.uuid, categoryName.toUpperCase());
-
-        const unitA = await createUnit(owner);
-        const unitB = await createUnit(owner);
-        await clash("measure_units", "name", unitB.uuid, unitA.name.toUpperCase());
-        await clash("measure_units", "short_name", unitB.uuid, unitA.shortName.toUpperCase());
 
         const code = uniqueName("code");
         const [, product] = await Promise.all([createProduct(owner, { body: { code } }), createProduct(owner)]);

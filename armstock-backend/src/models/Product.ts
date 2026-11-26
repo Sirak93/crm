@@ -9,15 +9,13 @@ import {
     ManyToOne,
     JoinColumn,
 } from "typeorm";
-import { ProductStatus } from "armstock-shared";
+import { MeasureUnit, ProductStatus } from "armstock-shared";
 import { Company } from "./Company";
 import { UNIQUE_KEYS } from "../constants/UniqueKeys";
-import { MeasureUnit } from "./MeasureUnit";
 import { ProductCategory } from "./ProductCategory";
 
 @Entity("products")
 @Index("IDX_products_company_uuid", ["companyUuid"])
-@Index("IDX_products_measure_unit_uuid", ["measureUnitUuid"])
 @Index("IDX_products_category_uuid", ["categoryUuid"])
 @Index(UNIQUE_KEYS.PRODUCT_BARCODE, ["companyUuid", "barcode"], { unique: true })
 @Unique(UNIQUE_KEYS.PRODUCT_CODE, ["companyUuid", "code"])
@@ -44,12 +42,8 @@ export class Product {
     barcode!: string | null;
 
     /** Fixed after create - stock is counted in this unit. */
-    @Column({ name: "measure_unit_uuid", type: "uuid" })
-    measureUnitUuid!: string;
-
-    @ManyToOne(() => MeasureUnit, { onDelete: "RESTRICT" })
-    @JoinColumn({ name: "measure_unit_uuid" })
-    measureUnit?: MeasureUnit;
+    @Column({ name: "measure_unit", type: "int" })
+    measureUnit!: MeasureUnit;
 
     @Column({ name: "category_uuid", type: "uuid" })
     categoryUuid!: string;

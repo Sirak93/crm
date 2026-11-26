@@ -1,3 +1,4 @@
+import type { MeasureUnit } from "../enums/MeasureUnit";
 import type { ProductStatus } from "../enums/ProductStatus";
 
 /** One product's stock right now. */
@@ -7,6 +8,6 @@ export interface IStockBalance {
     code: string | null;
     status: ProductStatus;
     categoryName: string;
-    unitShortName: string;
+    measureUnit: MeasureUnit;
     quantity: number;
 }

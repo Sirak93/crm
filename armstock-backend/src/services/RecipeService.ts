@@ -107,7 +107,7 @@ export class RecipeService {
         const recipe = await this.findOrFail(companyUuid, uuid);
         const lines = await this.lineRepo.find({ where: { recipeUuid: recipe.uuid }, order: { position: "ASC" } });
         const products = lines.length
-            ? await this.productRepo.find({ where: { uuid: In(lines.map((l) => l.productUuid)) }, relations: { measureUnit: true } })
+            ? await this.productRepo.find({ where: { uuid: In(lines.map((l) => l.productUuid)) } })
             : [];
         const productMap = new Map(products.map((p) => [p.uuid, p]));
 

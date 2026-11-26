@@ -2,13 +2,11 @@ import { Brackets, In } from "typeorm";
 import { ErrorCodes, ProductStatus, type IPaginationMeta, type IProduct, type IStockLineProduct } from "armstock-shared";
 import { AppDataSource } from "../config/database";
 import { Product } from "../models/Product";
-import { MeasureUnit } from "../models/MeasureUnit";
 import { ProductCategory } from "../models/ProductCategory";
 import { StockInLine } from "../models/StockInLine";
 import { RecipeLine } from "../models/RecipeLine";
 import { StockOutLine } from "../models/StockOutLine";
 import { AppError } from "../utils/AppError";
-import { MeasureUnitService } from "./MeasureUnitService";
 import { ProductCategoryService } from "./ProductCategoryService";
 import { StockService } from "./StockService";
 import { SupplierReturnService } from "./SupplierReturnService";
@@ -25,17 +23,16 @@ const UNIQUE_ERRORS = {
 
 export class ProductService {
     private repo = AppDataSource.getRepository(Product);
-    private unitService = new MeasureUnitService();
     private categoryService = new ProductCategoryService();
 
-    private static toProduct(product: Product, unit: MeasureUnit, category: ProductCategory): IProduct {
+    private static toProduct(product: Product, category: ProductCategory): IProduct {
         return {
             uuid: product.uuid,
             name: product.name,
             code: product.code,
             barcode: product.barcode,
             status: product.status,
-            measureUnit: MeasureUnitService.toUnit(unit),
+            measureUnit: product.measureUnit,
             category: ProductCategoryService.toCategory(category),
             createdAt: product.createdAt.toISOString(),
         };
@@ -67,17 +64,14 @@ export class ProductService {
         if (await qb.getExists()) throw new AppError(ErrorCodes.PRODUCT.BARCODE_TAKEN);
     }
 
-    /** Units and categories of one page, by bounded `uuid IN (...)` lookups instead of joins on the paginated query. */
+    /** Categories of one page, by a bounded `uuid IN (...)` lookup instead of a join on the paginated query. */
     private async withRelations(companyUuid: string, products: Product[]): Promise<IProduct[]> {
-        const unitUuids = [...new Set(products.map((p) => p.measureUnitUuid))];
         const categoryUuids = [...new Set(products.map((p) => p.categoryUuid))];
-        const [units, categories] = await Promise.all([
-            unitUuids.length ? AppDataSource.getRepository(MeasureUnit).find({ where: { uuid: In(unitUuids), companyUuid } }) : [],
-            categoryUuids.length ? AppDataSource.getRepository(ProductCategory).find({ where: { uuid: In(categoryUuids), companyUuid } }) : [],
-        ]);
-        const unitMap = new Map(units.map((u) => [u.uuid, u]));
+        const categories = categoryUuids.length
+            ? await AppDataSource.getRepository(ProductCategory).find({ where: { uuid: In(categoryUuids), companyUuid } })
+            : [];
         const categoryMap = new Map(categories.map((c) => [c.uuid, c]));
-        return products.map((p) => ProductService.toProduct(p, unitMap.get(p.measureUnitUuid)!, categoryMap.get(p.categoryUuid)!));
+        return products.map((p) => ProductService.toProduct(p, categoryMap.get(p.categoryUuid)!));
     }
 
     /** The company's products matching the search by name or code, or exactly the scanned barcode. */
@@ -112,29 +106,27 @@ export class ProductService {
     }
 
     async create(companyUuid: string, body: ProductCreateBody): Promise<IProduct> {
-        // Both must belong to the same company - findOrFail checks that.
-        const [unit, category] = await Promise.all([
-            this.unitService.findOrFail(companyUuid, body.measureUnitUuid),
+        // The category must belong to the same company - findOrFail checks that.
+        const [category] = await Promise.all([
             this.categoryService.findOrFail(companyUuid, body.categoryUuid),
             this.assertCodeFree(companyUuid, body.code),
             this.assertBarcodeFree(companyUuid, body.barcode),
         ]);
         const product = await this.repo.save(this.repo.create({ ...body, companyUuid })).catch(onUniqueViolation(UNIQUE_ERRORS));
-        return ProductService.toProduct(product, unit, category);
+        return ProductService.toProduct(product, category);
     }
 
     /** The measure unit is not part of the body - it never changes after create. */
     async update(companyUuid: string, uuid: string, body: ProductBody): Promise<IProduct> {
         const product = await this.findOrFail(companyUuid, uuid);
-        const [unit, category] = await Promise.all([
-            this.unitService.findOrFail(companyUuid, product.measureUnitUuid),
+        const [category] = await Promise.all([
             this.categoryService.findOrFail(companyUuid, body.categoryUuid),
             this.assertCodeFree(companyUuid, body.code, uuid),
             this.assertBarcodeFree(companyUuid, body.barcode, uuid),
         ]);
         Object.assign(product, body);
         await this.repo.save(product).catch(onUniqueViolation(UNIQUE_ERRORS));
-        return ProductService.toProduct(product, unit, category);
+        return ProductService.toProduct(product, category);
     }
 
     async setStatus(companyUuid: string, uuid: string, status: ProductStatus): Promise<IProduct> {
@@ -156,12 +148,7 @@ export class ProductService {
         if (query.suppliedBy) SupplierReturnService.whereSuppliedBy(qb, query.suppliedBy);
 
         const rows = await qb.orderBy("product.name", "ASC").take(PICKER_LIMIT).getMany();
-        const unitUuids = [...new Set(rows.map((p) => p.measureUnitUuid))];
-        const units = unitUuids.length
-            ? await AppDataSource.getRepository(MeasureUnit).find({ where: { uuid: In(unitUuids), companyUuid } })
-            : [];
-        const unitMap = new Map(units.map((u) => [u.uuid, u]));
-        return rows.map((product) => StockService.toLineProduct(Object.assign(product, { measureUnit: unitMap.get(product.measureUnitUuid)! })));
+        return rows.map(StockService.toLineProduct);
     }
 
     /** Only while no stock document line or recipe uses it - otherwise it is archived instead. */

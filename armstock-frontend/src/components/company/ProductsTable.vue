@@ -5,6 +5,7 @@ import CodeBadge from '../CodeBadge.vue';
 import RowActionsMenu from '../RowActionsMenu.vue';
 import { PRODUCT_STATUS_TAG } from '../../constants/statusTags';
 import { ROW_ACTION, type RowAction } from '../../constants/rowActions';
+import { useMeasureUnits } from '../../composables/useMeasureUnits';
 
 defineProps<{
   products: IProduct[];
@@ -14,6 +15,8 @@ defineProps<{
   /** uuid of the product being saved or deleted. */
   updatingUuid: string | null;
 }>();
+
+const { unitShortName } = useMeasureUnits();
 
 const emit = defineEmits<{
   edit: [product: IProduct];
@@ -43,7 +46,7 @@ const onAction = (product: IProduct, action: RowAction) => {
       <template #default="{ row }"><span class="cell-text">{{ row.category.name }}</span></template>
     </el-table-column>
     <el-table-column :label="$t('products.table.unit')" min-width="100">
-      <template #default="{ row }"><span class="cell-text">{{ row.measureUnit.shortName }}</span></template>
+      <template #default="{ row }"><span class="cell-text">{{ unitShortName(row.measureUnit) }}</span></template>
     </el-table-column>
     <el-table-column :label="$t('products.table.status')" min-width="110">
       <template #default="{ row }">

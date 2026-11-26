@@ -10,9 +10,8 @@ import {
     createStockIn,
     createStockOut,
     createSupplier,
-    createUnit,
     findCategory,
-    findUnit,
+    PIECES_UNIT,
 } from "../../shared/Builders";
 import { COMPANY_ROUTES, TARGET_NOT_FOUND, routeLabel } from "../../shared/CompanyRoutes";
 import { companySnapshot } from "../../shared/CompanySnapshot";
@@ -40,7 +39,6 @@ export default (context: ICompanySideContext) => defineSuite("Company isolation"
     let supplierB: ISupplier;
     let roleB: IRole;
     let receiverB: string;
-    let unitB: string;
     let categoryB: string;
 
     test("prepares one of everything in company B", async () => {
@@ -49,10 +47,9 @@ export default (context: ICompanySideContext) => defineSuite("Company isolation"
         let stockInB: IStockInDetails;
         let stockOutB: IStockOutDetails;
 
-        [productB, supplierB, unitB, categoryB, roleB, receiverB] = await Promise.all([
+        [productB, supplierB, categoryB, roleB, receiverB] = await Promise.all([
             createProduct(storekeeperB),
             createSupplier(accountantB),
-            createUnit(storekeeperB).then((u) => u.uuid),
             createCategory(storekeeperB).then((c) => c.uuid),
             companyB.owner.api.ok<IRole>("POST", PATHS.ROLES, { name: uniqueName("Role"), permissions: [] }).then((r) => r.data),
             createNoLoginUser(companyB).then((u) => u.uuid),
@@ -70,7 +67,6 @@ export default (context: ICompanySideContext) => defineSuite("Company isolation"
             [RouteTarget.PRODUCT]: one(productB.uuid),
             [RouteTarget.SUPPLIER]: one(supplierB.uuid),
             [RouteTarget.SUPPLIER_CONTACT]: one(supplierB.uuid),
-            [RouteTarget.MEASURE_UNIT]: one(unitB),
             [RouteTarget.PRODUCT_CATEGORY]: one(categoryB),
             [RouteTarget.ROLE]: one(roleB.uuid),
             [RouteTarget.USER]: one(companyB.staff.uuid),
@@ -79,7 +75,7 @@ export default (context: ICompanySideContext) => defineSuite("Company isolation"
             [RouteTarget.RECIPE]: one(recipeB.uuid),
         };
         uuidsOfB = [
-            companyB.uuid, productB.uuid, supplierB.uuid, contactB.uuid, unitB, categoryB, roleB.uuid, receiverB,
+            companyB.uuid, productB.uuid, supplierB.uuid, contactB.uuid, categoryB, roleB.uuid, receiverB,
             stockInB.uuid, stockOutB.uuid, recipeB.uuid,
             ...[companyB.owner, companyB.storekeeper, companyB.accountant, companyB.staff].map((u) => u.uuid),
         ];
@@ -136,12 +132,9 @@ export default (context: ICompanySideContext) => defineSuite("Company isolation"
 
     // --- Company B's records can't be used in company A's bodies ---
 
-    test("a product can't use company B's category or unit", async () => {
-        const unitA = await findUnit(ownerA, false);
+    test("a product can't use company B's category", async () => {
         await ownerA.api.rejects(HttpMethod.POST, PATHS.PRODUCTS, ErrorCodes.PRODUCT_CATEGORY.NOT_FOUND,
-            { name: uniqueName("Product"), categoryUuid: categoryB, measureUnitUuid: unitA.uuid });
-        await ownerA.api.rejects(HttpMethod.POST, PATHS.PRODUCTS, ErrorCodes.MEASURE_UNIT.NOT_FOUND,
-            { name: uniqueName("Product"), categoryUuid: refs.categoryUuid, measureUnitUuid: unitB });
+            { name: uniqueName("Product"), categoryUuid: categoryB, measureUnit: PIECES_UNIT });
         await ownerA.api.rejects(HttpMethod.PUT, `${PATHS.PRODUCTS}/${refs.productUuid}`, ErrorCodes.PRODUCT_CATEGORY.NOT_FOUND,
             { name: uniqueName("Product"), categoryUuid: categoryB });
     });

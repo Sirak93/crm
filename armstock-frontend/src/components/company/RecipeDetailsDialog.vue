@@ -9,6 +9,7 @@ import { RecipeService } from '../../services/RecipeService';
 import { RECIPE_STATUS_TAG } from '../../constants/statusTags';
 import { formatNumber } from '../../utils/format';
 import { AppLogger } from '../../utils/AppLogger';
+import { useMeasureUnits } from '../../composables/useMeasureUnits';
 
 const props = defineProps<{
   /** The recipe to show; loaded each time the popup opens. */
@@ -19,6 +20,8 @@ const props = defineProps<{
 const emit = defineEmits<{ edit: [uuid: string] }>();
 
 const open = defineModel<boolean>({ required: true });
+
+const { unitShortName } = useMeasureUnits();
 
 const recipe = ref<IRecipeDetails | null>(null);
 const isLoading = ref(false);
@@ -78,7 +81,7 @@ watch(open, (isOpen) => {
         </el-table-column>
         <el-table-column :label="$t('recipes.lines.perPerson')" min-width="130" align="right">
           <template #default="{ row }">
-            <span class="cell-text">{{ formatNumber(row.quantity) }} {{ row.product.unitShortName }}</span>
+            <span class="cell-text">{{ formatNumber(row.quantity) }} {{ unitShortName(row.product.measureUnit) }}</span>
           </template>
         </el-table-column>
       </el-table>

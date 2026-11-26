@@ -1,17 +1,18 @@
 <script setup lang="ts">
 import { nextTick, ref } from 'vue';
 import { useI18n } from 'vue-i18n';
-import { QUANTITY_DECIMALS, QUANTITY_MAX, type IStockLineProduct } from 'armstock-shared';
+import { MEASURE_UNITS, QUANTITY_MAX, type IStockLineProduct } from 'armstock-shared';
 import { Plus, Trash2 } from 'lucide-vue-next';
 import ProductSelect from './ProductSelect.vue';
 import CodeBadge from '../CodeBadge.vue';
 import type { IStockOutLineForm } from '../../interfaces/IStockOutLineForm';
 import { emptyOutLine } from '../../utils/stockOutLines';
-import { withScannedProduct } from '../../utils/stockLines';
+import { quantityPrecision, withScannedProduct } from '../../utils/stockLines';
 import { OptionsService } from '../../services/OptionsService';
 import { NotificationService } from '../../services/NotificationService';
 import { useApiErrorMessage } from '../../composables/useApiErrorMessage';
 import { useBarcodeScanner } from '../../composables/useBarcodeScanner';
+import { useMeasureUnits } from '../../composables/useMeasureUnits';
 
 const props = defineProps<{
   /** Highlight rows that are not filled in correctly - set after a failed save. */
@@ -24,6 +25,7 @@ const lines = defineModel<IStockOutLineForm[]>({ required: true });
 
 const { t } = useI18n();
 const { parseError } = useApiErrorMessage();
+const { unitShortName } = useMeasureUnits();
 
 const productRefs = new Map<number, { focus: () => void }>();
 const isScanning = ref(false);
@@ -44,7 +46,7 @@ const removeLine = (key: number) => {
 const onProductSelect = (line: IStockOutLineForm, product: IStockLineProduct) => {
   line.product = product;
   // A whole-number unit drops any decimals typed for the previous product.
-  if (!product.allowsDecimals && line.quantity !== undefined) line.quantity = Math.round(line.quantity);
+  if (!MEASURE_UNITS[product.measureUnit].allowsDecimals && line.quantity !== undefined) line.quantity = Math.round(line.quantity);
 };
 
 // Same rules as the product picker: stock-out products only, and for a return only this supplier's.
@@ -109,7 +111,7 @@ const setProductRef = (key: number, el: unknown) => {
             :disabled="!row.productUuid"
             :min="0"
             :max="QUANTITY_MAX"
-            :precision="row.product?.allowsDecimals === false ? 0 : QUANTITY_DECIMALS"
+            :precision="quantityPrecision(row.product)"
             :aria-label="$t('stockOut.lines.quantity')"
             :class="{ 'is-invalid': showErrors && !(row.quantity > 0) }"
             class="lines-editor__number"
@@ -118,7 +120,7 @@ const setProductRef = (key: number, el: unknown) => {
       </el-table-column>
       <el-table-column :label="$t('stockOut.lines.unit')" min-width="70">
         <template #default="{ row }">
-          <span :class="['cell-text', { 'cell-text--muted': !row.product }]">{{ row.product?.unitShortName ?? '—' }}</span>
+          <span :class="['cell-text', { 'cell-text--muted': !row.product }]">{{ row.product ? unitShortName(row.product.measureUnit) : '—' }}</span>
         </template>
       </el-table-column>
       <el-table-column width="56" align="center">

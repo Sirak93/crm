@@ -1,7 +1,7 @@
-import { BARCODE_MAX_LENGTH, ErrorCodes, ProductStatus, type IProduct } from "armstock-shared";
+import { BARCODE_MAX_LENGTH, ErrorCodes, MeasureUnit, PRODUCT_MEASURE_UNITS, ProductStatus, type IProduct } from "armstock-shared";
 import { defineSuite } from "../../core/Suite";
 import { anyDate, equals, hasExactKeys, isNull, isTrue, matches } from "../../core/Assert";
-import { createCategory, createProduct, createStockIn, createStockOut, findCategory, findUnit } from "../../shared/Builders";
+import { createCategory, createProduct, createStockIn, createStockOut, findCategory, KILOS_UNIT, PIECES_UNIT } from "../../shared/Builders";
 import { PATHS } from "../../shared/Paths";
 import { randomUuid, uniqueName } from "../../shared/Random";
 import type { ICompanySideContext } from "../../interfaces/ICompanySideContext";
@@ -16,17 +16,13 @@ export default (context: ICompanySideContext) => defineSuite("Products", (test) 
     const tag = uniqueName("Prod").replace(" ", "");
     const code = (suffix: string) => `${tag}-${suffix}`;
 
-    let unitUuid: string;
     let categoryUuid: string;
-    const body = (fields: Record<string, unknown> = {}) => ({ name: uniqueName(tag), categoryUuid, measureUnitUuid: unitUuid, ...fields });
+    const body = (fields: Record<string, unknown> = {}) => ({ name: uniqueName(tag), categoryUuid, measureUnit: KILOS_UNIT, ...fields });
     const editBody = (product: IProduct, fields: Record<string, unknown> = {}) =>
         ({ name: product.name, code: product.code, barcode: product.barcode, categoryUuid: product.category.uuid, ...fields });
 
-    test("prepares a unit and a category", async () => {
-        [unitUuid, categoryUuid] = await Promise.all([
-            findUnit(storekeeper, true).then((u) => u.uuid),
-            findCategory(storekeeper).then((c) => c.uuid),
-        ]);
+    test("prepares a category", async () => {
+        categoryUuid = (await findCategory(storekeeper)).uuid;
     });
 
     // --- Create ---
@@ -40,7 +36,7 @@ export default (context: ICompanySideContext) => defineSuite("Products", (test) 
             code: isNull,
             barcode: isNull,
             status: ProductStatus.ACTIVE,
-            measureUnit: { uuid: unitUuid, allowsDecimals: true },
+            measureUnit: KILOS_UNIT,
             category: { uuid: categoryUuid },
             createdAt: anyDate,
         });
@@ -52,11 +48,21 @@ export default (context: ICompanySideContext) => defineSuite("Products", (test) 
         await post("name", { name: "x".repeat(NAME_MAX + 1) });
         await post("barcode", { barcode: "1".repeat(BARCODE_MAX_LENGTH + 1) });
         await post("categoryUuid", { categoryUuid: "nope" });
-        await post("measureUnitUuid", { measureUnitUuid: undefined });
+        await post("measureUnit", { measureUnit: undefined });
+        await post("measureUnit", { measureUnit: 999 });
+        await post("measureUnit", { measureUnit: "KILOGRAM" });
+        // Converter-only, not a product unit.
+        await post("measureUnit", { measureUnit: MeasureUnit.MILLIGRAM });
     });
 
-    test("an unknown unit or category is refused", async () => {
-        await storekeeper.api.rejects("POST", PATHS.PRODUCTS, ErrorCodes.MEASURE_UNIT.NOT_FOUND, body({ measureUnitUuid: randomUuid() }));
+    test("every product unit is accepted", async () => {
+        for (const measureUnit of PRODUCT_MEASURE_UNITS) {
+            const { data } = await storekeeper.api.ok<IProduct>("POST", PATHS.PRODUCTS, body({ measureUnit }));
+            equals(data.measureUnit, measureUnit, `unit ${measureUnit}`);
+        }
+    });
+
+    test("an unknown category is refused", async () => {
         await storekeeper.api.rejects("POST", PATHS.PRODUCTS, ErrorCodes.PRODUCT_CATEGORY.NOT_FOUND, body({ categoryUuid: randomUuid() }));
     });
 
@@ -75,17 +81,16 @@ export default (context: ICompanySideContext) => defineSuite("Products", (test) 
     test("edit changes name, code, barcode and category - never the unit", async () => {
         const product = await createProduct(storekeeper, { body: { code: code("E1") } });
         const otherCategory = await createCategory(storekeeper);
-        const otherUnit = await findUnit(storekeeper, false);
         const { data } = await storekeeper.api.ok<IProduct>("PUT", path(product.uuid), {
             ...editBody(product, { name: `${tag} Edited`, code: code("E2"), barcode: `${tag}222`, categoryUuid: otherCategory.uuid }),
-            measureUnitUuid: otherUnit.uuid,
+            measureUnit: KILOS_UNIT,
         });
         matches(data, {
             name: `${tag} Edited`,
             code: code("E2"),
             barcode: `${tag}222`,
             category: { uuid: otherCategory.uuid },
-            measureUnit: { uuid: product.measureUnit.uuid },
+            measureUnit: PIECES_UNIT,
         });
     });
 

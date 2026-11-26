@@ -8,7 +8,6 @@ import {
   Database,
   LayoutDashboard,
   Package,
-  Ruler,
   Scale,
   ScrollText,
   ShieldCheck,
@@ -95,12 +94,6 @@ export const NAV_ITEMS: (INavItem | INavGroup)[] = [
     labelKey: 'nav.suppliers',
     icon: Truck,
     routeName: ROUTE_NAME.COMPANY_SUPPLIERS,
-  },
-  {
-    id: 'company-measure-units',
-    labelKey: 'nav.measureUnits',
-    icon: Ruler,
-    routeName: ROUTE_NAME.COMPANY_MEASURE_UNITS,
   },
   {
     id: 'company-product-categories',

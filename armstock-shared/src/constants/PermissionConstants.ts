@@ -10,10 +10,6 @@ export const PERMISSION_GROUPS: ReadonlyArray<{ group: PermissionGroup; permissi
         permissions: [Permission.USER_VIEW, Permission.USER_ADD, Permission.USER_EDIT, Permission.MANAGE_USER_PERMISSIONS],
     },
     {
-        group: PermissionGroup.MEASURE_UNITS,
-        permissions: [Permission.MEASURE_UNIT_ADD, Permission.MEASURE_UNIT_EDIT, Permission.MEASURE_UNIT_DELETE],
-    },
-    {
         group: PermissionGroup.PRODUCT_CATEGORIES,
         permissions: [
             Permission.PRODUCT_CATEGORY_ADD,
@@ -78,9 +74,6 @@ export const PERMISSION_GROUPS: ReadonlyArray<{ group: PermissionGroup; permissi
 /** Starting permissions of the default roles - used only when a new company is created. */
 export const DEFAULT_ROLE_PERMISSIONS: Readonly<Record<DefaultRole, readonly Permission[]>> = {
     [DefaultRole.STOREKEEPER]: [
-        Permission.MEASURE_UNIT_ADD,
-        Permission.MEASURE_UNIT_EDIT,
-        Permission.MEASURE_UNIT_DELETE,
         Permission.PRODUCT_CATEGORY_ADD,
         Permission.PRODUCT_CATEGORY_EDIT,
         Permission.PRODUCT_CATEGORY_DELETE,

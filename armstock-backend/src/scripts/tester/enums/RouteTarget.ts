@@ -4,7 +4,6 @@ export enum RouteTarget {
     SUPPLIER = 20,
     /** `:uuid` is the supplier, `:contactUuid` the contact. */
     SUPPLIER_CONTACT = 30,
-    MEASURE_UNIT = 40,
     PRODUCT_CATEGORY = 50,
     ROLE = 60,
     USER = 70,

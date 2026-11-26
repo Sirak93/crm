@@ -14,7 +14,6 @@ export const PATHS = {
     COMPANY_USERS: `${API_PATH}/company/users`,
     OPTIONS: `${API_PATH}/options`,
     ROLES: `${API_PATH}/roles`,
-    MEASURE_UNITS: `${API_PATH}/measure-units`,
     PRODUCT_CATEGORIES: `${API_PATH}/product-categories`,
     PRODUCTS: `${API_PATH}/products`,
     RECIPES: `${API_PATH}/recipes`,

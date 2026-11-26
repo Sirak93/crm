@@ -82,25 +82,6 @@ export const ErrorCodes = {
             STATUS: 423,
         },
     },
-    MEASURE_UNIT: {
-        NOT_FOUND: {
-            CODE: "MEASURE_UNIT_NOT_FOUND",
-            STATUS: 404,
-        },
-        NAME_TAKEN: {
-            CODE: "MEASURE_UNIT_NAME_TAKEN",
-            STATUS: 409,
-        },
-        IN_USE: {
-            CODE: "MEASURE_UNIT_IN_USE",
-            STATUS: 409,
-        },
-        /** Decimals can't be turned off while products use the unit - their stock may be fractional. */
-        DECIMALS_IN_USE: {
-            CODE: "MEASURE_UNIT_DECIMALS_IN_USE",
-            STATUS: 409,
-        },
-    },
     PRODUCT_CATEGORY: {
         NOT_FOUND: {
             CODE: "PRODUCT_CATEGORY_NOT_FOUND",

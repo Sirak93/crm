@@ -10,7 +10,7 @@ import {
 import { defineSuite } from "../../core/Suite";
 import { anyDate, equals, hasExactKeys, isNull, matches } from "../../core/Assert";
 import { createMember } from "../../shared/Accounts";
-import { createProduct, createRecipe, recipeBody } from "../../shared/Builders";
+import { createProduct, createRecipe, KILOS_UNIT, PIECES_UNIT, recipeBody } from "../../shared/Builders";
 import { PATHS } from "../../shared/Paths";
 import { randomUuid, uniqueName } from "../../shared/Random";
 import type { IProduct } from "armstock-shared";
@@ -53,8 +53,8 @@ export default (context: ICompanySideContext) => defineSuite("Recipes", (test) =
         matches(data, { name, note: isNull, status: RecipeStatus.ACTIVE, lineCount: 2, createdAt: anyDate });
         hasExactKeys(data.lines[0], LINE_KEYS);
         matches(data.lines, [
-            { product: { uuid: whole.uuid, name: whole.name, unitShortName: whole.measureUnit.shortName, allowsDecimals: false }, quantity: 0.125 },
-            { product: { uuid: decimal.uuid, allowsDecimals: true }, quantity: 0.1 },
+            { product: { uuid: whole.uuid, name: whole.name, measureUnit: PIECES_UNIT }, quantity: 0.125 },
+            { product: { uuid: decimal.uuid, measureUnit: KILOS_UNIT }, quantity: 0.1 },
         ]);
         const [row] = await db.query<{ created_by_uuid: string }>("SELECT created_by_uuid FROM recipes WHERE uuid = $1", [data.uuid]);
         equals(row.created_by_uuid, chef.uuid, "created by");

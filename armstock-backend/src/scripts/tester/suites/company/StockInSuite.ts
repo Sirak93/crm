@@ -14,7 +14,7 @@ import {
 import { defineSuite } from "../../core/Suite";
 import { equals, isNull, isTrue, matches } from "../../core/Assert";
 import { createMember } from "../../shared/Accounts";
-import { createProduct, createStockIn, createStockOut, createSupplier, findUnit, stockInBody } from "../../shared/Builders";
+import { createProduct, createStockIn, createStockOut, createSupplier, PIECES_UNIT, stockInBody } from "../../shared/Builders";
 import { PATHS } from "../../shared/Paths";
 import { randomUuid } from "../../shared/Random";
 import { expectStock } from "../../shared/Stock";
@@ -34,7 +34,6 @@ export default (context: ICompanySideContext) => defineSuite("Stock-in", (test) 
     let supplier: ISupplier;
     let productOfB: IProduct;
     let supplierOfB: ISupplier;
-    let piecesUnit: string;
 
     const line = (product: IProduct, quantity: number) => ({ productUuid: product.uuid, quantity });
     const stockInCount = async () => db.count("stock_ins", "company_uuid = $1", [companyA.uuid]);
@@ -48,7 +47,6 @@ export default (context: ICompanySideContext) => defineSuite("Stock-in", (test) 
             createProduct(companyB.storekeeper),
             createSupplier(companyB.accountant),
         ]);
-        piecesUnit = (await findUnit(storekeeper, false)).shortName;
     });
 
     // --- Rules per reason ---
@@ -66,7 +64,7 @@ export default (context: ICompanySideContext) => defineSuite("Stock-in", (test) 
             productCount: 2,
             createdBy: { uuid: storekeeper.uuid },
             lines: [
-                { product: { uuid: pieces.uuid, unitShortName: piecesUnit }, quantity: 4 },
+                { product: { uuid: pieces.uuid, measureUnit: PIECES_UNIT }, quantity: 4 },
                 { product: { uuid: kilos.uuid }, quantity: 1.25 },
             ],
         });
