@@ -8,6 +8,7 @@ import PageHeader from '../../components/PageHeader.vue';
 import AppCard from '../../components/AppCard.vue';
 import LoadError from '../../components/LoadError.vue';
 import StockOutLinesTable from '../../components/company/StockOutLinesTable.vue';
+import StockOutRecipesTable from '../../components/company/StockOutRecipesTable.vue';
 import { StockOutService } from '../../services/StockOutService';
 import { useStockOutDelete } from '../../composables/useStockOutDelete';
 import { useAuthStore } from '../../stores/auth';
@@ -112,8 +113,14 @@ const onDelete = async () => {
         </dl>
       </AppCard>
 
+      <AppCard v-if="doc.recipes.length" class="lines-card">
+        <h2 class="lines-card__title">{{ $t('stockOut.recipes.title') }}</h2>
+        <StockOutRecipesTable :recipes="doc.recipes" />
+      </AppCard>
+
       <AppCard class="lines-card">
-        <StockOutLinesTable :lines="doc.lines" />
+        <h2 v-if="doc.recipes.length" class="lines-card__title">{{ $t('stockOut.totals.title') }}</h2>
+        <StockOutLinesTable :lines="doc.lines" :with-recipes="doc.recipes.length > 0" />
         <div class="lines-card__footer">
           <span>{{ $t('stockOut.form.rowCount', { count: formatNumber(doc.lines.length) }) }}</span>
         </div>
@@ -166,6 +173,14 @@ const onDelete = async () => {
 .lines-card {
   padding: 0;
   overflow: hidden;
+}
+
+.lines-card__title {
+  margin: 0;
+  padding: 0.875rem clamp(0.75rem, 2vw, 1.25rem) 0.5rem;
+  font-size: var(--text-base);
+  font-weight: 600;
+  color: var(--text-main);
 }
 
 .lines-card__footer {

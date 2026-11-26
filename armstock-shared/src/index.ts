@@ -81,6 +81,8 @@ export type * from "./interfaces/IStockOutLine";
 export type * from "./interfaces/IStockOutLinePayload";
 export type * from "./interfaces/IStockOutPayload";
 export type * from "./interfaces/IStockOutReceiver";
+export type * from "./interfaces/IStockOutRecipe";
+export type * from "./interfaces/IStockOutRecipeLine";
 export type * from "./interfaces/IStockOutRecipePayload";
 export type * from "./interfaces/IStockOutSummary";
 export type * from "./interfaces/IStockShortage";

@@ -610,6 +610,7 @@ const hy: typeof en = {
     deleted: 'Փաստաթուղթը ջնջվեց։',
     deleteConfirmTitle: 'Ջնջե՞լ {number}-ը',
     deleteConfirmText: 'Փաստաթուղթը և նրա բոլոր տողերը կջնջվեն, իսկ ապրանքները կվերադառնան պահեստ։ Այս գործողությունը հնարավոր չէ հետարկել։',
+    byRecipe: 'Բաղադրատոմսով',
     summary: {
       documents: 'Փաստաթղթեր',
       products: 'Ապրանքներ',

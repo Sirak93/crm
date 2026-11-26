@@ -610,6 +610,7 @@ export default {
     deleted: 'Document deleted.',
     deleteConfirmTitle: 'Delete {number}?',
     deleteConfirmText: 'The document and all its rows will be removed, and the goods go back into stock. This cannot be undone.',
+    byRecipe: 'By recipe',
     summary: {
       documents: 'Documents',
       products: 'Products',

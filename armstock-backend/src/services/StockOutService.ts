@@ -9,6 +9,7 @@ import {
     type IStockOut,
     type IStockOutDetails,
     type IStockOutLine,
+    type IStockOutRecipe,
     type IStockOutReceiver,
     type IStockOutSummary,
 } from "armstock-shared";
@@ -42,6 +43,8 @@ export class StockOutService {
     private userRepo = AppDataSource.getRepository(User);
     private recipeRepo = AppDataSource.getRepository(Recipe);
     private recipeLineRepo = AppDataSource.getRepository(RecipeLine);
+    private outRecipeRepo = AppDataSource.getRepository(StockOutRecipe);
+    private outRecipeLineRepo = AppDataSource.getRepository(StockOutRecipeLine);
 
     private async findOrFail(companyUuid: string, uuid: string): Promise<StockOut> {
         const doc = await this.repo.findOne({ where: { uuid, companyUuid } });
@@ -168,18 +171,24 @@ export class StockOutService {
         const supplierUuids = [...new Set(docs.map((d) => d.supplierUuid).filter((uuid): uuid is string => !!uuid))];
         const userUuids = [...new Set(docs.flatMap((d) => [d.createdByUuid, d.receiverUuid]).filter((uuid): uuid is string => !!uuid))];
 
-        const [counts, suppliers, users] = await Promise.all([
+        const docUuids = docs.map((d) => d.uuid);
+        const [counts, withRecipes, suppliers, users] = await Promise.all([
             this.lineRepo.createQueryBuilder("line")
                 .select("line.stockOutUuid", "stockOutUuid")
                 .addSelect("COUNT(DISTINCT line.productUuid)", "productCount")
-                .where("line.stockOutUuid IN (:...uuids)", { uuids: docs.map((d) => d.uuid) })
+                .where("line.stockOutUuid IN (:...uuids)", { uuids: docUuids })
                 .groupBy("line.stockOutUuid")
                 .getRawMany<{ stockOutUuid: string; productCount: string }>(),
+            this.outRecipeRepo.createQueryBuilder("row")
+                .select("DISTINCT row.stockOutUuid", "stockOutUuid")
+                .where("row.stockOutUuid IN (:...uuids)", { uuids: docUuids })
+                .getRawMany<{ stockOutUuid: string }>(),
             supplierUuids.length ? this.supplierRepo.find({ where: { uuid: In(supplierUuids) } }) : [],
             this.userRepo.find({ where: { uuid: In(userUuids) } }),
         ]);
 
         const countMap = new Map(counts.map((c) => [c.stockOutUuid, Number(c.productCount)]));
+        const recipeDocs = new Set(withRecipes.map((r) => r.stockOutUuid));
         const supplierMap = new Map(suppliers.map((s) => [s.uuid, s.name]));
         const userMap = new Map(users.map((u) => [u.uuid, u]));
 
@@ -193,6 +202,7 @@ export class StockOutService {
             receiver: doc.receiverUuid ? { uuid: doc.receiverUuid, name: userName(userMap.get(doc.receiverUuid)) } : null,
             note: doc.note,
             productCount: countMap.get(doc.uuid) ?? 0,
+            hasRecipes: recipeDocs.has(doc.uuid),
             createdBy: { uuid: doc.createdByUuid, name: userName(userMap.get(doc.createdByUuid)) },
             createdAt: doc.createdAt.toISOString(),
         }));
@@ -239,10 +249,20 @@ export class StockOutService {
         };
     }
 
+    /** The saved recipe rows and their copied lines - never the current recipes, so a later recipe edit changes nothing here. */
     async get(companyUuid: string, uuid: string): Promise<IStockOutDetails> {
         const doc = await this.findOrFail(companyUuid, uuid);
-        const lines = await this.lineRepo.find({ where: { stockOutUuid: doc.uuid }, order: { position: "ASC" } });
-        const productUuids = [...new Set(lines.map((l) => l.productUuid))];
+        const [lines, rows] = await Promise.all([
+            this.lineRepo.find({ where: { stockOutUuid: doc.uuid }, order: { position: "ASC" } }),
+            this.outRecipeRepo.find({ where: { stockOutUuid: doc.uuid }, order: { position: "ASC" } }),
+        ]);
+        const [recipeLines, recipes] = rows.length
+            ? await Promise.all([
+                this.outRecipeLineRepo.find({ where: { stockOutRecipeUuid: In(rows.map((r) => r.uuid)) }, order: { position: "ASC" } }),
+                this.recipeRepo.find({ where: { uuid: In(rows.map((r) => r.recipeUuid)) } }),
+            ])
+            : [[], []];
+        const productUuids = [...new Set([...lines, ...recipeLines].map((l) => l.productUuid))];
 
         const [[header], products] = await Promise.all([
             this.toHeaders([doc]),
@@ -251,16 +271,34 @@ export class StockOutService {
                 : [],
         ]);
         const productMap = new Map(products.map((p) => [p.uuid, p]));
+        const recipeNames = new Map(recipes.map((r) => [r.uuid, r.name]));
+        const productOf = (productUuid: string) => StockService.toLineProduct(productMap.get(productUuid)!);
+
+        const needed = new Map<string, number>();
+        for (const line of recipeLines) {
+            needed.set(line.productUuid, Number(((needed.get(line.productUuid) ?? 0) + line.neededQuantity).toFixed(RECIPE_QUANTITY_DECIMALS)));
+        }
 
         return {
             ...header!,
-            lines: lines.map((line): IStockOutLine => {
-                return {
+            recipes: rows.map((row): IStockOutRecipe => ({
+                uuid: row.uuid,
+                recipe: { uuid: row.recipeUuid, name: recipeNames.get(row.recipeUuid) ?? "" },
+                persons: row.persons,
+                lines: recipeLines.filter((line) => line.stockOutRecipeUuid === row.uuid).map((line) => ({
                     uuid: line.uuid,
-                    product: StockService.toLineProduct(productMap.get(line.productUuid)!),
+                    product: productOf(line.productUuid),
                     quantity: line.quantity,
-                };
-            }),
+                    neededQuantity: line.neededQuantity,
+                })),
+            })),
+            lines: lines.map((line): IStockOutLine => ({
+                uuid: line.uuid,
+                product: productOf(line.productUuid),
+                quantity: line.quantity,
+                extraQuantity: line.extraQuantity,
+                neededQuantity: needed.get(line.productUuid) ?? 0,
+            })),
         };
     }
 

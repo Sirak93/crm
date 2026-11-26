@@ -29,7 +29,7 @@ import {
     lineOf,
 } from "../../shared/Builders";
 import { PATHS } from "../../shared/Paths";
-import { randomUuid } from "../../shared/Random";
+import { randomUuid, uniqueName } from "../../shared/Random";
 import { expectStock, stockOf } from "../../shared/Stock";
 import type { ICompanySideContext } from "../../interfaces/ICompanySideContext";
 import type { ITestUser } from "../../interfaces/ITestUser";
@@ -367,6 +367,7 @@ export default (context: ICompanySideContext) => defineSuite("Stock-out", (test)
     let salt: IProduct;
     let soup: IRecipeDetails;
     let omelette: IRecipeDetails;
+    let byRecipe: IStockOutDetails;
 
     const recipeRow = (recipe: { uuid: string }, persons: number) => ({ recipeUuid: recipe.uuid, persons });
     const total = (product: IProduct, quantity: number, extraQuantity = 0) => ({ productUuid: product.uuid, quantity, extraQuantity });
@@ -391,6 +392,7 @@ export default (context: ICompanySideContext) => defineSuite("Stock-out", (test)
             [total(oil, 1, 0.3), total(egg, 12), total(salt, 0.002)],
         ));
         matches(doc, { productCount: 3 });
+        byRecipe = doc;
 
         const rows = await db.query<{ recipe_uuid: string; position: number; persons: number }>(
             "SELECT recipe_uuid, position, persons FROM stock_out_recipes WHERE stock_out_uuid = $1 ORDER BY position", [doc.uuid]);
@@ -420,6 +422,48 @@ export default (context: ICompanySideContext) => defineSuite("Stock-out", (test)
         await expectStock(db, oil.uuid, 9);
         await expectStock(db, egg.uuid, 88);
         await expectStock(db, salt.uuid, 0.998);
+    });
+
+    // Expected details of the document above - also after its recipes change.
+    const expectedRecipeDetails = () => ({
+        hasRecipes: true,
+        recipes: [
+            {
+                recipe: { uuid: soup.uuid },
+                persons: 10,
+                lines: [
+                    { product: { uuid: oil.uuid }, quantity: 0.05, neededQuantity: 0.5 },
+                    { product: { uuid: egg.uuid }, quantity: 1, neededQuantity: 10 },
+                ],
+            },
+            {
+                recipe: { uuid: omelette.uuid },
+                persons: 3,
+                lines: [
+                    { product: { uuid: egg.uuid }, quantity: 0.5, neededQuantity: 1.5 },
+                    { product: { uuid: salt.uuid }, quantity: 0.0004, neededQuantity: 0.0012 },
+                ],
+            },
+        ],
+        lines: [
+            { product: { uuid: oil.uuid }, quantity: 1, extraQuantity: 0.3, neededQuantity: 0.5 },
+            { product: { uuid: egg.uuid }, quantity: 12, extraQuantity: 0, neededQuantity: 11.5 },
+            { product: { uuid: salt.uuid }, quantity: 0.002, extraQuantity: 0, neededQuantity: 0.0012 },
+        ],
+    });
+
+    test("details: recipe rows with their saved lines; per product needed, extra and given", async () => {
+        matches(byRecipe, { recipes: [{ recipe: { name: soup.name } }, { recipe: { name: omelette.name } }] });
+        matches((await storekeeper.api.ok<IStockOutDetails>("GET", path(byRecipe.uuid))).data, expectedRecipeDetails());
+    });
+
+    test("the list marks documents with recipes; a doc without them has none", async () => {
+        const plain = await createStockOut(storekeeper, lines(oil, 0.1));
+        matches(plain, { hasRecipes: false, recipes: [], lines: [{ extraQuantity: 0.1, neededQuantity: 0 }] });
+        const { data } = await storekeeper.api.ok<IStockOut[]>("GET", `${PATHS.STOCK_OUTS}?pageSize=100`);
+        matches(data.find((d) => d.uuid === byRecipe.uuid), { hasRecipes: true });
+        matches(data.find((d) => d.uuid === plain.uuid), { hasRecipes: false });
+        await storekeeper.api.ok("DELETE", path(plain.uuid));
     });
 
     test("a total may be 0 or below the recipe needs", async () => {
@@ -495,6 +539,17 @@ export default (context: ICompanySideContext) => defineSuite("Stock-out", (test)
         equals(await db.count("stock_out_recipe_lines", "company_uuid = $1 AND stock_out_recipe_uuid NOT IN (SELECT uuid FROM stock_out_recipes)",
             [companyA.uuid]), 0, "copied lines without a recipe row");
         await storekeeper.api.ok("DELETE", path(doc.uuid));
+    });
+
+    test("a recipe edited or archived later leaves the document as it was; the name follows the recipe", async () => {
+        const newName = uniqueName("Renamed soup");
+        await chef.api.ok("PUT", `${PATHS.RECIPES}/${soup.uuid}`, { name: newName, note: null, lines: [{ productUuid: salt.uuid, quantity: 0.01 }] });
+        await chef.api.ok("PATCH", `${PATHS.RECIPES}/${omelette.uuid}/status`, { status: RecipeStatus.ARCHIVED });
+
+        const { data } = await storekeeper.api.ok<IStockOutDetails>("GET", path(byRecipe.uuid));
+        matches(data, expectedRecipeDetails());
+        matches(data.recipes[0].recipe, { name: newName });
+        equals(data.recipes[0].lines.length, 2, "soup lines kept");
     });
 
     test("a member without stock-out permissions can't save a doc with recipes", async () => {

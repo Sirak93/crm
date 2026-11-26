@@ -15,6 +15,8 @@ export interface IStockOut {
     note: string | null;
     /** Different products in the document - one product on two rows counts once. */
     productCount: number;
+    /** Made with recipes - shown as "By recipe" in the list. */
+    hasRecipes: boolean;
     createdBy: INamedRef;
     createdAt: string;
 }

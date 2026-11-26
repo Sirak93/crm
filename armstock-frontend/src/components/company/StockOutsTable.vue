@@ -51,8 +51,11 @@ const destination = (doc: IStockOut): string => stockOutDestination(doc, t);
     <el-table-column :label="$t('stockOut.table.date')" min-width="140">
       <template #default="{ row }"><span class="cell-text">{{ formatDateTimeShort(row.date) }}</span></template>
     </el-table-column>
-    <el-table-column :label="$t('stockOut.table.reason')" min-width="120">
-      <template #default="{ row }"><span class="cell-text">{{ $t(STOCK_OUT_REASON_LABEL[(row as IStockOut).reason]) }}</span></template>
+    <el-table-column :label="$t('stockOut.table.reason')" min-width="190">
+      <template #default="{ row }">
+        <span class="cell-text">{{ $t(STOCK_OUT_REASON_LABEL[(row as IStockOut).reason]) }}</span>
+        <el-tag v-if="row.hasRecipes" size="small" round class="stock-outs-table__tag">{{ $t('stockOut.byRecipe') }}</el-tag>
+      </template>
     </el-table-column>
     <el-table-column :label="$t('stockOut.table.destination')" min-width="200" show-overflow-tooltip>
       <template #default="{ row }">
@@ -101,6 +104,10 @@ const destination = (doc: IStockOut): string => stockOutDestination(doc, t);
 
 .stock-outs-table__link:hover {
   text-decoration: underline;
+}
+
+.stock-outs-table__tag {
+  margin-left: 0.5rem;
 }
 
 .stock-outs-table__link:focus-visible {

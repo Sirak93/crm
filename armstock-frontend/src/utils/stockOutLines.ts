@@ -9,7 +9,8 @@ export const emptyOutLine = (): IStockOutLineForm => ({
   quantity: undefined,
 });
 
-export const toOutLineForm = (line: IStockOutLine): IStockOutLineForm => ({
+/** Also fills recipe lines - same product + quantity row. */
+export const toOutLineForm = (line: Pick<IStockOutLine, 'product' | 'quantity'>): IStockOutLineForm => ({
   key: nextLineKey(),
   productUuid: line.product.uuid,
   product: line.product,

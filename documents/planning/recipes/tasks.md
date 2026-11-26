@@ -265,11 +265,11 @@ Needs Steps U3 (fixed units) and U4 (converter component). Decisions: decisions.
 
 ## Step 4 — Stock-out with recipes: list mark and view
 
-- [ ] Backend: stock-out details include recipe rows, their saved lines and `extra_quantity`
-- [ ] Frontend
-  - [ ] "Բաղադրատոմսով" mark in the stock-out list for docs with recipes
-  - [ ] Doc view: recipes block (recipe × persons) and per product Needed | Extra | Given
-- [ ] Tests: details return recipes, copied lines and extras; recipe edited later → doc
+- [x] Backend: stock-out details include recipe rows, their saved lines and `extra_quantity`
+- [x] Frontend
+  - [x] "Բաղադրատոմսով" mark in the stock-out list for docs with recipes
+  - [x] Doc view: recipes block (recipe × persons) and per product Needed | Extra | Given
+- [x] Tests: details return recipes, copied lines and extras; recipe edited later → doc
       unchanged
 - [ ] Checked in browser: open a doc with recipes, change the recipe, doc stays the same
 

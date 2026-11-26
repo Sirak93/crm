@@ -2,9 +2,9 @@
 import { nextTick } from 'vue';
 import { RECIPE_PERSONS_MAX, type IRecipeOption } from 'armstock-shared';
 import { Plus, Trash2 } from 'lucide-vue-next';
+import RecipeAmounts from './RecipeAmounts.vue';
 import type { IStockOutRecipeForm } from '../../interfaces/IStockOutRecipeForm';
 import { emptyRecipeRow, neededQuantity } from '../../utils/stockOutTotals';
-import { useMeasureUnits } from '../../composables/useMeasureUnits';
 
 const props = defineProps<{
   /** Active recipes to pick from. */
@@ -17,8 +17,6 @@ const props = defineProps<{
 }>();
 
 const rows = defineModel<IStockOutRecipeForm[]>({ required: true });
-
-const { formatRecipeAmount } = useMeasureUnits();
 
 const recipeRefs = new Map<number, { focus: () => void }>();
 
@@ -44,11 +42,7 @@ const offeredFor = (row: IStockOutRecipeForm) => {
 const amountsOf = (row: IStockOutRecipeForm) => {
   const recipe = props.recipeMap.get(row.recipeUuid);
   if (!recipe || !row.persons) return [];
-  return recipe.lines.map((line) => ({
-    uuid: line.uuid,
-    name: line.product.name,
-    amount: formatRecipeAmount(neededQuantity(line.quantity, row.persons!), line.product.measureUnit),
-  }));
+  return recipe.lines.map((line) => ({ ...line, neededQuantity: neededQuantity(line.quantity, row.persons!) }));
 };
 
 const isPersonsValid = (persons: number | undefined) => !!persons && persons >= 1;
@@ -101,13 +95,7 @@ const setRecipeRef = (key: number, el: unknown) => {
       </el-table-column>
       <el-table-column :label="$t('stockOut.recipes.amounts')" min-width="280">
         <template #default="{ row }">
-          <ul v-if="amountsOf(row as IStockOutRecipeForm).length" class="recipes-editor__amounts">
-            <li v-for="item in amountsOf(row as IStockOutRecipeForm)" :key="item.uuid">
-              <span class="recipes-editor__product">{{ item.name }}</span>
-              <span class="recipes-editor__amount">{{ item.amount }}</span>
-            </li>
-          </ul>
-          <span v-else class="cell-text cell-text--muted">—</span>
+          <RecipeAmounts :lines="amountsOf(row as IStockOutRecipeForm)" />
         </template>
       </el-table-column>
       <el-table-column width="56" align="center">
@@ -163,26 +151,6 @@ const setRecipeRef = (key: number, el: unknown) => {
 .recipes-editor :deep(.is-invalid .el-input__wrapper),
 .recipes-editor :deep(.is-invalid .el-select__wrapper) {
   border-color: var(--danger) !important;
-}
-
-.recipes-editor__amounts {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 0.25rem 0.875rem;
-  margin: 0;
-  padding: 0;
-  list-style: none;
-  font-size: var(--text-sm);
-}
-
-.recipes-editor__product {
-  color: var(--text-muted);
-}
-
-.recipes-editor__amount {
-  margin-left: 0.25rem;
-  font-variant-numeric: tabular-nums;
-  color: var(--text-main);
 }
 
 .recipes-editor__remove {
