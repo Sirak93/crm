@@ -1,8 +1,8 @@
 <script setup lang="ts">
 import type { IStockBalanceSummary } from 'armstock-shared';
-import { Banknote, Package } from 'lucide-vue-next';
+import { Package } from 'lucide-vue-next';
 import StatCard from '../StatCard.vue';
-import { formatApproxMoney, formatNumber } from '../../utils/format';
+import { formatNumber } from '../../utils/format';
 
 defineProps<{
   summary: IStockBalanceSummary;
@@ -13,13 +13,6 @@ defineProps<{
 
 <template>
   <div class="stock-balance-summary" :class="{ 'stock-balance-summary--loading': isLoading }" aria-live="polite">
-    <StatCard
-      :label="$t('stockBalance.summary.totalValue')"
-      :value="formatApproxMoney(summary.totalValue)"
-      :icon="Banknote"
-      color="success"
-      compact
-    />
     <StatCard
       :label="$t('stockBalance.summary.products')"
       :value="formatNumber(summary.productCount)"

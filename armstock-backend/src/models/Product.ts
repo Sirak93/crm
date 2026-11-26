@@ -15,7 +15,6 @@ import { UNIQUE_KEYS } from "../constants/UniqueKeys";
 import { MeasureUnit } from "./MeasureUnit";
 import { ProductCategory } from "./ProductCategory";
 
-/** No price field - its price is the average of all its stock-ins, calculated, never stored. */
 @Entity("products")
 @Index("IDX_products_company_uuid", ["companyUuid"])
 @Index("IDX_products_measure_unit_uuid", ["measureUnitUuid"])
@@ -44,7 +43,7 @@ export class Product {
     @Column({ type: "varchar", nullable: true })
     barcode!: string | null;
 
-    /** Fixed after create - stock and prices are counted in this unit. */
+    /** Fixed after create - stock is counted in this unit. */
     @Column({ name: "measure_unit_uuid", type: "uuid" })
     measureUnitUuid!: string;
 

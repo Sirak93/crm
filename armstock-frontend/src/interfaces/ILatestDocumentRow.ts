@@ -5,6 +5,6 @@ export interface ILatestDocumentRow {
   date: string;
   /** Supplier, or where the goods went. */
   detail: string;
-  /** Total money (stock-in) or reason (stock-out). */
+  /** Product count (stock-in) or reason (stock-out). */
   value: string;
 }

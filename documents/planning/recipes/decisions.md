@@ -109,6 +109,11 @@ To keep adding the module later cheap:
 - **Removed everywhere**: product, stock-in lines (price, total), stock-out lines, the stock balance
   page (price, value), interfaces, schemas, tests, seed data and texts. Storekeepers do not work
   with prices. The DB columns go away through the models (MVP auto-sync).
+- Stock-in list: no "Total" column; its summary keeps documents + products only.
+- **Dashboard (decided 2026-11-26):** cards stay, only the money goes. The "Stock value" card
+  becomes a "Stock balance" card (products in stock); "Stock-in this month" keeps documents +
+  products; "Latest stock-ins" rows show the product count where the money was. Cards and texts
+  may be reworked to fit.
 
 ## HR role removed (decided 2026-11-26)
 
@@ -373,7 +378,7 @@ below needed + extra is allowed (only K + total ≥ recipe needs); the Note expl
 Not part of recipes - works for every company.
 
 - A **separate page**, right under "Stock balance" in the menu. Same permission
-  (`STOCK_BALANCE_VIEW`). The balance page stays as it is (stock **now**, price, value).
+  (`STOCK_BALANCE_VIEW`). The balance page stays as it is (stock **now**).
 - Columns:
 
   | Product | Initial | In | Out | Final |

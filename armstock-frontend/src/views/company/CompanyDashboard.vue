@@ -5,7 +5,7 @@ import { LayoutDashboard } from 'lucide-vue-next';
 import PageHeader from '../../components/PageHeader.vue';
 import AppCard from '../../components/AppCard.vue';
 import QuickActionsCard from '../../components/dashboard/QuickActionsCard.vue';
-import StockValueCard from '../../components/dashboard/StockValueCard.vue';
+import StockBalanceCard from '../../components/dashboard/StockBalanceCard.vue';
 import StockInMonthCard from '../../components/dashboard/StockInMonthCard.vue';
 import StockOutMonthCard from '../../components/dashboard/StockOutMonthCard.vue';
 import UsersCard from '../../components/dashboard/UsersCard.vue';
@@ -25,12 +25,12 @@ const authStore = useAuthStore();
 const can = (permission: Permission) => !!authStore.user?.can(permission);
 
 const showActions = computed(() => !!authStore.user?.canAny(QUICK_ACTION_PERMISSIONS));
-const showStockValue = computed(() => can(Permission.STOCK_BALANCE_VIEW));
+const showStockBalance = computed(() => can(Permission.STOCK_BALANCE_VIEW));
 const showStockIn = computed(() => can(Permission.STOCK_IN_VIEW));
 const showStockOut = computed(() => can(Permission.STOCK_OUT_VIEW));
 const showUsers = computed(() => can(Permission.USER_VIEW));
 
-const showNumbers = computed(() => showStockValue.value || showStockIn.value || showStockOut.value || showUsers.value);
+const showNumbers = computed(() => showStockBalance.value || showStockIn.value || showStockOut.value || showUsers.value);
 const hasAnyCard = computed(() => showActions.value || showNumbers.value);
 </script>
 
@@ -48,7 +48,7 @@ const hasAnyCard = computed(() => showActions.value || showNumbers.value);
       <QuickActionsCard v-if="showActions" />
 
       <div v-if="showNumbers" class="dashboard__numbers">
-        <StockValueCard v-if="showStockValue" />
+        <StockBalanceCard v-if="showStockBalance" />
         <StockInMonthCard v-if="showStockIn" />
         <StockOutMonthCard v-if="showStockOut" />
         <UsersCard v-if="showUsers" />

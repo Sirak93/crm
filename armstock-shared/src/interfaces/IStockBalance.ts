@@ -9,8 +9,4 @@ export interface IStockBalance {
     categoryName: string;
     unitShortName: string;
     quantity: number;
-    /** Average of all stock-in prices; null when the product never came in. */
-    avgPrice: number | null;
-    /** quantity × average price. */
-    value: number;
 }

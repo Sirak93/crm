@@ -49,7 +49,7 @@ export default {
     viewAll: 'View all',
     cardError: 'Could not load this card.',
     quickActions: 'Quick actions',
-    stockValue: 'Stock value',
+    stockBalance: 'Stock balance',
     stockInMonth: 'Stock in, this month',
     stockOutMonth: 'Stock out, this month',
     users: 'Users',
@@ -57,6 +57,7 @@ export default {
     latestStockOuts: 'Latest stock-outs',
     noStockIns: 'No stock-ins yet.',
     noStockOuts: 'No stock-outs yet.',
+    productCount: 'no products | 1 product | {count} products',
     actions: {
       stockIn: 'New stock-in',
       stockOut: 'New stock-out',
@@ -554,7 +555,6 @@ export default {
     summary: {
       documents: 'Documents',
       products: 'Products',
-      total: 'Total',
     },
     reasons: {
       purchase: 'Purchase',
@@ -578,7 +578,6 @@ export default {
       reason: 'Reason',
       supplier: 'Supplier',
       products: 'Products',
-      total: 'Total',
       createdBy: 'Created by',
     },
     form: {
@@ -596,10 +595,9 @@ export default {
       noteRequired: 'Add a note for "Other"',
       optional: 'Optional',
       linesRequired: 'Add at least one row.',
-      linesInvalid: 'Fill in every row: product, quantity above 0, price and total.',
+      linesInvalid: 'Fill in every row: a product and a quantity above 0.',
       summary: 'Document summary',
       rowCount: 'Rows: {count}',
-      total: 'Total',
     },
     lines: {
       product: 'Product',
@@ -607,8 +605,6 @@ export default {
       code: 'Code',
       quantity: 'Quantity',
       unit: 'Unit',
-      price: 'Price',
-      total: 'Total',
       add: 'Add row',
       remove: 'Remove row {row}',
       newProduct: 'New product',
@@ -705,13 +701,12 @@ export default {
   },
   stockBalance: {
     title: 'Stock balance',
-    subtitle: 'What is in stock now and what it is worth.',
+    subtitle: 'How much of each product is in stock now.',
     empty: 'Nothing in stock yet.',
     emptyAll: 'No products yet.',
     noResults: 'No products found.',
     loadError: 'Could not load the stock balance.',
     summary: {
-      totalValue: 'Total value',
       products: 'Products in stock',
     },
     filters: {
@@ -725,9 +720,6 @@ export default {
       category: 'Category',
       quantity: 'Quantity',
       unit: 'Unit',
-      avgPrice: 'Avg price',
-      avgPriceHint: 'Average of all stock-in prices',
-      value: 'Value',
     },
   },
   dateRanges: {

@@ -7,8 +7,6 @@ export const emptyLine = (): IStockInLineForm => ({
   productUuid: '',
   product: null,
   quantity: undefined,
-  price: undefined,
-  total: undefined,
 });
 
 export const toLineForm = (line: IStockInLine): IStockInLineForm => ({
@@ -16,9 +14,7 @@ export const toLineForm = (line: IStockInLine): IStockInLineForm => ({
   productUuid: line.product.uuid,
   product: line.product,
   quantity: line.quantity,
-  price: line.price,
-  total: line.total,
 });
 
 export const isLineValid = (line: IStockInLineForm): boolean =>
-  !!line.productUuid && !!line.quantity && line.quantity > 0 && line.price !== undefined && line.total !== undefined;
+  !!line.productUuid && !!line.quantity && line.quantity > 0;

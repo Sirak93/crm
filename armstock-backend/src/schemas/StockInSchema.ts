@@ -1,22 +1,12 @@
 import { z } from "zod";
-import { MONEY_DECIMALS, MONEY_MAX, STOCK_DOCUMENT_MAX_LINES, StockInReason } from "armstock-shared";
+import { STOCK_DOCUMENT_MAX_LINES, StockInReason } from "armstock-shared";
 import { optionalText, PaginatedSearchQuerySchema } from "./SharedSchema";
-import { StockDocumentFiltersSchema, DocumentDateSchema, hasMaxDecimals, isNotFuture, LineQuantitySchema } from "./StockDocumentSchema";
+import { StockDocumentFiltersSchema, DocumentDateSchema, isNotFuture, LineQuantitySchema } from "./StockDocumentSchema";
 
-const money = z.number().min(0).max(MONEY_MAX).refine(hasMaxDecimals(MONEY_DECIMALS));
-
-const StockInLineSchema = z
-    .object({
-        productUuid: z.uuid(),
-        quantity: LineQuantitySchema,
-        price: money,
-        total: money,
-    })
-    // Price is rounded to 0.01 when derived from the total, so each unit may be off by up to half of it.
-    .refine((line) => Math.abs(line.quantity * line.price - line.total) <= line.quantity * 0.005 + 0.005, {
-        path: ["total"],
-        message: "total does not match quantity × price",
-    });
+const StockInLineSchema = z.object({
+    productUuid: z.uuid(),
+    quantity: LineQuantitySchema,
+});
 
 export const StockInBodySchema = z
     .object({

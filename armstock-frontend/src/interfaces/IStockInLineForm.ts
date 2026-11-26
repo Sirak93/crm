@@ -7,6 +7,4 @@ export interface IStockInLineForm {
   productUuid: string;
   product: IStockLineProduct | null;
   quantity: number | undefined;
-  price: number | undefined;
-  total: number | undefined;
 }

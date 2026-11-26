@@ -49,7 +49,7 @@ const hy: typeof en = {
     viewAll: 'Տեսնել բոլորը',
     cardError: 'Չհաջողվեց բեռնել այս բաժինը։',
     quickActions: 'Արագ գործողություններ',
-    stockValue: 'Պահեստի արժեքը',
+    stockBalance: 'Պահեստի մնացորդ',
     stockInMonth: 'Մուտք, այս ամիս',
     stockOutMonth: 'Ելք, այս ամիս',
     users: 'Օգտատերեր',
@@ -57,6 +57,7 @@ const hy: typeof en = {
     latestStockOuts: 'Վերջին ելքերը',
     noStockIns: 'Մուտքեր դեռ չկան։',
     noStockOuts: 'Ելքեր դեռ չկան։',
+    productCount: 'ապրանք չկա | {count} ապրանք | {count} ապրանք',
     actions: {
       stockIn: 'Նոր մուտք',
       stockOut: 'Նոր ելք',
@@ -554,7 +555,6 @@ const hy: typeof en = {
     summary: {
       documents: 'Փաստաթղթեր',
       products: 'Ապրանքներ',
-      total: 'Ընդամենը',
     },
     reasons: {
       purchase: 'Գնում',
@@ -578,7 +578,6 @@ const hy: typeof en = {
       reason: 'Պատճառ',
       supplier: 'Մատակարար',
       products: 'Ապրանքներ',
-      total: 'Ընդամենը',
       createdBy: 'Ստեղծող',
     },
     form: {
@@ -596,10 +595,9 @@ const hy: typeof en = {
       noteRequired: 'Ավելացրեք նշում «Այլ» պատճառի համար',
       optional: 'Ոչ պարտադիր',
       linesRequired: 'Ավելացրեք առնվազն մեկ տող։',
-      linesInvalid: 'Լրացրեք բոլոր տողերը՝ ապրանք, 0-ից մեծ քանակ, գին և գումար։',
+      linesInvalid: 'Լրացրեք բոլոր տողերը՝ ապրանք և 0-ից մեծ քանակ։',
       summary: 'Փաստաթղթի ամփոփում',
       rowCount: 'Տողեր՝ {count}',
-      total: 'Ընդամենը',
     },
     lines: {
       product: 'Ապրանք',
@@ -607,8 +605,6 @@ const hy: typeof en = {
       code: 'Կոդ',
       quantity: 'Քանակ',
       unit: 'Միավոր',
-      price: 'Գին',
-      total: 'Գումար',
       add: 'Ավելացնել տող',
       remove: 'Հեռացնել {row}-րդ տողը',
       newProduct: 'Նոր ապրանք',
@@ -705,13 +701,12 @@ const hy: typeof en = {
   },
   stockBalance: {
     title: 'Պահեստի մնացորդ',
-    subtitle: 'Ինչ կա պահեստում հիմա և ինչ արժե։',
+    subtitle: 'Որքան կա պահեստում յուրաքանչյուր ապրանքից հիմա։',
     empty: 'Պահեստում դեռ ոչինչ չկա։',
     emptyAll: 'Ապրանքներ դեռ չկան։',
     noResults: 'Ապրանքներ չեն գտնվել։',
     loadError: 'Չհաջողվեց բեռնել պահեստի մնացորդը։',
     summary: {
-      totalValue: 'Ընդհանուր արժեք',
       products: 'Պահեստում առկա ապրանքներ',
     },
     filters: {
@@ -725,9 +720,6 @@ const hy: typeof en = {
       category: 'Կատեգորիա',
       quantity: 'Քանակ',
       unit: 'Միավոր',
-      avgPrice: 'Միջին գին',
-      avgPriceHint: 'Մուտքի բոլոր գների միջինը',
-      value: 'Արժեք',
     },
   },
   dateRanges: {

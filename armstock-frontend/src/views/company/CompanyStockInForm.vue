@@ -3,7 +3,7 @@ import { computed, onMounted, ref } from 'vue';
 import { useRouter } from 'vue-router';
 import { useI18n } from 'vue-i18n';
 import type { FormInstance, FormItemRule, FormRules } from 'element-plus';
-import { MONEY_DECIMALS, StockInReason, type INamedRef, type IStockInDetails, type IStockInPayload } from 'armstock-shared';
+import { StockInReason, type INamedRef, type IStockInDetails, type IStockInPayload } from 'armstock-shared';
 import BackLink from '../../components/BackLink.vue';
 import PageHeader from '../../components/PageHeader.vue';
 import AppCard from '../../components/AppCard.vue';
@@ -18,7 +18,7 @@ import { useAuthStore } from '../../stores/auth';
 import { DATE_TIME_PICKER_FORMAT, REQUIRED_RULE_TRIGGER, ROUTE_NAME } from '../../constants/constants';
 import { STOCK_IN_REASON_LABEL, STOCK_IN_REASONS } from '../../constants/stockInReasons';
 import type { IStockInLineForm } from '../../interfaces/IStockInLineForm';
-import { formatMoney, formatNumber, isFutureDay, roundTo } from '../../utils/format';
+import { formatNumber, isFutureDay } from '../../utils/format';
 import { emptyLine, isLineValid, toLineForm } from '../../utils/stockInLines';
 import { AppLogger } from '../../utils/AppLogger';
 
@@ -53,15 +53,11 @@ const showLineErrors = ref(false);
 
 const isPurchase = computed(() => form.value.reason === StockInReason.PURCHASE);
 
-const documentTotal = computed(() =>
-  roundTo(lines.value.reduce((sum, line) => sum + (line.total ?? 0), 0), MONEY_DECIMALS),
-);
-
 /** What is compared to tell whether anything changed. Row keys and product details are left out. */
 const snapshotOf = () => JSON.stringify({
   ...form.value,
   date: form.value.date?.getTime(),
-  lines: lines.value.map(({ productUuid, quantity, price, total }) => ({ productUuid, quantity, price, total })),
+  lines: lines.value.map(({ productUuid, quantity }) => ({ productUuid, quantity })),
 });
 const savedSnapshot = ref(snapshotOf());
 const isDirty = computed(() => snapshotOf() !== savedSnapshot.value);
@@ -134,8 +130,6 @@ const toPayload = (): IStockInPayload => ({
   lines: lines.value.map((line) => ({
     productUuid: line.productUuid,
     quantity: line.quantity!,
-    price: line.price!,
-    total: line.total!,
   })),
 });
 
@@ -234,7 +228,6 @@ const save = async () => {
       <div class="form-bar" role="region" :aria-label="$t('stockIn.form.summary')">
         <div class="form-bar__summary">
           <span>{{ $t('stockIn.form.rowCount', { count: formatNumber(lines.length) }) }}</span>
-          <span class="form-bar__total">{{ $t('stockIn.form.total') }}: <strong>{{ formatMoney(documentTotal) }}</strong></span>
         </div>
         <div class="form-bar__actions">
           <el-button :disabled="isSaving" @click="router.push(backRoute)">{{ $t('common.cancel') }}</el-button>
@@ -283,17 +276,8 @@ const save = async () => {
 }
 
 .form-bar__summary {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: baseline;
-  gap: 0.25rem 1.25rem;
   font-size: var(--text-sm);
   color: var(--text-muted);
-}
-
-.form-bar__total {
-  font-size: var(--text-base);
-  color: var(--text-main);
 }
 
 .form-bar__actions {

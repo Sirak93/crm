@@ -36,7 +36,7 @@ export default (context: ICompanySideContext) => defineSuite("Stock-in", (test) 
     let supplierOfB: ISupplier;
     let piecesUnit: string;
 
-    const line = (product: IProduct, quantity: number, price?: number) => ({ productUuid: product.uuid, quantity, price });
+    const line = (product: IProduct, quantity: number) => ({ productUuid: product.uuid, quantity });
     const stockInCount = async () => db.count("stock_ins", "company_uuid = $1", [companyA.uuid]);
     const post = (body: unknown) => storekeeper.api.send("POST", PATHS.STOCK_INS, body);
 
@@ -53,8 +53,8 @@ export default (context: ICompanySideContext) => defineSuite("Stock-in", (test) 
 
     // --- Rules per reason ---
 
-    test("purchase: saved with supplier, invoice, lines and totals; stock goes up", async () => {
-        const doc = await createStockIn(storekeeper, [line(pieces, 4, 12.5), line(kilos, 1.25, 8)], {
+    test("purchase: saved with supplier, invoice and lines; stock goes up", async () => {
+        const doc = await createStockIn(storekeeper, [line(pieces, 4), line(kilos, 1.25)], {
             supplierUuid: supplier.uuid,
             invoiceNumber: "INV-1",
         });
@@ -63,12 +63,11 @@ export default (context: ICompanySideContext) => defineSuite("Stock-in", (test) 
             supplier: { uuid: supplier.uuid, name: supplier.name },
             invoiceNumber: "INV-1",
             note: isNull,
-            total: 60,
             productCount: 2,
             createdBy: { uuid: storekeeper.uuid },
             lines: [
-                { product: { uuid: pieces.uuid, unitShortName: piecesUnit }, quantity: 4, price: 12.5, total: 50 },
-                { product: { uuid: kilos.uuid }, quantity: 1.25, price: 8, total: 10 },
+                { product: { uuid: pieces.uuid, unitShortName: piecesUnit }, quantity: 4 },
+                { product: { uuid: kilos.uuid }, quantity: 1.25 },
             ],
         });
         isTrue(NUMBER_FORMAT.test(doc.number), `number "${doc.number}" has the IN-YYYY-NNNN form`);
@@ -98,24 +97,16 @@ export default (context: ICompanySideContext) => defineSuite("Stock-in", (test) 
         await expectStock(db, pieces.uuid, 11);
     });
 
-    // --- Money and quantities ---
+    // --- Quantities ---
 
-    test("a line total may differ from quantity × price by rounding only", async () => {
-        const body = (total: number) => ({
-            ...stockInBody([line(pieces, 3, 10)]),
-            lines: [{ productUuid: pieces.uuid, quantity: 3, price: 10, total }],
+    test("no prices: a sent price is ignored, the document and its lines have none", async () => {
+        const body = stockInBody([line(pieces, 4)]);
+        const { data } = await storekeeper.api.ok<IStockInDetails>("POST", PATHS.STOCK_INS, {
+            ...body,
+            lines: [{ ...body.lines[0], price: 10, total: 40 }],
         });
-        const { data } = await storekeeper.api.ok<IStockInDetails>("POST", PATHS.STOCK_INS, body(30.01));
-        matches(data, { total: 30.01, lines: [{ total: 30.01 }] });
-        await storekeeper.api.rejectsField("POST", PATHS.STOCK_INS, "lines.0.total", body(31));
-        await expectStock(db, pieces.uuid, 14);
-    });
-
-    test("money takes 2 decimals, not 3; price 0 is fine, below 0 is not", async () => {
-        await storekeeper.api.rejectsField("POST", PATHS.STOCK_INS, "lines.0.price", stockInBody([line(pieces, 1, 1.005)]));
-        await storekeeper.api.rejectsField("POST", PATHS.STOCK_INS, "lines.0.price", stockInBody([line(pieces, 1, -1)]));
-        const free = await createStockIn(storekeeper, [line(pieces, 1, 0)]);
-        matches(free, { total: 0, lines: [{ price: 0, total: 0 }] });
+        isTrue(!("total" in data), "no document total");
+        isTrue(!("price" in data.lines[0]!) && !("total" in data.lines[0]!), "no line price or total");
         await expectStock(db, pieces.uuid, 15);
     });
 
@@ -209,7 +200,7 @@ export default (context: ICompanySideContext) => defineSuite("Stock-in", (test) 
     test("edit replaces the lines and the header", async () => {
         const doc = await createStockIn(storekeeper, [line(pieces, 2)], { supplierUuid: supplier.uuid, invoiceNumber: "INV-3" });
         const { data } = await storekeeper.api.ok<IStockInDetails>("PUT", path(doc.uuid),
-            stockInBody([line(kilos, 2, 5), line(pieces, 1, 3)], { reason: StockInReason.OTHER, note: "Recounted" }));
+            stockInBody([line(kilos, 2), line(pieces, 1)], { reason: StockInReason.OTHER, note: "Recounted" }));
         matches(data, {
             uuid: doc.uuid,
             number: doc.number,
@@ -217,7 +208,6 @@ export default (context: ICompanySideContext) => defineSuite("Stock-in", (test) 
             supplier: isNull,
             invoiceNumber: isNull,
             note: "Recounted",
-            total: 13,
             lines: [{ product: { uuid: kilos.uuid }, quantity: 2 }, { product: { uuid: pieces.uuid }, quantity: 1 }],
         });
         await expectStock(db, pieces.uuid, 16);
@@ -308,8 +298,8 @@ export default (context: ICompanySideContext) => defineSuite("Stock-in", (test) 
     });
 
     test("paging and the summary match the database", async () => {
-        const [row] = await db.query<{ products: number; total: string }>(
-            `SELECT count(DISTINCT product_uuid)::int AS products, COALESCE(SUM(total), 0) AS total
+        const [row] = await db.query<{ products: number }>(
+            `SELECT count(DISTINCT product_uuid)::int AS products
              FROM stock_in_lines WHERE company_uuid = $1`,
             [companyA.uuid],
         );
@@ -320,7 +310,7 @@ export default (context: ICompanySideContext) => defineSuite("Stock-in", (test) 
         equals(page.data.length, Math.min(3, total - 3), "items on page 2");
 
         const { data: summary } = await storekeeper.api.ok<IStockInSummary>("GET", `${PATHS.STOCK_INS}/summary`);
-        matches(summary, { documentCount: total, productCount: row.products, total: Number(row.total) });
+        matches(summary, { documentCount: total, productCount: row.products });
 
         const { data: purchases } = await storekeeper.api.ok<IStockInSummary>("GET", `${PATHS.STOCK_INS}/summary?reason=${StockInReason.PURCHASE}`);
         const purchaseCount = await db.count("stock_ins", "company_uuid = $1 AND reason = $2", [companyA.uuid, StockInReason.PURCHASE]);

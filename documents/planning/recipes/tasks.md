@@ -33,7 +33,7 @@ read only once.
 - [x] Step 2b — Recipes: list, create, edit, details
 - [x] Step 2c — Recipes: archive, restore, delete
 - [x] Step U5 — Remove the HR default role  +  Step U2 — Hide barcode scanner and barcode field  *(both small, one session)*
-- [ ] Step U1 — Remove prices
+- [x] Step U1 — Remove prices
 - [ ] Step U3 — Fixed units (replace the Units page)
 - [ ] Step U4 — Stock-in by packs + unit converter
 - [ ] Step 2b+ — Recipes: amounts down to 1 mg + unit converter
@@ -97,15 +97,16 @@ read only once.
 
 ## Step U1 — Remove prices
 
-- [ ] Shared: price / total / value fields out of the stock-in, stock-out and stock balance
+- [x] Shared: price / total / value fields out of the stock-in, stock-out and stock balance
       interfaces and payloads
-- [ ] DB: price columns out of the models (`products` if any, `stock_in_lines` price + total,
+- [x] DB: price columns out of the models (`products` if any, `stock_in_lines` price + total,
       `stock_out_lines`) - local DB recreated
-- [ ] Backend: schemas, services and options without prices; stock balance without price / value
-- [ ] Frontend: stock-in form and lines table, stock balance table, `format.ts` money helpers if
-      unused; their i18n keys removed (hy + en)
-- [ ] Tests and seed data without prices; tester README updated
-- [ ] Checked in browser: stock-in form, stock-in doc and stock balance show no prices
+- [x] Backend: schemas, services and options without prices; stock balance without price / value
+- [x] Frontend: stock-in form and lines table, stock balance table, `format.ts` money helpers if
+      unused; their i18n keys removed (hy + en); dashboard cards without money (Stock balance card,
+      product count in latest stock-ins)
+- [x] Tests and seed data without prices; tester README updated
+- [x] Checked in browser: stock-in form, stock-in doc and stock balance show no prices
 
 ## Step U2 — Hide barcode scanner and barcode field
 

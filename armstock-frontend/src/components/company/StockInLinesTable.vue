@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { ProductStatus, type IStockInLine } from 'armstock-shared';
 import CodeBadge from '../CodeBadge.vue';
-import { formatMoney, formatQuantity } from '../../utils/format';
+import { formatQuantity } from '../../utils/format';
 
 defineProps<{
   lines: IStockInLine[];
@@ -30,12 +30,6 @@ defineProps<{
     </el-table-column>
     <el-table-column :label="$t('stockIn.lines.unit')" min-width="70">
       <template #default="{ row }"><span class="cell-text cell-text--muted">{{ row.product.unitShortName }}</span></template>
-    </el-table-column>
-    <el-table-column :label="$t('stockIn.lines.price')" min-width="120" align="right">
-      <template #default="{ row }"><span class="cell-text">{{ formatMoney(row.price) }}</span></template>
-    </el-table-column>
-    <el-table-column :label="$t('stockIn.lines.total')" min-width="130" align="right">
-      <template #default="{ row }"><span class="cell-text cell-text--strong">{{ formatMoney(row.total) }}</span></template>
     </el-table-column>
   </el-table>
 </template>

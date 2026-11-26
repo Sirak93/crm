@@ -12,7 +12,6 @@ import { StockOut } from "./StockOut";
 import { Product } from "./Product";
 import { numericTransformer } from "../utils/numericTransformer";
 
-/** No price - stock-out lines have no cost. */
 @Entity("stock_out_lines")
 @Index("IDX_stock_out_lines_stock_out_uuid", ["stockOutUuid"])
 @Index("IDX_stock_out_lines_company_product", ["companyUuid", "productUuid"])

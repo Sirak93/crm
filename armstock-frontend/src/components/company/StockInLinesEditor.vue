@@ -2,8 +2,6 @@
 import { computed, nextTick, ref } from 'vue';
 import { useI18n } from 'vue-i18n';
 import {
-  MONEY_DECIMALS,
-  MONEY_MAX,
   QUANTITY_DECIMALS,
   Permission,
   QUANTITY_MAX,
@@ -22,7 +20,6 @@ import { NotificationService } from '../../services/NotificationService';
 import { useAuthStore } from '../../stores/auth';
 import { AppLogger } from '../../utils/AppLogger';
 import type { IStockInLineForm } from '../../interfaces/IStockInLineForm';
-import { roundTo } from '../../utils/format';
 import { emptyLine } from '../../utils/stockInLines';
 import { toLineProduct, withScannedProduct } from '../../utils/stockLines';
 import { OptionsService } from '../../services/OptionsService';
@@ -70,20 +67,6 @@ const onProductSelect = (line: IStockInLineForm, product: IStockLineProduct) => 
   // A whole-number unit drops any decimals typed for the previous product.
   if (!product.allowsDecimals && line.quantity !== undefined) {
     line.quantity = Math.round(line.quantity);
-    onQuantityOrPriceChange(line);
-  }
-};
-
-// Price and total fill each other in. Price stays the anchor when the quantity changes.
-const onQuantityOrPriceChange = (line: IStockInLineForm) => {
-  if (line.quantity !== undefined && line.price !== undefined) {
-    line.total = roundTo(line.quantity * line.price, MONEY_DECIMALS);
-  }
-};
-
-const onTotalChange = (line: IStockInLineForm) => {
-  if (line.quantity && line.total !== undefined) {
-    line.price = roundTo(line.total / line.quantity, MONEY_DECIMALS);
   }
 };
 
@@ -117,9 +100,7 @@ const onProductCreated = (product: IProduct) => {
 };
 
 const addScannedProduct = (product: IStockLineProduct) => {
-  const result = withScannedProduct(lines.value, product, emptyLine);
-  lines.value = result.lines;
-  onQuantityOrPriceChange(result.line);
+  lines.value = withScannedProduct(lines.value, product, emptyLine).lines;
 };
 
 const onScan = async (barcode: string) => {
@@ -182,45 +163,12 @@ const setProductRef = (key: number, el: unknown) => {
             :aria-label="$t('stockIn.lines.quantity')"
             :class="{ 'is-invalid': showErrors && !(row.quantity > 0) }"
             class="lines-editor__number"
-            @change="onQuantityOrPriceChange(row as IStockInLineForm)"
           />
         </template>
       </el-table-column>
       <el-table-column :label="$t('stockIn.lines.unit')" min-width="70">
         <template #default="{ row }">
           <span :class="['cell-text', { 'cell-text--muted': !row.product }]">{{ row.product?.unitShortName ?? '—' }}</span>
-        </template>
-      </el-table-column>
-      <el-table-column :label="$t('stockIn.lines.price')" min-width="130">
-        <template #default="{ row }">
-          <el-input-number
-            v-model="row.price"
-            :controls="false"
-            :disabled="!row.productUuid"
-            :min="0"
-            :max="MONEY_MAX"
-            :precision="MONEY_DECIMALS"
-            :aria-label="$t('stockIn.lines.price')"
-            :class="{ 'is-invalid': showErrors && row.price === undefined }"
-            class="lines-editor__number"
-            @change="onQuantityOrPriceChange(row as IStockInLineForm)"
-          />
-        </template>
-      </el-table-column>
-      <el-table-column :label="$t('stockIn.lines.total')" min-width="140">
-        <template #default="{ row }">
-          <el-input-number
-            v-model="row.total"
-            :controls="false"
-            :disabled="!row.productUuid"
-            :min="0"
-            :max="MONEY_MAX"
-            :precision="MONEY_DECIMALS"
-            :aria-label="$t('stockIn.lines.total')"
-            :class="{ 'is-invalid': showErrors && row.total === undefined }"
-            class="lines-editor__number"
-            @change="onTotalChange(row as IStockInLineForm)"
-          />
         </template>
       </el-table-column>
       <el-table-column width="56" align="center">

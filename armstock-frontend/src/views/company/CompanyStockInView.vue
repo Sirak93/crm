@@ -13,7 +13,7 @@ import { useStockInDelete } from '../../composables/useStockInDelete';
 import { useAuthStore } from '../../stores/auth';
 import { ROUTE_NAME } from '../../constants/constants';
 import { STOCK_IN_REASON_LABEL } from '../../constants/stockInReasons';
-import { formatDateTimeShort, formatMoney, formatNumber } from '../../utils/format';
+import { formatDateTimeShort, formatNumber } from '../../utils/format';
 import { AppLogger } from '../../utils/AppLogger';
 
 const props = defineProps<{
@@ -112,7 +112,6 @@ const onDelete = async () => {
         <StockInLinesTable :lines="doc.lines" />
         <div class="lines-card__footer">
           <span>{{ $t('stockIn.form.rowCount', { count: formatNumber(doc.lines.length) }) }}</span>
-          <span class="lines-card__total">{{ $t('stockIn.form.total') }}: <strong>{{ formatMoney(doc.total) }}</strong></span>
         </div>
       </AppCard>
     </template>
@@ -166,18 +165,9 @@ const onDelete = async () => {
 }
 
 .lines-card__footer {
-  display: flex;
-  flex-wrap: wrap;
-  justify-content: space-between;
-  gap: 0.5rem 1rem;
   padding: 0.75rem 1rem;
   border-top: 1px solid var(--border);
   font-size: var(--text-sm);
   color: var(--text-muted);
-}
-
-.lines-card__total {
-  font-size: var(--text-base);
-  color: var(--text-main);
 }
 </style>

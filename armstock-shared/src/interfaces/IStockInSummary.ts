@@ -3,5 +3,4 @@ export interface IStockInSummary {
     documentCount: number;
     /** Different products across those documents. */
     productCount: number;
-    total: number;
 }

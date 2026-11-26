@@ -12,8 +12,6 @@ export interface IStockIn {
     /** The supplier's own invoice number. */
     invoiceNumber: string | null;
     note: string | null;
-    /** Sum of the line totals. */
-    total: number;
     /** Different products in the document - one product on two rows counts once. */
     productCount: number;
     createdBy: INamedRef;

@@ -20,8 +20,6 @@ import type { StockBalanceFilters, StockBalanceQuery } from "../schemas/StockSch
 
 // Built on the "stock_in" and "stock_out" subqueries from joinStock.
 const QUANTITY = "(COALESCE(stock_in.quantity, 0) - COALESCE(stock_out.quantity, 0))";
-const AVG_PRICE = "stock_in.total / NULLIF(stock_in.quantity, 0)";
-const VALUE = `COALESCE(ROUND(${QUANTITY} * ${AVG_PRICE}, 2), 0)`;
 const QUANTITY_SCALE = 10 ** QUANTITY_DECIMALS;
 
 interface IBalanceRow {
@@ -32,8 +30,6 @@ interface IBalanceRow {
     categoryUuid: string;
     measureUnitUuid: string;
     quantity: string;
-    avgPrice: string | null;
-    value: string;
 }
 
 /** Stock is never stored - it is summed from the document lines each time. */
@@ -131,19 +127,18 @@ export class StockService {
 
     /** Adds the "stock_in" and "stock_out" line sums per product; `lineFilter` narrows the lines summed. */
     private static joinStock<T extends Product>(qb: SelectQueryBuilder<T>, lineFilter?: string): SelectQueryBuilder<T> {
-        const sums = (entity: typeof StockInLine | typeof StockOutLine, withTotal: boolean) => (sub: SelectQueryBuilder<ObjectLiteral>) => {
+        const sums = (entity: typeof StockInLine | typeof StockOutLine) => (sub: SelectQueryBuilder<ObjectLiteral>) => {
             sub.from(entity, "line")
                 .select("line.productUuid", "product_uuid")
                 .addSelect("SUM(line.quantity)", "quantity")
                 .where("line.companyUuid = :companyUuid")
                 .groupBy("line.productUuid");
-            if (withTotal) sub.addSelect("SUM(line.total)", "total");
             if (lineFilter) sub.andWhere(lineFilter);
             return sub;
         };
         return qb
-            .leftJoin(sums(StockInLine, true), "stock_in", "stock_in.product_uuid = product.uuid")
-            .leftJoin(sums(StockOutLine, false), "stock_out", "stock_out.product_uuid = product.uuid");
+            .leftJoin(sums(StockInLine), "stock_in", "stock_in.product_uuid = product.uuid")
+            .leftJoin(sums(StockOutLine), "stock_out", "stock_out.product_uuid = product.uuid");
     }
 
     /** Products with their stock sums; the list and its summary share it, so the two always match. */
@@ -183,19 +178,15 @@ export class StockService {
             categoryName: categoryMap.get(row.categoryUuid) ?? "",
             unitShortName: unitMap.get(row.measureUnitUuid) ?? "",
             quantity: Number(row.quantity),
-            avgPrice: row.avgPrice === null ? null : Number(row.avgPrice),
-            value: Number(row.value),
         }));
     }
 
     async balanceSummary(companyUuid: string, filters: StockBalanceFilters): Promise<IStockBalanceSummary> {
         const row = await this.balanceQuery(companyUuid, filters, true)
-            .select(`COALESCE(SUM(${VALUE}), 0)`, "totalValue")
-            .addSelect("COUNT(*)", "productCount")
-            .getRawOne<{ totalValue: string; productCount: string }>();
+            .select("COUNT(*)", "productCount")
+            .getRawOne<{ productCount: string }>();
 
         return {
-            totalValue: Number(row?.totalValue ?? 0),
             productCount: Number(row?.productCount ?? 0),
         };
     }
@@ -212,8 +203,6 @@ export class StockService {
                 .addSelect("product.categoryUuid", "categoryUuid")
                 .addSelect("product.measureUnitUuid", "measureUnitUuid")
                 .addSelect(QUANTITY, "quantity")
-                .addSelect(`ROUND(${AVG_PRICE}, 2)`, "avgPrice")
-                .addSelect(VALUE, "value")
                 .orderBy("product.name", "ASC")
                 .addOrderBy("product.uuid", "ASC")
                 .offset((page - 1) * pageSize)

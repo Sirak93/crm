@@ -4,7 +4,7 @@ import { Pencil, Trash2 } from 'lucide-vue-next';
 import RowActionsMenu from '../RowActionsMenu.vue';
 import { ROUTE_NAME } from '../../constants/constants';
 import { STOCK_IN_REASON_LABEL } from '../../constants/stockInReasons';
-import { formatDateTimeShort, formatMoney, formatNumber } from '../../utils/format';
+import { formatDateTimeShort, formatNumber } from '../../utils/format';
 import { ROW_ACTION, type RowAction } from '../../constants/rowActions';
 
 defineProps<{
@@ -55,9 +55,6 @@ const onAction = (stockIn: IStockIn, action: RowAction) => {
     </el-table-column>
     <el-table-column :label="$t('stockIn.table.products')" min-width="100" align="right">
       <template #default="{ row }"><span class="cell-text">{{ formatNumber(row.productCount) }}</span></template>
-    </el-table-column>
-    <el-table-column :label="$t('stockIn.table.total')" min-width="130" align="right">
-      <template #default="{ row }"><span class="cell-text cell-text--strong">{{ formatMoney(row.total) }}</span></template>
     </el-table-column>
     <el-table-column :label="$t('stockIn.table.createdBy')" min-width="150" show-overflow-tooltip>
       <template #default="{ row }"><span class="cell-text">{{ row.createdBy.name }}</span></template>

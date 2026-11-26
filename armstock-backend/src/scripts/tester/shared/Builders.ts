@@ -1,5 +1,4 @@
 import {
-    MONEY_DECIMALS,
     StockInReason,
     StockOutDepartment,
     StockOutReason,
@@ -21,9 +20,6 @@ import type { ITestUser } from "../interfaces/ITestUser";
  * The `actor` must have the permission to create it. Body builders are exported too, so a
  * case can send a slightly wrong body without repeating the defaults.
  */
-
-const MONEY_SCALE = 10 ** MONEY_DECIMALS;
-const DEFAULT_PRICE = 100;
 
 /** A company's default unit: pieces (no decimals) or one that allows decimals. */
 export const findUnit = async (actor: ITestUser, allowsDecimals: boolean): Promise<IMeasureUnit> => {
@@ -83,21 +79,13 @@ export const createContact = async (actor: ITestUser, supplierUuid: string, body
 export interface ILineInput {
     productUuid: string;
     quantity: number;
-    price?: number;
 }
-
-const roundMoney = (value: number) => Math.round(value * MONEY_SCALE) / MONEY_SCALE;
 
 /** A stock-in body - a purchase when a supplier is given, otherwise initial stock. */
 export const stockInBody = (lines: ILineInput[], fields: Record<string, unknown> = {}) => ({
     reason: fields.supplierUuid ? StockInReason.PURCHASE : StockInReason.INITIAL_STOCK,
     date: new Date().toISOString(),
-    lines: lines.map(({ productUuid, quantity, price = DEFAULT_PRICE }) => ({
-        productUuid,
-        quantity,
-        price,
-        total: roundMoney(quantity * price),
-    })),
+    lines,
     ...fields,
 });
 

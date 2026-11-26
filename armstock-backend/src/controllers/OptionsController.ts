@@ -8,7 +8,7 @@ import type { ProductOptionsQuery, SupplierOptionsQuery } from "../schemas/Optio
 import { AppResponse } from "../utils/AppResponse";
 import { requireCompanyUuid } from "../utils/requireCompanyUuid";
 
-/** Picker lists of the logged-in user's company - minimal data, no prices, stock amounts, or emails. */
+/** Picker lists of the logged-in user's company - minimal data, no stock amounts or emails. */
 export class OptionsController {
     private productService = new ProductService();
     private supplierService = new SupplierService();

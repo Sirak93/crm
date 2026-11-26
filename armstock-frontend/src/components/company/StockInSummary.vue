@@ -1,8 +1,8 @@
 <script setup lang="ts">
 import type { IStockInSummary } from 'armstock-shared';
-import { Banknote, FileText, Package } from 'lucide-vue-next';
+import { FileText, Package } from 'lucide-vue-next';
 import StatCard from '../StatCard.vue';
-import { formatMoney, formatNumber } from '../../utils/format';
+import { formatNumber } from '../../utils/format';
 
 defineProps<{
   summary: IStockInSummary;
@@ -13,13 +13,6 @@ defineProps<{
 
 <template>
   <div class="stock-in-summary" :class="{ 'stock-in-summary--loading': isLoading }" aria-live="polite">
-    <StatCard
-      :label="$t('stockIn.summary.total')"
-      :value="formatMoney(summary.total)"
-      :icon="Banknote"
-      color="success"
-      compact
-    />
     <StatCard :label="$t('stockIn.summary.documents')" :value="formatNumber(summary.documentCount)" :icon="FileText" color="primary" compact />
     <StatCard :label="$t('stockIn.summary.products')" :value="formatNumber(summary.productCount)" :icon="Package" color="info" compact />
   </div>

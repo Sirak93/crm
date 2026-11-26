@@ -44,14 +44,6 @@ export class StockInLine {
     @Column({ type: "numeric", precision: 14, scale: 3, transformer: numericTransformer })
     quantity!: number;
 
-    /** Price per unit. */
-    @Column({ type: "numeric", precision: 14, scale: 2, transformer: numericTransformer })
-    price!: number;
-
-    /** Exact line sum from the invoice - the average price is built from it. */
-    @Column({ type: "numeric", precision: 14, scale: 2, transformer: numericTransformer })
-    total!: number;
-
     @CreateDateColumn({ name: "created_at" })
     createdAt!: Date;
 
