@@ -264,6 +264,9 @@ without recipes is a normal stock-out, like today.
   recalculates rows already in the doc from their saved copy; new rows use the current recipe.
 - "By recipe" (Բաղադրատոմսով) mark in the stock-out list for docs with recipes; detail view
   shows the recipes block.
+- **Recipe name on old docs (decided 2026-11-26):** the saved copy keeps the amounts, not the
+  name - a doc shows the recipe's **current** name (renamed "Soup" → "Chicken soup" shows the new
+  name). Amounts and persons never change.
 - **Rounding (decided 2026-11-26):** the prefilled total is rounded **up** for count units
   (1.1 + 0.5 eggs = 1.6 → 2); kg / l to 3 decimals. The storekeeper can still change it.
   The rest goes to K, so K can hold parts of a count unit (0.4 egg) - recipe needs are exact.
