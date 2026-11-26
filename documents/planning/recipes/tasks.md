@@ -34,9 +34,9 @@ read only once.
 - [x] Step 2c — Recipes: archive, restore, delete
 - [x] Step U5 — Remove the HR default role  +  Step U2 — Hide barcode scanner and barcode field  *(both small, one session)*
 - [x] Step U1 — Remove prices
-- [ ] Step U3 — Fixed units (replace the Units page)
+- [x] Step U3 — Fixed units (replace the Units page)
 - [x] Step U4 — Stock-in by packs + unit converter
-- [ ] Step U4b — Nested `pack` on stock-in lines + "Received as" on the product
+- [x] Step U4b — Nested `pack` on stock-in lines + "Received as" on the product
 - [ ] Step 2b+ — Recipes: amounts down to 1 mg + unit converter
 - [ ] Step 3 — Stock-out: recipes block + totals list (create)
 - [ ] Step 4 — Stock-out with recipes: list mark and view
@@ -121,7 +121,7 @@ read only once.
 - [x] Shared: `MeasureUnit` enum (starts at 10, steps of 10) + constant with long / short name
       (hy + en), type (count / weight / volume), factor, decimals, "product unit" flag - list in
       decisions.md → Units
-- [ ] DB: `products.measure_unit_uuid` → unit enum column; `measure_units` model removed - local DB
+- [x] DB: `products.measure_unit_uuid` → unit enum column; `measure_units` model removed - local DB
       recreated
 - [x] Backend: `MeasureUnit` routes / controller / service / schema / default units removed;
       `MEASURE_UNIT_*` permissions and their error codes removed; products, options, stock-in,
@@ -132,7 +132,7 @@ read only once.
 - [x] Tests: `MeasureUnitsSuite` removed; products / stock / recipes suites use the enum; unknown
       or converter-only unit refused for a product
 - [x] Seeder uses the enum
-- [ ] Checked in browser: products, stock-in, stock-out, balance and recipes show the right units
+- [x] Checked in browser: products, stock-in, stock-out, balance and recipes show the right units
 
 ## Step U4 — Stock-in by packs + unit converter
 
@@ -181,7 +181,7 @@ The `pack` restructure goes first - both parts touch the same code, so it is ren
   - [x] Column names / i18n (hy + en): Quantity, In one pack, Packs, Total - stale keys removed
 - [x] Tests: Products suite - default Loose, each value saved and returned, edited later, a bad
       value refused; Stock-in suite - a Loose product with Packs > 1 is still saved
-- [ ] Checked in browser: potatoes (Loose) 25 կգ; oil (In packs) 500 մլ × 6 = 3 լ; meat (Loose or
+- [x] Checked in browser: potatoes (Loose) 25 կգ; oil (In packs) 500 մլ × 6 = 3 լ; meat (Loose or
       in packs) 12.4 կգ × 1
 
 ## Step U5 — Remove the HR default role
