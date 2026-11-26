@@ -13,11 +13,13 @@ const props = withDefaults(defineProps<{
   max?: number;
   /** Unit the picker starts on - the product's own unit when not set. */
   startUnit?: MeasureUnit | null;
+  /** Count units (հատ, տուփ, կապ) take whole numbers only; recipes turn it off (0.5 egg). */
+  wholeCountUnits?: boolean;
   disabled?: boolean;
   invalid?: boolean;
   /** Read out by screen readers for the number field. */
   label: string;
-}>(), { decimals: QUANTITY_DECIMALS, max: QUANTITY_MAX, startUnit: null });
+}>(), { decimals: QUANTITY_DECIMALS, max: QUANTITY_MAX, startUnit: null, wholeCountUnits: true });
 
 /** In the product's unit. */
 const value = defineModel<number | undefined>({ required: true });
@@ -27,7 +29,7 @@ const unit = defineModel<MeasureUnit | null>('unit', { default: null });
 const { unitShortName } = useMeasureUnits();
 
 const valueDecimals = computed(() =>
-  props.productUnit !== null && MEASURE_UNITS[props.productUnit].allowsDecimals ? props.decimals : 0);
+  props.productUnit !== null && (MEASURE_UNITS[props.productUnit].allowsDecimals || !props.wholeCountUnits) ? props.decimals : 0);
 
 /** Decimals the typed number may have so it still fits the value's decimals (մլ of a լ product: 0). */
 const typedDecimals = (typedUnit: MeasureUnit): number =>
@@ -51,8 +53,9 @@ if (unit.value === null || !units.value.includes(unit.value)) unit.value = start
 
 const typed = ref<number | undefined>(toTyped(value.value));
 
+// Rounded here, not with the field's precision prop, which pads zeros (0,010000).
 const onTyped = (next: number | null | undefined) => {
-  typed.value = next ?? undefined;
+  typed.value = next == null ? undefined : Number(next.toFixed(precision.value));
   value.value = toValue(typed.value);
 };
 
@@ -81,7 +84,6 @@ watch(value, (next) => {
       :disabled="disabled"
       :min="0"
       :max="max / ratio"
-      :precision="precision"
       :aria-label="label"
       class="unit-amount__number"
       @update:model-value="onTyped"

@@ -77,6 +77,7 @@ const setProductRef = (key: number, el: unknown) => {
             :start-unit="row.product ? recipeUnit(row.product.measureUnit) : null"
             :decimals="RECIPE_QUANTITY_DECIMALS"
             :max="RECIPE_QUANTITY_MAX"
+            :whole-count-units="false"
             :disabled="!row.productUuid"
             :invalid="showErrors && !(row.quantity > 0)"
             :label="$t('recipes.lines.perPerson')"
