@@ -8,7 +8,8 @@ import { useMeasureUnits } from './useMeasureUnits';
 /** "Not enough stock" texts: a stock-out takes too much; a stock-in edit/delete takes back goods that already went out. */
 export const STOCK_SHORTAGE_TEXT = {
   STOCK_OUT: { text: 'stockShortage.text', value: 'stockShortage.available' },
-  STOCK_IN: { text: 'stockShortage.stockInText', value: 'stockShortage.inStock' },
+  STOCK_IN_EDIT: { text: 'stockShortage.stockInEditText', value: 'stockShortage.inStock' },
+  STOCK_IN_DELETE: { text: 'stockShortage.stockInDeleteText', value: 'stockShortage.inStock' },
 } as const;
 
 type StockShortageText = typeof STOCK_SHORTAGE_TEXT[keyof typeof STOCK_SHORTAGE_TEXT];

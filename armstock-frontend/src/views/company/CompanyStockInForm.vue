@@ -151,7 +151,7 @@ const save = async () => {
     NotificationService.success(t(isEdit.value ? 'stockIn.updated' : 'stockIn.created', { number: saved.number }));
     await router.replace({ name: ROUTE_NAME.COMPANY_STOCK_IN, params: { uuid: saved.uuid } });
   } catch (error) {
-    showError(error, 'stockIn.saveError', STOCK_SHORTAGE_TEXT.STOCK_IN);
+    showError(error, 'stockIn.saveError', STOCK_SHORTAGE_TEXT.STOCK_IN_EDIT);
   } finally {
     isSaving.value = false;
   }

@@ -880,7 +880,8 @@ export default {
     title: 'Not enough stock',
     text: 'This change would take more than is in stock. Lower the quantity or add stock first.',
     available: 'available {quantity} {unit}',
-    stockInText: 'Some of these goods already went out, so this document cannot bring less than what is still in stock.',
+    stockInEditText: 'Some of these goods already went out. This document can be lowered only by what is still in stock.',
+    stockInDeleteText: 'Some of these goods already went out, so this document can\'t be deleted.',
     inStock: 'in stock {quantity} {unit}',
   },
   supplierReturn: {

@@ -22,7 +22,7 @@ export const useStockInDelete = () => {
       NotificationService.success(t('stockIn.deleted'));
       return true;
     } catch (error) {
-      showError(error, 'stockIn.deleteError', STOCK_SHORTAGE_TEXT.STOCK_IN);
+      showError(error, 'stockIn.deleteError', STOCK_SHORTAGE_TEXT.STOCK_IN_DELETE);
       return false;
     }
   };
