@@ -37,7 +37,7 @@ read only once.
 - [x] Step U3 — Fixed units (replace the Units page)
 - [x] Step U4 — Stock-in by packs + unit converter
 - [x] Step U4b — Nested `pack` on stock-in lines + "Received as" on the product
-- [ ] Step 2b+ — Recipes: amounts down to 1 mg + unit converter
+- [x] Step 2b+ — Recipes: amounts down to 1 mg + unit converter
 - [ ] Step 3 — Stock-out: recipes block + totals list (create)
 - [ ] Step 4 — Stock-out with recipes: list mark and view
 - [ ] Step 5 — Stock-out with recipes: edit and delete
@@ -209,7 +209,7 @@ The `pack` restructure goes first - both parts touch the same code, so it is ren
   - [x] Details popup shows amounts in the small unit (5 գ, not 0.005 կգ)
   - [x] Form hint: small amounts example ("1 g = 0.001 kg")
 - [x] Tests: 6 decimals saved and returned (e.g. 0.000001), a 7th decimal refused
-- [ ] Checked in browser: salt 0.5 g entered through the converter as 0.0005 kg
+- [x] Checked in browser: salt 0.5 g entered through the converter as 0.0005 kg
 
 ## Step 2c — Recipes: archive, restore, delete
 
