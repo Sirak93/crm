@@ -15,12 +15,12 @@ const TYPED_DECIMALS = QUANTITY_DECIMALS * 2;
 
 const amount = (value: number, unit: MeasureUnit) => `${formatQuantity(value)} ${unitShortName(unit)}`;
 
-/** Count 1 → the amount as typed (12.4 կգ); more → 500 մլ × 6 = 3 լ. */
+/** Count 1 → the amount as typed (12.4 կգ); more → 6 × 500 մլ = 3 լ. */
 const lineText = (line: IStockInLine): string => {
   const { pack } = line;
   const typed = amount(convertQuantity(pack.quantity, line.product.measureUnit, pack.unit, TYPED_DECIMALS), pack.unit);
   if (pack.count === 1) return typed;
-  return `${typed} × ${formatQuantity(pack.count)} = ${amount(line.quantity, line.product.measureUnit)}`;
+  return `${formatQuantity(pack.count)} × ${typed} = ${amount(line.quantity, line.product.measureUnit)}`;
 };
 </script>
 
