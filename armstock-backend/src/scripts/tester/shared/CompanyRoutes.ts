@@ -16,7 +16,7 @@ const P = Permission;
 const T = RouteTarget;
 
 const NAME = "Tester name";
-const line = (refs: IOwnRefs) => [{ productUuid: refs.productUuid, quantity: 1 }];
+const line = (refs: IOwnRefs) => [{ productUuid: refs.productUuid, measureUnit: refs.productUnit, quantity: 1 }];
 
 export const COMPANY_ROUTES: ICompanyRoute[] = [
     // Company profile

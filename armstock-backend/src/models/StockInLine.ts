@@ -8,6 +8,7 @@ import {
     ManyToOne,
     JoinColumn,
 } from "typeorm";
+import { MeasureUnit } from "armstock-shared";
 import { StockIn } from "./StockIn";
 import { Product } from "./Product";
 import { numericTransformer } from "../utils/numericTransformer";
@@ -41,6 +42,18 @@ export class StockInLine {
     @Column({ type: "int" })
     position!: number;
 
+    /** One pack's amount, in the product's unit. */
+    @Column({ name: "pack_quantity", type: "numeric", precision: 14, scale: 3, transformer: numericTransformer })
+    packQuantity!: number;
+
+    /** The unit the amount was typed in - for showing only. */
+    @Column({ name: "pack_unit", type: "int" })
+    packUnit!: MeasureUnit;
+
+    @Column({ name: "pack_count", type: "int" })
+    packCount!: number;
+
+    /** packQuantity × packCount - what stock counts. */
     @Column({ type: "numeric", precision: 14, scale: 3, transformer: numericTransformer })
     quantity!: number;
 

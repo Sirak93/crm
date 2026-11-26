@@ -15,7 +15,7 @@ import {
 import { defineSuite } from "../../core/Suite";
 import { equals, isNull, isTrue, matches } from "../../core/Assert";
 import { createMember, createNoLoginUser } from "../../shared/Accounts";
-import { createProduct, createStockIn, createStockOut, createSupplier, KILOS_UNIT, PIECES_UNIT, stockOutBody } from "../../shared/Builders";
+import { createProduct, createStockIn, createStockOut, createSupplier, KILOS_UNIT, PIECES_UNIT, stockOutBody, lineOf } from "../../shared/Builders";
 import { PATHS } from "../../shared/Paths";
 import { randomUuid } from "../../shared/Random";
 import { expectStock, stockOf } from "../../shared/Stock";
@@ -36,7 +36,7 @@ export default (context: ICompanySideContext) => defineSuite("Stock-out", (test)
     let supplier: ISupplier;
     let productOfB: IProduct;
 
-    const lines = (product: IProduct, quantity: number) => [{ productUuid: product.uuid, quantity }];
+    const lines = (product: IProduct, quantity: number) => [lineOf(product, quantity)];
     const stockOutCount = async () => db.count("stock_outs", "company_uuid = $1", [companyA.uuid]);
 
     test("prepares products, a supplier and stock", async () => {
@@ -47,9 +47,9 @@ export default (context: ICompanySideContext) => defineSuite("Stock-out", (test)
             createProduct(companyB.storekeeper),
         ]);
 
-        await createStockIn(storekeeper, [{ productUuid: pieces.uuid, quantity: 10 }], { supplierUuid: supplier.uuid });
-        await createStockIn(storekeeper, [{ productUuid: kilos.uuid, quantity: 5.5 }]);
-        await createStockIn(companyB.storekeeper, [{ productUuid: productOfB.uuid, quantity: 10 }]);
+        await createStockIn(storekeeper, [lineOf(pieces, 10)], { supplierUuid: supplier.uuid });
+        await createStockIn(storekeeper, [lineOf(kilos, 5.5)]);
+        await createStockIn(companyB.storekeeper, [lineOf(productOfB, 10)]);
         await expectStock(db, pieces.uuid, 10);
         await expectStock(db, kilos.uuid, 5.5);
     });
@@ -129,14 +129,14 @@ export default (context: ICompanySideContext) => defineSuite("Stock-out", (test)
 
     test("the same product on two lines counts together", async () => {
         const response = await storekeeper.api.rejects("POST", PATHS.STOCK_OUTS, ErrorCodes.STOCK.NOT_ENOUGH,
-            stockOutBody([{ productUuid: pieces.uuid, quantity: 3 }, { productUuid: pieces.uuid, quantity: 2 }]));
+            stockOutBody([lineOf(pieces, 3), lineOf(pieces, 2)]));
         matches(response.body.error.meta, [{ name: pieces.name, available: 4 }]);
         await expectStock(db, pieces.uuid, 4);
     });
 
     test("only the short products are listed, each with its own amount", async () => {
         const response = await storekeeper.api.rejects("POST", PATHS.STOCK_OUTS, ErrorCodes.STOCK.NOT_ENOUGH,
-            stockOutBody([{ productUuid: pieces.uuid, quantity: 1 }, { productUuid: kilos.uuid, quantity: 4.001 }]));
+            stockOutBody([lineOf(pieces, 1), lineOf(kilos, 4.001)]));
         matches(response.body.error.meta, [{ name: kilos.name, measureUnit: KILOS_UNIT, available: 4 }]);
         await expectStock(db, pieces.uuid, 4);
     });
@@ -194,7 +194,7 @@ export default (context: ICompanySideContext) => defineSuite("Stock-out", (test)
 
     test("an archived supplier is refused on a new return, but an old return keeps it on edit", async () => {
         const old = await createSupplier(companyA.accountant);
-        await createStockIn(storekeeper, [{ productUuid: pieces.uuid, quantity: 2 }], { supplierUuid: old.uuid });
+        await createStockIn(storekeeper, [lineOf(pieces, 2)], { supplierUuid: old.uuid });
         const doc = await createStockOut(storekeeper, lines(pieces, 1), { reason: StockOutReason.RETURNED, supplierUuid: old.uuid });
         await companyA.accountant.api.ok("PATCH", `${PATHS.SUPPLIERS}/${old.uuid}/status`, { status: SupplierStatus.ARCHIVED });
 

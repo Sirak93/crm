@@ -11,7 +11,7 @@ import { PICKER_LIMIT } from "../../../../constants/PickerConstants";
 import { defineSuite } from "../../core/Suite";
 import { equals, hasExactKeys, isTrue, matches } from "../../core/Assert";
 import { createNoLoginUser } from "../../shared/Accounts";
-import { createProduct, createStockIn, createStockOut, createSupplier } from "../../shared/Builders";
+import { createProduct, createStockIn, createStockOut, createSupplier, lineOf } from "../../shared/Builders";
 import { PATHS } from "../../shared/Paths";
 import { uniqueName } from "../../shared/Random";
 import type { ICompanySideContext } from "../../interfaces/ICompanySideContext";
@@ -40,9 +40,9 @@ export default (context: ICompanySideContext) => defineSuite("Options (pickers)"
             make("C Archived at zero"),
             make("D Brought"),
         ]);
-        await createStockIn(storekeeper, [{ productUuid: withStock.uuid, quantity: 2 }, { productUuid: empty.uuid, quantity: 1 }]);
-        await createStockIn(storekeeper, [{ productUuid: brought.uuid, quantity: 1 }], { supplierUuid: supplier.uuid });
-        await createStockOut(storekeeper, [{ productUuid: empty.uuid, quantity: 1 }]);
+        await createStockIn(storekeeper, [lineOf(withStock, 2), lineOf(empty, 1)]);
+        await createStockIn(storekeeper, [lineOf(brought, 1)], { supplierUuid: supplier.uuid });
+        await createStockOut(storekeeper, [lineOf(empty, 1)]);
         for (const archived of [withStock, empty]) {
             await storekeeper.api.ok("PATCH", `${PATHS.PRODUCTS}/${archived.uuid}/status`, { status: ProductStatus.ARCHIVED });
         }

@@ -10,7 +10,7 @@ import {
 import { defineSuite } from "../../core/Suite";
 import { anyDate, equals, hasExactKeys, isNull, matches } from "../../core/Assert";
 import { createMember } from "../../shared/Accounts";
-import { createProduct, createRecipe, KILOS_UNIT, PIECES_UNIT, recipeBody } from "../../shared/Builders";
+import { createProduct, createRecipe, KILOS_UNIT, PIECES_UNIT, recipeBody, lineOf } from "../../shared/Builders";
 import { PATHS } from "../../shared/Paths";
 import { randomUuid, uniqueName } from "../../shared/Random";
 import type { IProduct } from "armstock-shared";
@@ -25,7 +25,7 @@ export default (context: ICompanySideContext) => defineSuite("Recipes", (test) =
     const { storekeeper, staff, owner } = companyA;
     const path = (uuid: string) => `${PATHS.RECIPES}/${uuid}`;
     const tag = uniqueName("Rcp").replace(" ", "");
-    const line = (product: IProduct, quantity: number) => ({ productUuid: product.uuid, quantity });
+    const line = (product: IProduct, quantity: number) => lineOf(product, quantity);
     const listed = (query: string) => chef.api.ok<IRecipe[]>("GET", `${PATHS.RECIPES}?${query}`);
 
     let chef: ITestUser;
@@ -86,7 +86,7 @@ export default (context: ICompanySideContext) => defineSuite("Recipes", (test) =
     test("products must be the company's and active", async () => {
         const productB = await createProduct(companyB.storekeeper);
         await chef.api.rejects("POST", PATHS.RECIPES, ErrorCodes.PRODUCT.NOT_FOUND, recipeBody([line(productB, 1)]));
-        await chef.api.rejects("POST", PATHS.RECIPES, ErrorCodes.PRODUCT.NOT_FOUND, recipeBody([{ productUuid: randomUuid(), quantity: 1 }]));
+        await chef.api.rejects("POST", PATHS.RECIPES, ErrorCodes.PRODUCT.NOT_FOUND, recipeBody([{ productUuid: randomUuid(), measureUnit: PIECES_UNIT, quantity: 1 }]));
         const archived = await createProduct(storekeeper);
         await owner.api.ok("PATCH", `${PATHS.PRODUCTS}/${archived.uuid}/status`, { status: ProductStatus.ARCHIVED });
         await chef.api.rejects("POST", PATHS.RECIPES, ErrorCodes.PRODUCT.ARCHIVED, recipeBody([line(archived, 1)]));

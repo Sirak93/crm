@@ -157,6 +157,10 @@ export const ErrorCodes = {
             CODE: "STOCK_IN_BELOW_RETURNED",
             STATUS: 409,
         },
+        PACK_UNIT_MISMATCH: {
+            CODE: "STOCK_IN_PACK_UNIT_MISMATCH",
+            STATUS: 422,
+        },
     },
     STOCK_OUT: {
         NOT_FOUND: {

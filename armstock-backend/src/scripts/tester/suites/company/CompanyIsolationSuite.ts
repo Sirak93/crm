@@ -11,6 +11,7 @@ import {
     createStockOut,
     createSupplier,
     findCategory,
+    lineOf,
     PIECES_UNIT,
 } from "../../shared/Builders";
 import { COMPANY_ROUTES, TARGET_NOT_FOUND, routeLabel } from "../../shared/CompanyRoutes";
@@ -55,12 +56,12 @@ export default (context: ICompanySideContext) => defineSuite("Company isolation"
             createNoLoginUser(companyB).then((u) => u.uuid),
         ]);
         contactB = await createContact(accountantB, supplierB.uuid);
-        stockInB = await createStockIn(storekeeperB, [{ productUuid: productB.uuid, quantity: 10 }], { supplierUuid: supplierB.uuid });
-        stockOutB = await createStockOut(storekeeperB, [{ productUuid: productB.uuid, quantity: 2 }], { receiverUuid: receiverB });
-        const recipeB: IRecipeDetails = await createRecipe(companyB.owner, [{ productUuid: productB.uuid, quantity: 0.1 }]);
+        stockInB = await createStockIn(storekeeperB, [lineOf(productB, 10)], { supplierUuid: supplierB.uuid });
+        stockOutB = await createStockOut(storekeeperB, [lineOf(productB, 2)], { receiverUuid: receiverB });
+        const recipeB: IRecipeDetails = await createRecipe(companyB.owner, [lineOf(productB, 0.1)]);
 
         const [categoryA, productA] = await Promise.all([findCategory(ownerA), createProduct(companyA.storekeeper)]);
-        refs = { categoryUuid: categoryA.uuid, productUuid: productA.uuid, roleUuid: companyA.roles[DefaultRole.STAFF] };
+        refs = { categoryUuid: categoryA.uuid, productUuid: productA.uuid, productUnit: productA.measureUnit, roleUuid: companyA.roles[DefaultRole.STAFF] };
 
         const one = (uuid: string): IRouteIds => ({ uuid, contactUuid: contactB.uuid });
         idsOfB = {

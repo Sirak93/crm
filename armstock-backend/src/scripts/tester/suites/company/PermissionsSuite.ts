@@ -82,7 +82,7 @@ export default (context: ICompanySideContext) => defineSuite("Permissions", (tes
 
     test("prepares one user with only each permission and one with all but it", async () => {
         const [category, product] = await Promise.all([findCategory(companyA.owner), createProduct(companyA.storekeeper)]);
-        refs = { categoryUuid: category.uuid, productUuid: product.uuid, roleUuid: companyA.roles[DefaultRole.STAFF] };
+        refs = { categoryUuid: category.uuid, productUuid: product.uuid, productUnit: product.measureUnit, roleUuid: companyA.roles[DefaultRole.STAFF] };
         await Promise.all(ALL_PERMISSIONS.flatMap((permission) => [
             createMember(companyA, { permissions: [permission], label: `only-${permission}` }).then((u) => { only.set(permission, u); }),
             createMember(companyA, { permissions: ALL_PERMISSIONS.filter((p) => p !== permission), label: `all-but-${permission}` })

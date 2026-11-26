@@ -3,6 +3,9 @@ export const QUANTITY_DECIMALS = 3;
 
 export const QUANTITY_MAX = 99_999_999_999;
 
+/** Most packs one stock-in line can have. */
+export const PACK_COUNT_MAX = 1_000_000;
+
 /** Most lines one stock document can have. */
 export const STOCK_DOCUMENT_MAX_LINES = 500;
 

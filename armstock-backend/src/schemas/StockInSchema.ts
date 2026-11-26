@@ -1,12 +1,17 @@
 import { z } from "zod";
-import { STOCK_DOCUMENT_MAX_LINES, StockInReason } from "armstock-shared";
+import { MeasureUnit, PACK_COUNT_MAX, QUANTITY_DECIMALS, QUANTITY_MAX, STOCK_DOCUMENT_MAX_LINES, StockInReason } from "armstock-shared";
 import { optionalText, PaginatedSearchQuerySchema } from "./SharedSchema";
 import { StockDocumentFiltersSchema, DocumentDateSchema, isNotFuture, LineQuantitySchema } from "./StockDocumentSchema";
 
-const StockInLineSchema = z.object({
-    productUuid: z.uuid(),
-    quantity: LineQuantitySchema,
-});
+const StockInLineSchema = z
+    .object({
+        productUuid: z.uuid(),
+        packQuantity: LineQuantitySchema,
+        packUnit: z.enum(MeasureUnit),
+        packCount: z.number().int().positive().max(PACK_COUNT_MAX),
+    })
+    .transform((line) => ({ ...line, quantity: Number((line.packQuantity * line.packCount).toFixed(QUANTITY_DECIMALS)) }))
+    .refine((line) => line.quantity <= QUANTITY_MAX, { path: ["packCount"], message: "total is too big" });
 
 export const StockInBodySchema = z
     .object({

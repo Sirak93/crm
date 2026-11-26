@@ -1,7 +1,7 @@
 import { ErrorCodes, StockOutReason, type IProduct, type IStockIn } from "armstock-shared";
 import { defineSuite } from "../../core/Suite";
 import { equals, isTrue } from "../../core/Assert";
-import { createProduct, createStockIn, createSupplier, stockInBody, stockOutBody } from "../../shared/Builders";
+import { createProduct, createStockIn, createSupplier, stockInBody, stockOutBody, lineOf } from "../../shared/Builders";
 import { PATHS } from "../../shared/Paths";
 import { expectStock } from "../../shared/Stock";
 import type { IApiResponse } from "../../interfaces/IApiResponse";
@@ -23,7 +23,7 @@ const onlyOkOr = (responses: IApiResponse[], refusal: { CODE: string; STATUS: nu
 export default (context: ICompanySideContext) => defineSuite("Two saves at the same time", (test) => {
     const { db, companyA } = context;
     const storekeeper = companyA.storekeeper;
-    const line = (product: IProduct, quantity: number) => [{ productUuid: product.uuid, quantity }];
+    const line = (product: IProduct, quantity: number) => [lineOf(product, quantity)];
 
     const freshProduct = async (stock: number): Promise<IProduct> => {
         const product = await createProduct(storekeeper);

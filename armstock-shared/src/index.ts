@@ -24,6 +24,7 @@ export * from "./enums/UserStatus";
 
 export * from "./helpers/can";
 export * from "./helpers/lockedPermissions";
+export * from "./helpers/measureUnits";
 
 export type * from "./interfaces/IApiLog";
 export type * from "./interfaces/IApiLogCompany";

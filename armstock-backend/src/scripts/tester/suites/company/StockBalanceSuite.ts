@@ -1,7 +1,7 @@
 import { ErrorCodes, ProductStatus, StockOutReason, type IProduct, type IProductCategory, type IStockBalance, type IStockBalanceSummary } from "armstock-shared";
 import { defineSuite } from "../../core/Suite";
 import { equals, isTrue, matches } from "../../core/Assert";
-import { createCategory, createProduct, createStockIn, createStockOut, findCategory, KILOS_UNIT, PIECES_UNIT } from "../../shared/Builders";
+import { createCategory, createProduct, createStockIn, createStockOut, findCategory, KILOS_UNIT, PIECES_UNIT, lineOf } from "../../shared/Builders";
 import { PATHS } from "../../shared/Paths";
 import { uniqueName } from "../../shared/Random";
 import { stockOf } from "../../shared/Stock";
@@ -46,10 +46,10 @@ export default (context: ICompanySideContext) => defineSuite("Stock balance", (t
         ]);
         const { A, B, D, E, F, G } = products;
 
-        await createStockIn(storekeeper, [{ productUuid: A.uuid, quantity: 10 }, { productUuid: B.uuid, quantity: 2.5 }]);
-        await createStockIn(storekeeper, [{ productUuid: A.uuid, quantity: 10 }, { productUuid: D.uuid, quantity: 3 }]);
-        await createStockIn(storekeeper, [{ productUuid: E.uuid, quantity: 1 }, { productUuid: F.uuid, quantity: 1 }, { productUuid: G.uuid, quantity: 3 }]);
-        await createStockOut(storekeeper, [{ productUuid: A.uuid, quantity: 5 }, { productUuid: B.uuid, quantity: 2.5 }, { productUuid: E.uuid, quantity: 1 }],
+        await createStockIn(storekeeper, [lineOf(A, 10), lineOf(B, 2.5)]);
+        await createStockIn(storekeeper, [lineOf(A, 10), lineOf(D, 3)]);
+        await createStockIn(storekeeper, [lineOf(E, 1), lineOf(F, 1), lineOf(G, 3)]);
+        await createStockOut(storekeeper, [lineOf(A, 5), lineOf(B, 2.5), lineOf(E, 1)],
             { reason: StockOutReason.DAMAGED, department: null });
         for (const archived of [D, E]) {
             await storekeeper.api.ok("PATCH", `${PATHS.PRODUCTS}/${archived.uuid}/status`, { status: ProductStatus.ARCHIVED });

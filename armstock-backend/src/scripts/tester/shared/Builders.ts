@@ -64,14 +64,20 @@ export const createContact = async (actor: ITestUser, supplierUuid: string, body
 
 export interface ILineInput {
     productUuid: string;
+    /** The product's unit - stock-in sends it as the pack unit. */
+    measureUnit: MeasureUnit;
     quantity: number;
 }
 
-/** A stock-in body - a purchase when a supplier is given, otherwise initial stock. */
+/** A line of `quantity` of `product`. */
+export const lineOf = (product: Pick<IProduct, "uuid" | "measureUnit">, quantity: number): ILineInput =>
+    ({ productUuid: product.uuid, measureUnit: product.measureUnit, quantity });
+
+/** A stock-in body - a purchase when a supplier is given, otherwise initial stock. Each line is one pack of `quantity`. */
 export const stockInBody = (lines: ILineInput[], fields: Record<string, unknown> = {}) => ({
     reason: fields.supplierUuid ? StockInReason.PURCHASE : StockInReason.INITIAL_STOCK,
     date: new Date().toISOString(),
-    lines,
+    lines: lines.map(({ productUuid, measureUnit, quantity }) => ({ productUuid, packQuantity: quantity, packUnit: measureUnit, packCount: 1 })),
     ...fields,
 });
 

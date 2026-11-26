@@ -1,7 +1,7 @@
 import { ErrorCodes, StockOutReason, type IProduct, type IStockOutDetails, type ISupplier } from "armstock-shared";
 import { defineSuite } from "../../core/Suite";
 import { matches } from "../../core/Assert";
-import { createProduct, createStockIn, createStockOut, createSupplier, KILOS_UNIT, stockOutBody } from "../../shared/Builders";
+import { createProduct, createStockIn, createStockOut, createSupplier, KILOS_UNIT, stockOutBody, lineOf } from "../../shared/Builders";
 import { PATHS } from "../../shared/Paths";
 import { expectStock } from "../../shared/Stock";
 import type { ICompanySideContext } from "../../interfaces/ICompanySideContext";
@@ -19,7 +19,7 @@ export default (context: ICompanySideContext) => defineSuite("Returns to a suppl
     let lastReturn: IStockOutDetails;
 
     const returnTo = (supplier: ISupplier, product: IProduct, quantity: number) =>
-        stockOutBody([{ productUuid: product.uuid, quantity }], { reason: StockOutReason.RETURNED, supplierUuid: supplier.uuid });
+        stockOutBody([lineOf(product, quantity)], { reason: StockOutReason.RETURNED, supplierUuid: supplier.uuid });
 
     /** Refused because the supplier can't take that much back; `canReturn` is what is still returnable. */
     const expectRefused = async (method: string, url: string, supplier: ISupplier, product: IProduct, quantity: number, canReturn: number) => {
@@ -37,10 +37,10 @@ export default (context: ICompanySideContext) => defineSuite("Returns to a suppl
             createSupplier(companyA.accountant),
             createSupplier(companyA.accountant),
         ]);
-        await createStockIn(storekeeper, [{ productUuid: beer.uuid, quantity: 20 }], { supplierUuid: s1.uuid });
+        await createStockIn(storekeeper, [lineOf(beer, 20)], { supplierUuid: s1.uuid });
         // Initial stock, so the plain stock check is never what blocks these returns.
-        await createStockIn(storekeeper, [{ productUuid: beer.uuid, quantity: 100 }, { productUuid: neverBrought.uuid, quantity: 50 }]);
-        await createStockOut(storekeeper, [{ productUuid: beer.uuid, quantity: 5 }], { reason: StockOutReason.RETURNED, supplierUuid: s1.uuid });
+        await createStockIn(storekeeper, [lineOf(beer, 100), lineOf(neverBrought, 50)]);
+        await createStockOut(storekeeper, [lineOf(beer, 5)], { reason: StockOutReason.RETURNED, supplierUuid: s1.uuid });
         await expectStock(db, beer.uuid, 115);
     });
 
@@ -75,14 +75,14 @@ export default (context: ICompanySideContext) => defineSuite("Returns to a suppl
 
     test("each supplier is counted on its own", async () => {
         await expectRefused("POST", PATHS.STOCK_OUTS, s2, beer, 1, 0);
-        await createStockIn(storekeeper, [{ productUuid: beer.uuid, quantity: 4 }], { supplierUuid: s2.uuid });
+        await createStockIn(storekeeper, [lineOf(beer, 4)], { supplierUuid: s2.uuid });
         await storekeeper.api.ok("POST", PATHS.STOCK_OUTS, returnTo(s2, beer, 4));
         await expectRefused("POST", PATHS.STOCK_OUTS, s1, beer, 1, 0);
         await expectStock(db, beer.uuid, 100);
     });
 
     test("changing a return to another reason frees what it returned", async () => {
-        await storekeeper.api.ok("PUT", path(lastReturn.uuid), stockOutBody([{ productUuid: beer.uuid, quantity: 12 }]));
+        await storekeeper.api.ok("PUT", path(lastReturn.uuid), stockOutBody([lineOf(beer, 12)]));
         await storekeeper.api.ok("POST", PATHS.STOCK_OUTS, returnTo(s1, beer, 12));
         await expectRefused("POST", PATHS.STOCK_OUTS, s1, beer, 1, 0);
         await expectStock(db, beer.uuid, 88);
@@ -97,8 +97,8 @@ export default (context: ICompanySideContext) => defineSuite("Returns to a suppl
     test("a return the supplier allows still needs the stock", async () => {
         const s3 = await createSupplier(companyA.accountant);
         const wine = await createProduct(storekeeper, { allowsDecimals: true });
-        await createStockIn(storekeeper, [{ productUuid: wine.uuid, quantity: 10 }], { supplierUuid: s3.uuid });
-        await createStockOut(storekeeper, [{ productUuid: wine.uuid, quantity: 8 }]);
+        await createStockIn(storekeeper, [lineOf(wine, 10)], { supplierUuid: s3.uuid });
+        await createStockOut(storekeeper, [lineOf(wine, 8)]);
 
         const response = await storekeeper.api.rejects("POST", PATHS.STOCK_OUTS, ErrorCodes.STOCK.NOT_ENOUGH, returnTo(s3, wine, 5));
         matches(response.body.error.meta, [{ name: wine.name, available: 2 }]);

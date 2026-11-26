@@ -35,7 +35,8 @@ read only once.
 - [x] Step U5 — Remove the HR default role  +  Step U2 — Hide barcode scanner and barcode field  *(both small, one session)*
 - [x] Step U1 — Remove prices
 - [ ] Step U3 — Fixed units (replace the Units page)
-- [ ] Step U4 — Stock-in by packs + unit converter
+- [x] Step U4 — Stock-in by packs + unit converter
+- [ ] Step U4b — "Received as" on the product (Loose / In packs / Loose or in packs)
 - [ ] Step 2b+ — Recipes: amounts down to 1 mg + unit converter
 - [ ] Step 3 — Stock-out: recipes block + totals list (create)
 - [ ] Step 4 — Stock-out with recipes: list mark and view
@@ -135,20 +136,42 @@ read only once.
 
 ## Step U4 — Stock-in by packs + unit converter
 
-- [ ] **To confirm first:** how pack info is stored on the line (packs + pack size in the
-      product's unit, amount = packs × size)
-- [ ] Shared: converter helper - units of the same type, value → product unit by factor
-- [ ] DB: `stock_in_lines` gets packs and pack size - local DB recreated
-- [ ] Backend: stock-in create / edit / details with packs; amount calculated by the backend;
-      Zod rules (packs > 0, pack size > 0, whole numbers for count units)
-- [ ] Frontend
-  - [ ] Unit converter component: number field + unit picker (same type only, starts on the
+- [x] **To confirm first:** how pack info is stored on the line - decided: `pack_quantity`,
+      `pack_unit`, `pack_count` + `quantity` = total (decisions.md → Stock-in by packs)
+- [x] Shared: converter helper - units of the same type, value → product unit by factor
+- [x] DB: `stock_in_lines` gets `pack_quantity`, `pack_unit`, `pack_count` - local DB recreated
+- [x] Backend: stock-in create / edit / details with packs; total calculated by the backend;
+      Zod rules (count whole > 0, amount > 0, unit same type as the product's, whole numbers for
+      count units, at most 3 decimals after converting)
+- [x] Frontend
+  - [x] Unit converter component: number field + unit picker (same type only, starts on the
         product's unit, none for count units)
-  - [ ] Stock-in line: Packs × In one pack (with converter) = Amount (shown only)
-  - [ ] Stock-in doc view shows packs × size
-- [ ] Tests: amount = packs × size, 500 մլ → 0.5 լ, same product on two lines, count units refuse
-      decimals in pack size
-- [ ] Checked in browser: 6 × 500 մլ oil → 3 լ in stock
+  - [x] Stock-in line: Amount (with converter) × Count (prefilled 1) = Total (shown only)
+  - [x] Stock-in doc view: Count 1 → amount only; Count 2+ → `500 մլ × 6 = 3 լ`
+- [x] Tests: total = amount × count, 500 մլ → 0.5 լ, same product on two lines, count units refuse
+      decimals, wrong unit type refused
+- [x] Checked in browser: 6 × 500 մլ oil → 3 լ in stock
+
+## Step U4b — "Received as" on the product
+
+Decisions: decisions.md → Stock-in by packs → "Received as" on the product.
+
+- [ ] Shared: enum `ProductReceivedAs` (`LOOSE = 10`, `PACKS = 20`, `LOOSE_OR_PACKS = 30`) + hy / en
+      names; field on the product interfaces, product payload and `IStockLineProduct`
+- [ ] DB: `products.received_as` int, default Loose - local DB recreated
+- [ ] Backend: product create / edit / list / details save and return it (Zod: one of the enum);
+      product pickers return it. Stock-in does **not** check it
+- [ ] Frontend
+  - [ ] Product form: "Received as" select (3 options, default Loose) with a short hint; editable
+        any time
+  - [ ] Stock-in line by the product's value: Loose → only Quantity (with converter); In packs →
+        In one pack × Packs; Loose or in packs → In one pack × Packs, Packs prefilled 1. A line
+        with Packs > 1 always shows the pack fields (old docs)
+  - [ ] Column names / i18n (hy + en): Quantity, In one pack, Packs, Total - stale keys removed
+- [ ] Tests: Products suite - default Loose, each value saved and returned, edited later, a bad
+      value refused; Stock-in suite - a Loose product with Packs > 1 is still saved
+- [ ] Checked in browser: potatoes (Loose) 25 կգ; oil (In packs) 500 մլ × 6 = 3 լ; meat (Loose or
+      in packs) 12.4 կգ × 1
 
 ## Step U5 — Remove the HR default role
 

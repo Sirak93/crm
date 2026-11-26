@@ -3,8 +3,8 @@ import { computed, nextTick, ref } from 'vue';
 import { useI18n } from 'vue-i18n';
 import {
   MEASURE_UNITS,
+  PACK_COUNT_MAX,
   Permission,
-  QUANTITY_MAX,
   type IProduct,
   type IProductCategory,
   type IStockLineProduct,
@@ -12,14 +12,16 @@ import {
 import { Plus, Trash2 } from 'lucide-vue-next';
 import ProductSelect from './ProductSelect.vue';
 import CodeBadge from '../CodeBadge.vue';
+import UnitAmountInput from '../UnitAmountInput.vue';
 import ProductDialog from './ProductDialog.vue';
 import { ProductCategoryService } from '../../services/ProductCategoryService';
 import { NotificationService } from '../../services/NotificationService';
 import { useAuthStore } from '../../stores/auth';
 import { AppLogger } from '../../utils/AppLogger';
 import type { IStockInLineForm } from '../../interfaces/IStockInLineForm';
-import { emptyLine } from '../../utils/stockInLines';
-import { quantityPrecision, toLineProduct, withScannedProduct } from '../../utils/stockLines';
+import { emptyLine, lineTotal } from '../../utils/stockInLines';
+import { toLineProduct, withScannedProduct } from '../../utils/stockLines';
+import { formatQuantity } from '../../utils/format';
 import { OptionsService } from '../../services/OptionsService';
 import { useApiErrorMessage } from '../../composables/useApiErrorMessage';
 import { useBarcodeScanner } from '../../composables/useBarcodeScanner';
@@ -64,8 +66,8 @@ const removeLine = (key: number) => {
 const onProductSelect = (line: IStockInLineForm, product: IStockLineProduct) => {
   line.product = product;
   // A whole-number unit drops any decimals typed for the previous product.
-  if (!MEASURE_UNITS[product.measureUnit].allowsDecimals && line.quantity !== undefined) {
-    line.quantity = Math.round(line.quantity);
+  if (!MEASURE_UNITS[product.measureUnit].allowsDecimals && line.packQuantity !== undefined) {
+    line.packQuantity = Math.round(line.packQuantity);
   }
 };
 
@@ -99,7 +101,7 @@ const onProductCreated = (product: IProduct) => {
 };
 
 const addScannedProduct = (product: IStockLineProduct) => {
-  lines.value = withScannedProduct(lines.value, product, emptyLine).lines;
+  lines.value = withScannedProduct(lines.value, product, emptyLine, 'packCount').lines;
 };
 
 const onScan = async (barcode: string) => {
@@ -150,24 +152,39 @@ const setProductRef = (key: number, el: unknown) => {
           <span v-else class="cell-text cell-text--muted">—</span>
         </template>
       </el-table-column>
-      <el-table-column :label="$t('stockIn.lines.quantity')" min-width="130">
+      <el-table-column :label="$t('stockIn.lines.amount')" min-width="190">
+        <template #default="{ row }">
+          <UnitAmountInput
+            v-model="row.packQuantity"
+            v-model:unit="row.packUnit"
+            :product-unit="row.product?.measureUnit ?? null"
+            :disabled="!row.productUuid"
+            :invalid="showErrors && !(row.packQuantity > 0)"
+            :label="$t('stockIn.lines.amount')"
+          />
+        </template>
+      </el-table-column>
+      <el-table-column :label="$t('stockIn.lines.count')" min-width="96">
         <template #default="{ row }">
           <el-input-number
-            v-model="row.quantity"
+            v-model="row.packCount"
             :controls="false"
             :disabled="!row.productUuid"
-            :min="0"
-            :max="QUANTITY_MAX"
-            :precision="quantityPrecision(row.product)"
-            :aria-label="$t('stockIn.lines.quantity')"
-            :class="{ 'is-invalid': showErrors && !(row.quantity > 0) }"
+            :min="1"
+            :max="PACK_COUNT_MAX"
+            :precision="0"
+            :aria-label="$t('stockIn.lines.count')"
+            :class="{ 'is-invalid': showErrors && !(row.packCount > 0) }"
             class="lines-editor__number"
           />
         </template>
       </el-table-column>
-      <el-table-column :label="$t('stockIn.lines.unit')" min-width="70">
+      <el-table-column :label="$t('stockIn.lines.total')" min-width="110" align="right">
         <template #default="{ row }">
-          <span :class="['cell-text', { 'cell-text--muted': !row.product }]">{{ row.product ? unitShortName(row.product.measureUnit) : '—' }}</span>
+          <span v-if="lineTotal(row as IStockInLineForm) !== undefined" class="cell-text cell-text--strong">
+            {{ formatQuantity(lineTotal(row as IStockInLineForm)!) }} {{ unitShortName(row.product.measureUnit) }}
+          </span>
+          <span v-else class="cell-text cell-text--muted">—</span>
         </template>
       </el-table-column>
       <el-table-column width="56" align="center">

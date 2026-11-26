@@ -1,7 +1,7 @@
 import { ErrorCodes, SupplierStatus, type ISupplier, type ISupplierContact } from "armstock-shared";
 import { defineSuite } from "../../core/Suite";
 import { anyDate, equals, hasExactKeys, isNull, matches } from "../../core/Assert";
-import { createContact, createProduct, createStockIn, createSupplier } from "../../shared/Builders";
+import { createContact, createProduct, createStockIn, createSupplier, lineOf } from "../../shared/Builders";
 import { PATHS } from "../../shared/Paths";
 import { randomUuid, uniqueName } from "../../shared/Random";
 import type { ICompanySideContext } from "../../interfaces/ICompanySideContext";
@@ -72,7 +72,7 @@ export default (context: ICompanySideContext) => defineSuite("Suppliers and cont
     test("a supplier used in a stock-in can't be deleted", async () => {
         const supplier = await createSupplier(accountant, { name: uniqueName(tag) });
         const product = await createProduct(storekeeper);
-        await createStockIn(storekeeper, [{ productUuid: product.uuid, quantity: 1 }], { supplierUuid: supplier.uuid });
+        await createStockIn(storekeeper, [lineOf(product, 1)], { supplierUuid: supplier.uuid });
         await accountant.api.rejects("DELETE", path(supplier.uuid), ErrorCodes.SUPPLIER.IN_USE);
         equals(await db.count("suppliers", "uuid = $1", [supplier.uuid]), 1, "still there");
     });

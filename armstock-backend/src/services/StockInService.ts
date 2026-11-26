@@ -1,5 +1,6 @@
 import { In, type EntityManager, type SelectQueryBuilder } from "typeorm";
 import {
+    canConvert,
     ErrorCodes,
     ProductStatus,
     SupplierStatus,
@@ -66,7 +67,10 @@ export class StockInService {
             if (product.status === ProductStatus.ARCHIVED && !existing?.productUuids.has(product.uuid)) {
                 throw new AppError(ErrorCodes.PRODUCT.ARCHIVED, undefined, undefined, { uuid: product.uuid });
             }
-            StockService.assertQuantityFitsUnit(product, line.quantity);
+            StockService.assertQuantityFitsUnit(product, line.packQuantity);
+            if (!canConvert(line.packUnit, product.measureUnit)) {
+                throw new AppError(ErrorCodes.STOCK_IN.PACK_UNIT_MISMATCH, undefined, undefined, { uuid: product.uuid, packUnit: line.packUnit });
+            }
         }
 
         if (body.supplierUuid) {
@@ -189,6 +193,9 @@ export class StockInService {
             lines: lines.map((line): IStockInLine => ({
                 uuid: line.uuid,
                 product: StockService.toLineProduct(productMap.get(line.productUuid)!),
+                packQuantity: line.packQuantity,
+                packUnit: line.packUnit,
+                packCount: line.packCount,
                 quantity: line.quantity,
             })),
         };

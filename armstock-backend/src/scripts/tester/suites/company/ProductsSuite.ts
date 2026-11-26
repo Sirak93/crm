@@ -1,7 +1,7 @@
 import { BARCODE_MAX_LENGTH, ErrorCodes, MeasureUnit, PRODUCT_MEASURE_UNITS, ProductStatus, type IProduct } from "armstock-shared";
 import { defineSuite } from "../../core/Suite";
 import { anyDate, equals, hasExactKeys, isNull, isTrue, matches } from "../../core/Assert";
-import { createCategory, createProduct, createStockIn, createStockOut, findCategory, KILOS_UNIT, PIECES_UNIT } from "../../shared/Builders";
+import { createCategory, createProduct, createStockIn, createStockOut, findCategory, KILOS_UNIT, PIECES_UNIT, lineOf } from "../../shared/Builders";
 import { PATHS } from "../../shared/Paths";
 import { randomUuid, uniqueName } from "../../shared/Random";
 import type { ICompanySideContext } from "../../interfaces/ICompanySideContext";
@@ -126,9 +126,9 @@ export default (context: ICompanySideContext) => defineSuite("Products", (test) 
 
     test("a product used in a stock-in or a stock-out can't be deleted - even after its documents net to 0", async () => {
         const product = await createProduct(storekeeper);
-        await createStockIn(storekeeper, [{ productUuid: product.uuid, quantity: 2 }]);
+        await createStockIn(storekeeper, [lineOf(product, 2)]);
         await storekeeper.api.rejects("DELETE", path(product.uuid), ErrorCodes.PRODUCT.IN_USE);
-        await createStockOut(storekeeper, [{ productUuid: product.uuid, quantity: 2 }]);
+        await createStockOut(storekeeper, [lineOf(product, 2)]);
         await storekeeper.api.rejects("DELETE", path(product.uuid), ErrorCodes.PRODUCT.IN_USE);
         equals(await db.count("products", "uuid = $1", [product.uuid]), 1, "still there");
     });

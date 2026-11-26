@@ -1,7 +1,7 @@
 import { ErrorCodes, StockInReason, StockOutReason, type IProduct, type IStockInDetails, type IStockOutDetails, type ISupplier } from "armstock-shared";
 import { defineSuite } from "../../core/Suite";
 import { matches } from "../../core/Assert";
-import { createProduct, createStockIn, createStockOut, createSupplier, KILOS_UNIT, stockInBody } from "../../shared/Builders";
+import { createProduct, createStockIn, createStockOut, createSupplier, KILOS_UNIT, stockInBody, lineOf } from "../../shared/Builders";
 import { PATHS } from "../../shared/Paths";
 import { expectStock } from "../../shared/Stock";
 import type { ICompanySideContext } from "../../interfaces/ICompanySideContext";
@@ -19,7 +19,7 @@ export default (context: ICompanySideContext) => defineSuite("Stock-in after ret
     let purchase: IStockInDetails;
     let returned: IStockOutDetails;
 
-    const beerLine = (quantity: number) => [{ productUuid: beer.uuid, quantity }];
+    const beerLine = (quantity: number) => [lineOf(beer, quantity)];
 
     /** Refused because what S1 brought would drop below the 15 L already returned to it. */
     const expectBelowReturned = async (method: string, url: string, body?: unknown) => {
@@ -75,13 +75,13 @@ export default (context: ICompanySideContext) => defineSuite("Stock-in after ret
     });
 
     test("replacing beer with another product is refused", async () => {
-        await expectBelowReturned("PUT", path(purchase.uuid), stockInBody([{ productUuid: other.uuid, quantity: 15 }], { supplierUuid: s1.uuid }));
+        await expectBelowReturned("PUT", path(purchase.uuid), stockInBody([lineOf(other, 15)], { supplierUuid: s1.uuid }));
         await expectStock(db, other.uuid, 0);
     });
 
     test("other changes to the document still work", async () => {
         const { data } = await storekeeper.api.ok<IStockInDetails>("PUT", path(purchase.uuid),
-            stockInBody([...beerLine(15), { productUuid: other.uuid, quantity: 3 }], { supplierUuid: s1.uuid, invoiceNumber: "INV-9" }));
+            stockInBody([...beerLine(15), lineOf(other, 3)], { supplierUuid: s1.uuid, invoiceNumber: "INV-9" }));
         matches(data, { invoiceNumber: "INV-9", productCount: 2 });
         await expectStock(db, other.uuid, 3);
     });

@@ -68,7 +68,7 @@ To keep adding the module later cheap:
   starts on the product's unit. The value is always saved in the product's unit (350 գ → 0.35 կգ).
   Count units get no picker.
 - **The same converter is used on every amount field in the app** (decided 2026-11-26): recipe
-  amounts, stock-in "In one pack", stock-out extras and stock-out totals. One shared component,
+  amounts, stock-in Amount (one pack), stock-out extras and stock-out totals. One shared component,
   so the storekeeper learns it once.
 - **In code** (Step U3): the API sends only the unit's enum number (`measureUnit`); each app reads
   names, decimals and factor from the shared `MEASURE_UNITS` constant. English short names: pc, box,
@@ -94,15 +94,37 @@ To keep adding the module later cheap:
 
 ## Stock-in by packs (decided 2026-11-25)
 
-- Every stock-in line: **Packs × In one pack = Amount**. Packs and In one pack are typed; Amount is
-  calculated, in the product's unit, and is what stock counts.
+- Every stock-in line: **Amount × Count = Total** (order decided 2026-11-26). Amount (one pack)
+  and Count are typed; Total is calculated, in the product's unit, and is what stock counts.
   ```
-  Eggs           5  × 30 հատ    = 150 հատ
-  Sunflower oil  6  × 500 մլ    = 3 լ        (converter: 500 մլ → 0.5 լ)
-  Mayonnaise     2  × 3 կգ      = 6 կգ
-  Meat (loose)   1  × 12.4 կգ   = 12.4 կգ
+  Eggs           30 հատ    × 5   = 150 հատ
+  Sunflower oil  500 մլ    × 6   = 3 լ        (converter: 500 մլ → 0.5 լ)
+  Mayonnaise     3 կգ      × 2   = 6 կգ
+  Meat (loose)   12.4 կգ   × 1   = 12.4 կգ
   ```
-- "In one pack" has the converter (see Units). The doc keeps the pack info (packs and pack size)
+- **Count is a whole number > 0** (decided 2026-11-26). Loose goods: the weight × 1.
+  Count is prefilled with 1 on every new line.
+- **"Received as" on the product** (decided 2026-11-26, replaces "no received-as field"; not built
+  yet): Loose (Չափածո) / In packs (Տուփերով) / Loose or in packs (Չափածո կամ տուփերով). Enum
+  `LOOSE = 10`, `PACKS = 20`, `LOOSE_OR_PACKS = 30`; new products start on Loose. The stock-in line
+  shows: Loose → only Quantity; In packs → In one pack × Packs; Loose or in packs → In one pack ×
+  Packs with Packs prefilled 1. Why: "In one pack" on loose goods (25 kg potatoes) reads wrong.
+  - Editable any time, like the name - it changes no amounts or stock.
+  - **Form setting only:** the backend saves it on the product but never refuses a stock-in line
+    because of it (else an old doc with 6 packs could not be saved after the product turns Loose).
+  - Editing an old doc: a line with Packs > 1 keeps showing the pack fields, even for a Loose
+    product.
+  - Where the maths happens: the browser turns 500 մլ → 0.5 լ and shows the Total while typing;
+    the backend works out the saved total (0.5 × 6 = 3) - the browser never sends it.
+- **Doc view** (decided 2026-11-26): Count 1 → only the amount (`12.4 կգ`); Count 2+ →
+  `500 մլ × 6 = 3 լ`.
+- **Storage** (decided 2026-11-26), new columns on `stock_in_lines`:
+  - `pack_quantity` `numeric(14,3)` - one pack's amount in the product's unit (0.5)
+  - `pack_unit` `int` - `MeasureUnit` it was typed in (մլ), only for showing
+  - `pack_count` `int` - the count (6)
+  - `quantity` stays = total, calculated by the backend (pack_quantity × pack_count); stock reads
+    only `quantity`.
+- Amount has the converter (see Units). The doc keeps the pack info (packs and pack size)
   so it shows what really came in.
 - The same product may be on several lines (0.5 l and 5 l bottles in one delivery) - already allowed
   today.
