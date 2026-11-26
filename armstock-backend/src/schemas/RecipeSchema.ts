@@ -1,12 +1,12 @@
 import { z } from "zod";
-import { RecipeStatus, STOCK_DOCUMENT_MAX_LINES } from "armstock-shared";
+import { RECIPE_QUANTITY_DECIMALS, RECIPE_QUANTITY_MAX, RecipeStatus, STOCK_DOCUMENT_MAX_LINES } from "armstock-shared";
 import { optionalText, PaginatedSearchQuerySchema } from "./SharedSchema";
-import { LineQuantitySchema } from "./StockDocumentSchema";
+import { hasMaxDecimals } from "./StockDocumentSchema";
 
-// Per 1 person; up to 3 decimals for every unit - only the stock-out total is rounded.
+// Per 1 person; up to 6 decimals for every unit (1 mg in kg) - only the stock-out total is rounded.
 const RecipeLineSchema = z.object({
     productUuid: z.uuid(),
-    quantity: LineQuantitySchema,
+    quantity: z.number().positive().max(RECIPE_QUANTITY_MAX).refine(hasMaxDecimals(RECIPE_QUANTITY_DECIMALS)),
 });
 
 export const RecipeBodySchema = z.object({

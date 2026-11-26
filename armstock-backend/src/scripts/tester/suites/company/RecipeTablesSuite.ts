@@ -22,13 +22,13 @@ export default (context: ICompanySideContext) => defineSuite("Recipe tables", (t
         [recipeUuid, companyA.uuid, productUuid, position, quantity],
     );
 
-    test("a recipe starts Active, and its lines keep 3 decimals", async () => {
+    test("a recipe starts Active, and its lines keep 6 decimals", async () => {
         const product = await createProduct(storekeeper);
         const recipe = await insertRecipe("Tables check");
         equals(recipe.status, RecipeStatus.ACTIVE, "status");
-        await insertLine(recipe.uuid, product.uuid, 0.125);
+        await insertLine(recipe.uuid, product.uuid, 0.000125);
         const [line] = await db.query<{ quantity: string }>("SELECT quantity FROM recipe_lines WHERE recipe_uuid = $1", [recipe.uuid]);
-        equals(Number(line.quantity), 0.125, "quantity");
+        equals(Number(line.quantity), 0.000125, "quantity");
         await db.query("DELETE FROM recipes WHERE uuid = $1", [recipe.uuid]);
     });
 

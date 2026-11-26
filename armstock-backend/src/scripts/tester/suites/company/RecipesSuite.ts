@@ -3,6 +3,7 @@ import {
     DefaultRole,
     ErrorCodes,
     ProductStatus,
+    RECIPE_QUANTITY_MAX,
     RecipeStatus,
     type IRecipe,
     type IRecipeDetails,
@@ -42,19 +43,19 @@ export default (context: ICompanySideContext) => defineSuite("Recipes", (test) =
 
     // --- Create ---
 
-    test("create: saved Active with its lines in order; 3 decimals even for a whole-number unit; empty note as null", async () => {
+    test("create: saved Active with its lines in order; 6 decimals even for a whole-number unit; empty note as null", async () => {
         const name = `${tag} Soup`;
         const { data } = await chef.api.ok<IRecipeDetails>("POST", PATHS.RECIPES, {
             name: `  ${name} `,
             note: " ",
-            lines: [line(whole, 0.125), line(decimal, 0.1)],
+            lines: [line(whole, 0.125), line(decimal, 0.000001)],
         });
         hasExactKeys(data, [...RECIPE_KEYS, "lines"]);
         matches(data, { name, note: isNull, status: RecipeStatus.ACTIVE, lineCount: 2, createdAt: anyDate });
         hasExactKeys(data.lines[0], LINE_KEYS);
         matches(data.lines, [
             { product: { uuid: whole.uuid, name: whole.name, measureUnit: PIECES_UNIT }, quantity: 0.125 },
-            { product: { uuid: decimal.uuid, measureUnit: KILOS_UNIT }, quantity: 0.1 },
+            { product: { uuid: decimal.uuid, measureUnit: KILOS_UNIT }, quantity: 0.000001 },
         ]);
         const [row] = await db.query<{ created_by_uuid: string }>("SELECT created_by_uuid FROM recipes WHERE uuid = $1", [data.uuid]);
         equals(row.created_by_uuid, chef.uuid, "created by");
@@ -71,8 +72,16 @@ export default (context: ICompanySideContext) => defineSuite("Recipes", (test) =
         await post("lines", { lines: [line(whole, 1), line(whole, 2)] });
         await post("lines.0.quantity", { lines: [line(whole, 0)] });
         await post("lines.0.quantity", { lines: [line(whole, -1)] });
-        await post("lines.0.quantity", { lines: [line(whole, 0.0001)] });
+        await post("lines.0.quantity", { lines: [line(whole, 0.0000001)] });
+        await post("lines.0.quantity", { lines: [line(decimal, 12345.1234567)] });
+        await post("lines.0.quantity", { lines: [line(whole, RECIPE_QUANTITY_MAX + 1)] });
         await post("lines.0.productUuid", { lines: [{ productUuid: "nope", quantity: 1 }] });
+    });
+
+    test("6 decimals are kept at the largest allowed amount", async () => {
+        const quantity = RECIPE_QUANTITY_MAX - 0.000001;
+        const { data } = await chef.api.ok<IRecipeDetails>("POST", PATHS.RECIPES, recipeBody([line(decimal, quantity)], { name: uniqueName(tag) }));
+        equals(data.lines[0].quantity, quantity, "quantity");
     });
 
     test("a name is unique in the company ignoring case - archived recipes count too; another company may reuse it", async () => {

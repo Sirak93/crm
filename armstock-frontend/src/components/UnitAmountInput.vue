@@ -9,11 +9,15 @@ const props = withDefaults(defineProps<{
   productUnit: MeasureUnit | null;
   /** Decimals the value keeps in the product's unit. */
   decimals?: number;
+  /** Largest value, in the product's unit. */
+  max?: number;
+  /** Unit the picker starts on - the product's own unit when not set. */
+  startUnit?: MeasureUnit | null;
   disabled?: boolean;
   invalid?: boolean;
   /** Read out by screen readers for the number field. */
   label: string;
-}>(), { decimals: QUANTITY_DECIMALS });
+}>(), { decimals: QUANTITY_DECIMALS, max: QUANTITY_MAX, startUnit: null });
 
 /** In the product's unit. */
 const value = defineModel<number | undefined>({ required: true });
@@ -40,6 +44,11 @@ const precision = computed(() => (typedUnit.value !== null ? typedDecimals(typed
 const toTyped = (v: number | undefined) => (v === undefined ? undefined : Number((v / ratio.value).toFixed(precision.value)));
 const toValue = (typed: number | undefined) => (typed === undefined ? undefined : Number((typed * ratio.value).toFixed(valueDecimals.value)));
 
+const startingUnit = () => props.startUnit ?? props.productUnit;
+
+// Starts on the start unit unless a fitting one was already picked (an edit); a new product starts over.
+if (unit.value === null || !units.value.includes(unit.value)) unit.value = startingUnit();
+
 const typed = ref<number | undefined>(toTyped(value.value));
 
 const onTyped = (next: number | null | undefined) => {
@@ -53,10 +62,8 @@ const onUnitChange = () => {
   value.value = toValue(typed.value);
 };
 
-// Starts on the product's unit unless a fitting one was already picked (an edit); a new product starts on its own.
-if (unit.value === null || !units.value.includes(unit.value)) unit.value = props.productUnit;
 watch(() => props.productUnit, () => {
-  unit.value = props.productUnit;
+  unit.value = startingUnit();
   typed.value = toTyped(value.value);
 });
 
@@ -73,7 +80,7 @@ watch(value, (next) => {
       :controls="false"
       :disabled="disabled"
       :min="0"
-      :max="QUANTITY_MAX / ratio"
+      :max="max / ratio"
       :precision="precision"
       :aria-label="label"
       class="unit-amount__number"

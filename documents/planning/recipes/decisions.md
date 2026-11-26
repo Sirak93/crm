@@ -181,11 +181,17 @@ To keep adding the module later cheap:
 - **Status** - Active / Archived. Archived recipes do not show in the storekeeper's picker;
   old documents still show them.
 - **Lines** - at least 1. Product + amount **per 1 person**.
-  - Amount is in the **product's own unit** (the unit is shown next to the input). No unit
-    conversion - for a product in kg, 100 g is typed as `0.1`.
+  - Amount is saved in the **product's own unit**; it is typed through the converter (below).
   - Amount > 0, up to **6 decimals**, for **every** unit - "pcs" too (0.1 egg is allowed). In kg
     that is down to **1 mg** (0.000001), so salt and spices fit. Only recipe amounts get 6 decimals;
     stock, stock-in and stock-out stay at 3.
+  - **Max amount** (decided 2026-11-26): `recipe_lines.quantity` is `numeric(14,6)`, so only 8
+    digits fit before the dot. Recipe lines use their own `RECIPE_QUANTITY_MAX = 99_999_999`
+    (shared, next to `RECIPE_QUANTITY_DECIMALS = 6`); `QUANTITY_MAX` stays for stock documents. A
+    bigger column would not help - JS numbers can't hold 11 + 6 digits exactly.
+  - **Decimals check** (2026-11-26): the backend checks decimals by round-trip
+    (`Number(v.toFixed(n)) === v`), not `v * 10^n`, which refused some large 6-decimal amounts
+    because of float noise. Same check for stock documents.
   - **Converter** next to each amount: the same unit picker as everywhere (see "Units → Converter").
     The amount is always saved in the product's unit.
   - **Small units in recipes:** amounts are per 1 person, so in recipes the picker **starts on the

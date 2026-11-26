@@ -1,12 +1,13 @@
 <script setup lang="ts">
 import { nextTick } from 'vue';
-import { QUANTITY_DECIMALS, QUANTITY_MAX, type IStockLineProduct } from 'armstock-shared';
+import { RECIPE_QUANTITY_DECIMALS, RECIPE_QUANTITY_MAX, type IStockLineProduct } from 'armstock-shared';
 import { Plus, Trash2 } from 'lucide-vue-next';
 import ProductSelect from './ProductSelect.vue';
 import CodeBadge from '../CodeBadge.vue';
+import UnitAmountInput from '../UnitAmountInput.vue';
 import type { IStockOutLineForm } from '../../interfaces/IStockOutLineForm';
 import { emptyOutLine } from '../../utils/stockOutLines';
-import { useMeasureUnits } from '../../composables/useMeasureUnits';
+import { recipeUnit } from '../../utils/recipeUnit';
 
 defineProps<{
   /** Highlight rows that are not filled in correctly - set after a failed save. */
@@ -15,8 +16,6 @@ defineProps<{
 
 // Same row shape as a stock-out: product + quantity.
 const lines = defineModel<IStockOutLineForm[]>({ required: true });
-
-const { unitShortName } = useMeasureUnits();
 
 const productRefs = new Map<number, { focus: () => void }>();
 
@@ -69,25 +68,19 @@ const setProductRef = (key: number, el: unknown) => {
           <span v-else class="cell-text cell-text--muted">—</span>
         </template>
       </el-table-column>
-      <el-table-column :label="$t('recipes.lines.perPerson')" min-width="140">
+      <el-table-column :label="$t('recipes.lines.perPerson')" min-width="190">
         <template #default="{ row }">
-          <!-- 3 decimals for every unit - only the stock-out total is rounded. -->
-          <el-input-number
+          <!-- 6 decimals for every unit (1 mg in kg) - only the stock-out total is rounded. -->
+          <UnitAmountInput
             v-model="row.quantity"
-            :controls="false"
+            :product-unit="row.product?.measureUnit ?? null"
+            :start-unit="row.product ? recipeUnit(row.product.measureUnit) : null"
+            :decimals="RECIPE_QUANTITY_DECIMALS"
+            :max="RECIPE_QUANTITY_MAX"
             :disabled="!row.productUuid"
-            :min="0"
-            :max="QUANTITY_MAX"
-            :precision="QUANTITY_DECIMALS"
-            :aria-label="$t('recipes.lines.perPerson')"
-            :class="{ 'is-invalid': showErrors && !(row.quantity > 0) }"
-            class="lines-editor__number"
+            :invalid="showErrors && !(row.quantity > 0)"
+            :label="$t('recipes.lines.perPerson')"
           />
-        </template>
-      </el-table-column>
-      <el-table-column :label="$t('recipes.lines.unit')" min-width="70">
-        <template #default="{ row }">
-          <span :class="['cell-text', { 'cell-text--muted': !row.product }]">{{ row.product ? unitShortName(row.product.measureUnit) : '—' }}</span>
         </template>
       </el-table-column>
       <el-table-column width="56" align="center">
@@ -114,13 +107,8 @@ const setProductRef = (key: number, el: unknown) => {
 </template>
 
 <style scoped>
-.lines-editor__product,
-.lines-editor__number {
+.lines-editor__product {
   width: 100%;
-}
-
-.lines-editor__number :deep(.el-input__inner) {
-  text-align: right;
 }
 
 .lines-editor :deep(.is-invalid .el-input__wrapper),

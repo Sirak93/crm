@@ -3,6 +3,12 @@ export const QUANTITY_DECIMALS = 3;
 
 export const QUANTITY_MAX = 99_999_999_999;
 
+/** Matches the DB column: recipe_lines.quantity numeric(14,6) - down to 1 mg in kg. */
+export const RECIPE_QUANTITY_DECIMALS = 6;
+
+/** numeric(14,6) leaves 8 digits before the dot. */
+export const RECIPE_QUANTITY_MAX = 99_999_999;
+
 /** Most packs one stock-in line can have. */
 export const PACK_COUNT_MAX = 1_000_000;
 

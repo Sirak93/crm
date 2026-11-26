@@ -197,16 +197,18 @@ The `pack` restructure goes first - both parts touch the same code, so it is ren
 
 - [x] ~~To confirm first: fixed units vs editable units~~ - fixed units decided (Step U3)
 
-- [ ] Shared: `RECIPE_QUANTITY_DECIMALS = 6` next to `QUANTITY_DECIMALS`
-- [ ] DB: `recipe_lines.quantity` → `numeric(14,6)` (local DB recreated)
-- [ ] Backend: recipe line amounts up to 6 decimals (stock documents stay at 3)
-- [ ] Frontend
-  - [ ] Recipe amount field and details popup show up to 6 decimals
-  - [ ] The unit converter component from Step U4 on each amount, **starting on the small
+- [x] Shared: `RECIPE_QUANTITY_DECIMALS = 6` + `RECIPE_QUANTITY_MAX = 99_999_999` next to
+      `QUANTITY_DECIMALS` (decisions.md → Recipe → Max amount)
+- [x] DB: `recipe_lines.quantity` → `numeric(14,6)` (local DB recreated)
+- [x] Backend: recipe line amounts up to 6 decimals (stock documents stay at 3); decimals check by
+      round-trip (decisions.md → Recipe → Decimals check)
+- [x] Frontend
+  - [x] Recipe amount field and details popup show up to 6 decimals
+  - [x] The unit converter component from Step U4 on each amount, **starting on the small
         unit** (գ for kg products, մլ for l products; count units unchanged)
-  - [ ] Details popup shows amounts in the small unit (5 գ, not 0.005 կգ)
-  - [ ] Form hint: small amounts example ("1 g = 0.001 kg")
-- [ ] Tests: 6 decimals saved and returned (e.g. 0.000001), a 7th decimal refused
+  - [x] Details popup shows amounts in the small unit (5 գ, not 0.005 կգ)
+  - [x] Form hint: small amounts example ("1 g = 0.001 kg")
+- [x] Tests: 6 decimals saved and returned (e.g. 0.000001), a 7th decimal refused
 - [ ] Checked in browser: salt 0.5 g entered through the converter as 0.0005 kg
 
 ## Step 2c — Recipes: archive, restore, delete

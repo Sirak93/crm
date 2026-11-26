@@ -44,7 +44,7 @@ export class RecipeLine {
     position!: number;
 
     /** Per 1 person, in the product's own unit. */
-    @Column({ type: "numeric", precision: 14, scale: 3, transformer: numericTransformer })
+    @Column({ type: "numeric", precision: 14, scale: 6, transformer: numericTransformer })
     quantity!: number;
 
     @CreateDateColumn({ name: "created_at" })

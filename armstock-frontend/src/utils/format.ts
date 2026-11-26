@@ -8,8 +8,8 @@ const locale = () => i18n.global.locale.value;
 export const formatNumber = (value: number): string => new Intl.NumberFormat(locale()).format(value);
 
 /** Decimals only when there are any, e.g. 100 or 1.25 */
-export const formatQuantity = (value: number): string =>
-  new Intl.NumberFormat(locale(), { maximumFractionDigits: QUANTITY_DECIMALS }).format(value);
+export const formatQuantity = (value: number, decimals = QUANTITY_DECIMALS): string =>
+  new Intl.NumberFormat(locale(), { maximumFractionDigits: decimals }).format(value);
 
 /** For date pickers: greys out every day after today. */
 export const isFutureDay = (date: Date): boolean => {
