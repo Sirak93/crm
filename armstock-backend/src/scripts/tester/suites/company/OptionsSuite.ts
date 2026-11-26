@@ -1,8 +1,10 @@
 import {
     ProductStatus,
+    RecipeStatus,
     SupplierStatus,
     UserStatus,
     type INamedRef,
+    type IRecipeOption,
     type IStockLineProduct,
     type IStockOutReceiver,
     type ISupplierOption,
@@ -11,7 +13,7 @@ import { PICKER_LIMIT } from "../../../../constants/PickerConstants";
 import { defineSuite } from "../../core/Suite";
 import { equals, hasExactKeys, isTrue, matches } from "../../core/Assert";
 import { createNoLoginUser } from "../../shared/Accounts";
-import { createProduct, createStockIn, createStockOut, createSupplier, lineOf } from "../../shared/Builders";
+import { createProduct, createRecipe, createStockIn, createStockOut, createSupplier, lineOf } from "../../shared/Builders";
 import { PATHS } from "../../shared/Paths";
 import { uniqueName } from "../../shared/Random";
 import type { ICompanySideContext } from "../../interfaces/ICompanySideContext";
@@ -108,6 +110,28 @@ export default (context: ICompanySideContext) => defineSuite("Options (pickers)"
         const statuses = items.map((r) => r.status);
         matches(statuses, [...statuses].sort((a, b) => a - b), "active, then blocked, then archived");
         isTrue(statuses[0] === UserStatus.ACTIVE, "starts with active users");
+    });
+
+    test("recipes: active only, sorted by name, with their lines in order; another company's never", async () => {
+        const { owner } = companyA;
+        const [first, second] = await Promise.all([createProduct(storekeeper), createProduct(storekeeper, { allowsDecimals: true })]);
+        await createRecipe(owner, [lineOf(second, 0.0004), lineOf(first, 1)], { name: nameOf("Recipe B") });
+        await createRecipe(owner, [lineOf(first, 2)], { name: nameOf("Recipe A") });
+        const archived = await createRecipe(owner, [lineOf(first, 1)], { name: nameOf("Recipe C archived") });
+        await owner.api.ok("PATCH", `${PATHS.RECIPES}/${archived.uuid}/status`, { status: RecipeStatus.ARCHIVED });
+        const ofB = await createRecipe(context.companyB.owner, [lineOf(await createProduct(context.companyB.storekeeper), 1)],
+            { name: nameOf("Recipe of B") });
+
+        const items = await get<IRecipeOption[]>(`${PATHS.OPTIONS}/recipes`);
+        const ours = items.filter((r) => r.name.startsWith(tag));
+        matches(names(ours), [nameOf("Recipe A"), nameOf("Recipe B")]);
+        for (const item of items) hasExactKeys(item, ["uuid", "name", "lines"]);
+        matches(ours[1].lines, [
+            { product: { uuid: second.uuid, measureUnit: second.measureUnit }, quantity: 0.0004 },
+            { product: { uuid: first.uuid }, quantity: 1 },
+        ]);
+        for (const line of ours[1].lines) hasExactKeys(line.product, PRODUCT_OPTION_KEYS);
+        isTrue(!items.some((r) => r.uuid === ofB.uuid), "another company's recipe is not listed");
     });
 
     test("roles: every role of the company, names only", async () => {

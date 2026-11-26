@@ -2,15 +2,18 @@ import { In, type EntityManager } from "typeorm";
 import {
     ErrorCodes,
     ProductStatus,
+    RecipeStatus,
     type IPaginationMeta,
     type IRecipe,
     type IRecipeDetails,
-    type RecipeStatus,
+    type IRecipeLine,
+    type IRecipeOption,
 } from "armstock-shared";
 import { AppDataSource } from "../config/database";
 import { Recipe } from "../models/Recipe";
 import { RecipeLine } from "../models/RecipeLine";
 import { Product } from "../models/Product";
+import { StockOutRecipe } from "../models/StockOutRecipe";
 import { AppError } from "../utils/AppError";
 import { onUniqueViolation } from "../utils/onUniqueViolation";
 import { UNIQUE_KEYS } from "../constants/UniqueKeys";
@@ -23,6 +26,7 @@ export class RecipeService {
     private repo = AppDataSource.getRepository(Recipe);
     private lineRepo = AppDataSource.getRepository(RecipeLine);
     private productRepo = AppDataSource.getRepository(Product);
+    private stockOutRecipeRepo = AppDataSource.getRepository(StockOutRecipe);
 
     private static toRecipe(recipe: Recipe, lineCount: number): IRecipe {
         return {
@@ -103,22 +107,37 @@ export class RecipeService {
         };
     }
 
-    async get(companyUuid: string, uuid: string): Promise<IRecipeDetails> {
-        const recipe = await this.findOrFail(companyUuid, uuid);
-        const lines = await this.lineRepo.find({ where: { recipeUuid: recipe.uuid }, order: { position: "ASC" } });
+    /** Lines of the given recipes in their order, with their products, by recipe uuid. */
+    private async linesOf(recipeUuids: string[]): Promise<Map<string, IRecipeLine[]>> {
+        const byRecipe = new Map<string, IRecipeLine[]>(recipeUuids.map((uuid) => [uuid, []]));
+        if (!recipeUuids.length) return byRecipe;
+        const lines = await this.lineRepo.find({ where: { recipeUuid: In(recipeUuids) }, order: { position: "ASC" } });
         const products = lines.length
-            ? await this.productRepo.find({ where: { uuid: In(lines.map((l) => l.productUuid)) } })
+            ? await this.productRepo.find({ where: { uuid: In([...new Set(lines.map((l) => l.productUuid))]) } })
             : [];
         const productMap = new Map(products.map((p) => [p.uuid, p]));
 
-        return {
-            ...RecipeService.toRecipe(recipe, lines.length),
-            lines: lines.map((line) => ({
+        for (const line of lines) {
+            byRecipe.get(line.recipeUuid)!.push({
                 uuid: line.uuid,
                 product: StockService.toLineProduct(productMap.get(line.productUuid)!),
                 quantity: line.quantity,
-            })),
-        };
+            });
+        }
+        return byRecipe;
+    }
+
+    async get(companyUuid: string, uuid: string): Promise<IRecipeDetails> {
+        const recipe = await this.findOrFail(companyUuid, uuid);
+        const lines = (await this.linesOf([recipe.uuid])).get(recipe.uuid)!;
+        return { ...RecipeService.toRecipe(recipe, lines.length), lines };
+    }
+
+    /** Active recipes for the stock-out form, with their lines so the form works out the amounts. */
+    async options(companyUuid: string): Promise<IRecipeOption[]> {
+        const recipes = await this.repo.find({ where: { companyUuid, status: RecipeStatus.ACTIVE }, order: { name: "ASC" } });
+        const linesByRecipe = await this.linesOf(recipes.map((r) => r.uuid));
+        return recipes.map((recipe) => ({ uuid: recipe.uuid, name: recipe.name, lines: linesByRecipe.get(recipe.uuid)! }));
     }
 
     async create(companyUuid: string, userUuid: string, body: RecipeBody): Promise<IRecipeDetails> {
@@ -166,12 +185,7 @@ export class RecipeService {
     /** Only while no stock-out used it - otherwise it is archived instead. Its lines go with it (CASCADE). */
     async delete(companyUuid: string, uuid: string): Promise<void> {
         const recipe = await this.findOrFail(companyUuid, uuid);
-        if (await RecipeService.isUsedInStockOut()) throw new AppError(ErrorCodes.RECIPE.IN_USE, undefined, undefined, { uuid });
+        if (await this.stockOutRecipeRepo.exists({ where: { recipeUuid: uuid } })) throw new AppError(ErrorCodes.RECIPE.IN_USE, undefined, undefined, { uuid });
         await this.repo.remove(recipe);
-    }
-
-    /** No stock-out saves recipes until Step 3 - it then looks this recipe up in the stock-out recipe rows. */
-    private static async isUsedInStockOut(): Promise<boolean> {
-        return false;
     }
 }

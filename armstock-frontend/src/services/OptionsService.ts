@@ -1,4 +1,4 @@
-import type { IAppResponse, INamedRef, IStockLineProduct, IStockOutReceiver, ISupplierOption } from 'armstock-shared';
+import type { IAppResponse, INamedRef, IRecipeOption, IStockLineProduct, IStockOutReceiver, ISupplierOption } from 'armstock-shared';
 import ApiService from './ApiService';
 import type { IProductOptionsFilters } from '../interfaces/IProductOptionsFilters';
 
@@ -18,6 +18,12 @@ export const OptionsService = {
 
   async receivers(): Promise<IStockOutReceiver[]> {
     const response = await ApiService.get<IAppResponse<IStockOutReceiver[]>>('/options/receivers');
+    return response.data.data!;
+  },
+
+  /** Active recipes with their lines, for the stock-out form. */
+  async recipes(): Promise<IRecipeOption[]> {
+    const response = await ApiService.get<IAppResponse<IRecipeOption[]>>('/options/recipes');
     return response.data.data!;
   },
 

@@ -142,6 +142,7 @@ export const COMPANY_ROUTES: ICompanyRoute[] = [
     { method: GET, path: () => `${PATHS.OPTIONS}/suppliers`, permission: null },
     { method: GET, path: () => `${PATHS.OPTIONS}/receivers`, permission: null },
     { method: GET, path: () => `${PATHS.OPTIONS}/roles`, permission: null },
+    { method: GET, path: () => `${PATHS.OPTIONS}/recipes`, permission: null },
 ];
 
 /** The "not found" each target gives when its uuid is not in the caller's company. */

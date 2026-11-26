@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed, onMounted, ref } from 'vue';
+import { computed, onMounted, ref, watch } from 'vue';
 import { useRouter } from 'vue-router';
 import { useI18n } from 'vue-i18n';
 import type { FormInstance, FormItemRule, FormRules } from 'element-plus';
@@ -7,6 +7,7 @@ import {
   StockOutDepartment,
   StockOutReason,
   type INamedRef,
+  type IRecipeOption,
   type IStockOutDetails,
   type IStockOutPayload,
 } from 'armstock-shared';
@@ -17,7 +18,10 @@ import LoadError from '../../components/LoadError.vue';
 import SupplierSelect from '../../components/company/SupplierSelect.vue';
 import ReceiverSelect from '../../components/company/ReceiverSelect.vue';
 import StockOutLinesEditor from '../../components/company/StockOutLinesEditor.vue';
+import StockOutRecipesEditor from '../../components/company/StockOutRecipesEditor.vue';
+import StockOutTotalsTable from '../../components/company/StockOutTotalsTable.vue';
 import { StockOutService } from '../../services/StockOutService';
+import { OptionsService } from '../../services/OptionsService';
 import { NotificationService } from '../../services/NotificationService';
 import { useApiErrorMessage } from '../../composables/useApiErrorMessage';
 import { useUnsavedChanges } from '../../composables/useUnsavedChanges';
@@ -30,8 +34,10 @@ import {
   STOCK_OUT_REASONS,
 } from '../../constants/stockOutReasons';
 import type { IStockOutLineForm } from '../../interfaces/IStockOutLineForm';
+import type { IStockOutRecipeForm } from '../../interfaces/IStockOutRecipeForm';
 import { formatNumber, isFutureDay } from '../../utils/format';
 import { emptyOutLine, isOutLineValid, toOutLineForm } from '../../utils/stockOutLines';
+import { buildTotals, isBlankOutLine } from '../../utils/stockOutTotals';
 import { AppLogger } from '../../utils/AppLogger';
 
 const props = defineProps<{
@@ -56,12 +62,17 @@ const form = ref({
   receiverUuid: '',
   note: '',
 });
+// The extras block - products given out without a recipe.
 const lines = ref<IStockOutLineForm[]>([emptyOutLine()]);
+const recipeRows = ref<IStockOutRecipeForm[]>([]);
+const recipeOptions = ref<IRecipeOption[]>([]);
+// Totals the storekeeper changed, by product uuid; every other product shows its prefill.
+const totalOverrides = ref<Record<string, number | undefined>>({});
 const original = ref<IStockOutDetails | null>(null);
 const selectedSupplier = ref<INamedRef | null>(null);
 const selectedReceiver = ref<INamedRef | null>(null);
 
-const isLoading = ref(isEdit.value);
+const isLoading = ref(true);
 const hasError = ref(false);
 const isSaving = ref(false);
 const showLineErrors = ref(false);
@@ -70,11 +81,34 @@ const isReturned = computed(() => form.value.reason === StockOutReason.RETURNED)
 const isIssued = computed(() => form.value.reason === StockOutReason.ISSUED);
 const isOther = computed(() => form.value.reason === StockOutReason.OTHER);
 
+const recipeMap = computed(() => new Map(recipeOptions.value.map((recipe) => [recipe.uuid, recipe])));
+const filledLines = computed(() => lines.value.filter((line) => !isBlankOutLine(line)));
+const totalRows = computed(() => buildTotals(recipeRows.value, recipeMap.value, filledLines.value));
+const totals = computed(() => Object.fromEntries(totalRows.value.map((row) => [
+  row.product.uuid,
+  row.product.uuid in totalOverrides.value ? totalOverrides.value[row.product.uuid] : row.prefill,
+])));
+
+// A product whose prefill changes (a recipe, persons or extra changed) drops the typed total and shows the new prefill.
+let lastPrefills = new Map<string, number>();
+watch(() => totalRows.value.map((row) => `${row.product.uuid}:${row.prefill}`).join('|'), () => {
+  const prefills = new Map(totalRows.value.map((row) => [row.product.uuid, row.prefill]));
+  totalOverrides.value = Object.fromEntries(Object.entries(totalOverrides.value)
+    .filter(([uuid]) => prefills.has(uuid) && lastPrefills.get(uuid) === prefills.get(uuid)));
+  lastPrefills = prefills;
+});
+
+const setTotal = (productUuid: string, value: number | undefined) => {
+  totalOverrides.value = { ...totalOverrides.value, [productUuid]: value };
+};
+
 /** What is compared to tell whether anything changed. Row keys and product details are left out. */
 const snapshotOf = () => JSON.stringify({
   ...form.value,
   date: form.value.date?.getTime(),
   lines: lines.value.map(({ productUuid, quantity }) => ({ productUuid, quantity })),
+  recipes: recipeRows.value.map(({ recipeUuid, persons }) => ({ recipeUuid, persons })),
+  totals: totals.value,
 });
 const savedSnapshot = ref(snapshotOf());
 const isDirty = computed(() => snapshotOf() !== savedSnapshot.value);
@@ -108,11 +142,18 @@ const listRoute = { name: ROUTE_NAME.COMPANY_STOCK_OUTS };
 const backRoute = computed(() => (props.uuid ? { name: ROUTE_NAME.COMPANY_STOCK_OUT, params: { uuid: props.uuid } } : listRoute));
 
 const load = async () => {
-  if (!props.uuid) return;
   isLoading.value = true;
   hasError.value = false;
   try {
-    const doc = await StockOutService.get(props.uuid);
+    const [recipes, doc] = await Promise.all([
+      OptionsService.recipes(),
+      props.uuid ? StockOutService.get(props.uuid) : null,
+    ]);
+    recipeOptions.value = recipes;
+    if (!doc) {
+      savedSnapshot.value = snapshotOf();
+      return;
+    }
     // Only the creator edits; the API refuses anyone else too.
     if (doc.createdBy.uuid !== authStore.user?.uuid) {
       await router.replace(backRoute.value);
@@ -129,6 +170,7 @@ const load = async () => {
     };
     selectedSupplier.value = doc.supplier;
     selectedReceiver.value = doc.receiver;
+    // Recipe rows and extra parts come back with stock-out edit (Step 5); until then each line is all extra.
     lines.value = doc.lines.map(toOutLineForm);
     savedSnapshot.value = snapshotOf();
   } catch (error) {
@@ -148,17 +190,28 @@ const toPayload = (): IStockOutPayload => ({
   department: isIssued.value ? form.value.department || null : null,
   receiverUuid: isIssued.value ? form.value.receiverUuid || null : null,
   note: form.value.note.trim() || null,
-  lines: lines.value.map((line) => ({ productUuid: line.productUuid, quantity: line.quantity! })),
+  recipes: isIssued.value ? recipeRows.value.map((row) => ({ recipeUuid: row.recipeUuid, persons: row.persons! })) : [],
+  lines: totalRows.value.map((row) => ({
+    productUuid: row.product.uuid,
+    quantity: totals.value[row.product.uuid]!,
+    extraQuantity: row.extra,
+  })),
 });
 
 const save = async () => {
   const isHeaderValid = await formRef.value?.validate().catch(() => false);
-  const areLinesValid = lines.value.length > 0 && lines.value.every(isOutLineValid);
-  showLineErrors.value = !areLinesValid;
-  if (!areLinesValid) {
-    NotificationService.error(t(lines.value.length ? 'stockOut.form.linesInvalid' : 'stockOut.form.linesRequired'));
-  }
-  if (!isHeaderValid || !areLinesValid) return;
+  const invalidKey = !recipeRows.value.every((row) => row.recipeUuid && row.persons && row.persons >= 1)
+    ? 'stockOut.form.recipesInvalid'
+    : !filledLines.value.every(isOutLineValid)
+      ? 'stockOut.form.linesInvalid'
+      : !totalRows.value.length
+        ? 'stockOut.form.linesRequired'
+        : totalRows.value.some((row) => totals.value[row.product.uuid] === undefined)
+          ? 'stockOut.form.totalsInvalid'
+          : null;
+  showLineErrors.value = !!invalidKey;
+  if (invalidKey) NotificationService.error(t(invalidKey));
+  if (!isHeaderValid || invalidKey) return;
 
   isSaving.value = true;
   try {
@@ -194,7 +247,8 @@ const save = async () => {
         <el-form ref="formRef" :model="form" :rules="rules" label-position="top" :disabled="isSaving" @submit.prevent="save">
           <div class="form-row">
             <el-form-item :label="$t('stockOut.form.reason')" prop="reason">
-              <el-select v-model="form.reason" :aria-label="$t('stockOut.form.reason')">
+              <!-- Recipes are for Issued only, so the reason stays while any recipe row is there. -->
+              <el-select v-model="form.reason" :disabled="recipeRows.length > 0" :aria-label="$t('stockOut.form.reason')">
                 <el-option v-for="reason in STOCK_OUT_REASONS" :key="reason" :label="$t(STOCK_OUT_REASON_LABEL[reason])" :value="reason" />
               </el-select>
             </el-form-item>
@@ -223,7 +277,8 @@ const save = async () => {
 
           <div v-if="isIssued" class="form-row">
             <el-form-item :label="$t('stockOut.form.department')" prop="department">
-              <el-select v-model="form.department" :aria-label="$t('stockOut.form.department')">
+              <!-- An issue always goes to the kitchen. -->
+              <el-select v-model="form.department" disabled :aria-label="$t('stockOut.form.department')">
                 <el-option
                   v-for="department in STOCK_OUT_DEPARTMENTS"
                   :key="department"
@@ -253,6 +308,16 @@ const save = async () => {
       </AppCard>
 
       <AppCard class="lines-card">
+        <StockOutRecipesEditor
+          v-model="recipeRows"
+          :recipes="recipeOptions"
+          :recipe-map="recipeMap"
+          :disabled="!isIssued || isSaving"
+          :show-errors="showLineErrors"
+        />
+      </AppCard>
+
+      <AppCard class="lines-card">
         <StockOutLinesEditor
           v-model="lines"
           :show-errors="showLineErrors"
@@ -260,9 +325,13 @@ const save = async () => {
         />
       </AppCard>
 
+      <AppCard class="lines-card">
+        <StockOutTotalsTable :rows="totalRows" :totals="totals" :show-errors="showLineErrors" @update="setTotal" />
+      </AppCard>
+
       <div class="form-bar" role="region" :aria-label="$t('stockOut.form.summary')">
         <div class="form-bar__summary">
-          <span>{{ $t('stockOut.form.rowCount', { count: formatNumber(lines.length) }) }}</span>
+          <span>{{ $t('stockOut.form.rowCount', { count: formatNumber(totalRows.length) }) }}</span>
         </div>
         <div class="form-bar__actions">
           <el-button :disabled="isSaving" @click="router.push(backRoute)">{{ $t('common.cancel') }}</el-button>

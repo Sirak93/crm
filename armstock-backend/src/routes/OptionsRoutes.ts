@@ -15,5 +15,6 @@ router.get("/products", validate(ProductOptionsQuerySchema, "query"), asyncHandl
 router.get("/suppliers", validate(SupplierOptionsQuerySchema, "query"), asyncHandler(optionsController.suppliers));
 router.get("/receivers", asyncHandler(optionsController.receivers));
 router.get("/roles", asyncHandler(optionsController.roles));
+router.get("/recipes", asyncHandler(optionsController.recipes));
 
 export default router;

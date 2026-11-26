@@ -278,6 +278,10 @@ without recipes is a normal stock-out, like today.
 - **No preview popup (decided 2026-11-26):** the totals list is the preview. "Save" saves right
   away; stock / kitchen errors show in the existing error list popup.
 - Same stock check and error list as a normal stock-out.
+- **Payload (built in Step 3):** `recipes: [{ recipeUuid, persons }]` and `lines` = the totals list,
+  one per product: `{ productUuid, quantity (total), extraQuantity (sum of that product's extras) }`.
+  The form sums the extras per product; the backend copies the recipe lines itself. `/options/recipes`
+  returns active recipes with their lines, so the form works out the amounts.
 
 ### Reason and department (decided 2026-11-26)
 

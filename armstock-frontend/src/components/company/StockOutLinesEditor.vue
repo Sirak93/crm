@@ -1,18 +1,19 @@
 <script setup lang="ts">
 import { nextTick, ref } from 'vue';
 import { useI18n } from 'vue-i18n';
-import { MEASURE_UNITS, QUANTITY_MAX, type IStockLineProduct } from 'armstock-shared';
+import { MEASURE_UNITS, type IStockLineProduct } from 'armstock-shared';
 import { Plus, Trash2 } from 'lucide-vue-next';
 import ProductSelect from './ProductSelect.vue';
 import CodeBadge from '../CodeBadge.vue';
+import UnitAmountInput from '../UnitAmountInput.vue';
 import type { IStockOutLineForm } from '../../interfaces/IStockOutLineForm';
 import { emptyOutLine } from '../../utils/stockOutLines';
-import { quantityPrecision, withScannedProduct } from '../../utils/stockLines';
+import { isBlankOutLine } from '../../utils/stockOutTotals';
+import { withScannedProduct } from '../../utils/stockLines';
 import { OptionsService } from '../../services/OptionsService';
 import { NotificationService } from '../../services/NotificationService';
 import { useApiErrorMessage } from '../../composables/useApiErrorMessage';
 import { useBarcodeScanner } from '../../composables/useBarcodeScanner';
-import { useMeasureUnits } from '../../composables/useMeasureUnits';
 
 const props = defineProps<{
   /** Highlight rows that are not filled in correctly - set after a failed save. */
@@ -25,7 +26,6 @@ const lines = defineModel<IStockOutLineForm[]>({ required: true });
 
 const { t } = useI18n();
 const { parseError } = useApiErrorMessage();
-const { unitShortName } = useMeasureUnits();
 
 const productRefs = new Map<number, { focus: () => void }>();
 const isScanning = ref(false);
@@ -83,7 +83,12 @@ const setProductRef = (key: number, el: unknown) => {
 
 <template>
   <div class="lines-editor">
-    <el-table :data="lines" class="app-table lines-editor__table" row-key="key">
+    <div class="lines-editor__head">
+      <h2 class="lines-editor__title">{{ $t('stockOut.lines.title') }}</h2>
+      <p class="lines-editor__hint">{{ $t('stockOut.lines.hint') }}</p>
+    </div>
+
+    <el-table v-if="lines.length" :data="lines" class="app-table lines-editor__table" row-key="key">
       <el-table-column type="index" label="#" width="48" align="center" />
       <el-table-column :label="$t('stockOut.lines.product')" min-width="260">
         <template #default="{ row }">
@@ -94,7 +99,7 @@ const setProductRef = (key: number, el: unknown) => {
             :placeholder="$t('stockOut.lines.productPlaceholder')"
             for-stock-out
             :supplied-by="suppliedBy"
-            :class="{ 'is-invalid': showErrors && !row.productUuid }"
+            :class="{ 'is-invalid': showErrors && !isBlankOutLine(row as IStockOutLineForm) && !row.productUuid }"
             class="lines-editor__product"
             @select="(product: IStockLineProduct) => onProductSelect(row as IStockOutLineForm, product)"
           />
@@ -106,24 +111,15 @@ const setProductRef = (key: number, el: unknown) => {
           <span v-else class="cell-text cell-text--muted">—</span>
         </template>
       </el-table-column>
-      <el-table-column :label="$t('stockOut.lines.quantity')" min-width="140">
+      <el-table-column :label="$t('stockOut.lines.quantity')" min-width="200">
         <template #default="{ row }">
-          <el-input-number
+          <UnitAmountInput
             v-model="row.quantity"
-            :controls="false"
+            :product-unit="row.product?.measureUnit ?? null"
             :disabled="!row.productUuid"
-            :min="0"
-            :max="QUANTITY_MAX"
-            :precision="quantityPrecision(row.product)"
-            :aria-label="$t('stockOut.lines.quantity')"
-            :class="{ 'is-invalid': showErrors && !(row.quantity > 0) }"
-            class="lines-editor__number"
+            :invalid="showErrors && !isBlankOutLine(row as IStockOutLineForm) && !(row.quantity > 0)"
+            :label="$t('stockOut.lines.quantity')"
           />
-        </template>
-      </el-table-column>
-      <el-table-column :label="$t('stockOut.lines.unit')" min-width="70">
-        <template #default="{ row }">
-          <span :class="['cell-text', { 'cell-text--muted': !row.product }]">{{ row.product ? unitShortName(row.product.measureUnit) : '—' }}</span>
         </template>
       </el-table-column>
       <el-table-column width="56" align="center">
@@ -150,13 +146,25 @@ const setProductRef = (key: number, el: unknown) => {
 </template>
 
 <style scoped>
-.lines-editor__product,
-.lines-editor__number {
-  width: 100%;
+.lines-editor__head {
+  padding: 0.875rem clamp(0.75rem, 2vw, 1.25rem) 0.5rem;
 }
 
-.lines-editor__number :deep(.el-input__inner) {
-  text-align: right;
+.lines-editor__title {
+  margin: 0;
+  font-size: var(--text-base);
+  font-weight: 600;
+  color: var(--text-main);
+}
+
+.lines-editor__hint {
+  margin: 0.25rem 0 0;
+  font-size: var(--text-sm);
+  color: var(--text-muted);
+}
+
+.lines-editor__product {
+  width: 100%;
 }
 
 .lines-editor :deep(.is-invalid .el-input__wrapper),

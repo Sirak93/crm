@@ -1,5 +1,7 @@
 import { useI18n } from 'vue-i18n';
-import { MEASURE_UNITS, type MeasureUnit } from 'armstock-shared';
+import { convertQuantity, MEASURE_UNITS, RECIPE_QUANTITY_DECIMALS, type MeasureUnit } from 'armstock-shared';
+import { formatQuantity } from '../utils/format';
+import { recipeUnit } from '../utils/recipeUnit';
 import type { Locale } from '../constants/constants';
 
 /** Unit names in the current language, from the fixed unit list. */
@@ -9,5 +11,11 @@ export const useMeasureUnits = () => {
   const unitName = (unit: MeasureUnit): string => MEASURE_UNITS[unit].name[locale.value as Locale];
   const unitShortName = (unit: MeasureUnit): string => MEASURE_UNITS[unit].shortName[locale.value as Locale];
 
-  return { unitName, unitShortName };
+  /** A recipe amount in the small unit, as the chef typed it: 5 գ, not 0.005 կգ. */
+  const formatRecipeAmount = (quantity: number, unit: MeasureUnit): string => {
+    const small = recipeUnit(unit);
+    return `${formatQuantity(convertQuantity(quantity, unit, small, RECIPE_QUANTITY_DECIMALS), RECIPE_QUANTITY_DECIMALS)} ${unitShortName(small)}`;
+  };
+
+  return { unitName, unitShortName, formatRecipeAmount };
 };

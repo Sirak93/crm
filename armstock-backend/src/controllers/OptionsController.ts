@@ -4,6 +4,7 @@ import { ProductService } from "../services/ProductService";
 import { SupplierService } from "../services/SupplierService";
 import { StockOutService } from "../services/StockOutService";
 import { RoleService } from "../services/RoleService";
+import { RecipeService } from "../services/RecipeService";
 import type { ProductOptionsQuery, SupplierOptionsQuery } from "../schemas/OptionsSchema";
 import { AppResponse } from "../utils/AppResponse";
 import { requireCompanyUuid } from "../utils/requireCompanyUuid";
@@ -14,6 +15,7 @@ export class OptionsController {
     private supplierService = new SupplierService();
     private stockOutService = new StockOutService();
     private roleService = new RoleService();
+    private recipeService = new RecipeService();
 
     products = async (req: AuthRequest, res: Response) => {
         const query = req.query as unknown as ProductOptionsQuery;
@@ -27,6 +29,10 @@ export class OptionsController {
 
     receivers = async (req: AuthRequest, res: Response) => {
         return AppResponse.send(res, await this.stockOutService.receivers(requireCompanyUuid(req)));
+    };
+
+    recipes = async (req: AuthRequest, res: Response) => {
+        return AppResponse.send(res, await this.recipeService.options(requireCompanyUuid(req)));
     };
 
     roles = async (req: AuthRequest, res: Response) => {

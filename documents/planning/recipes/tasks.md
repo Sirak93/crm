@@ -228,36 +228,36 @@ The `pack` restructure goes first - both parts touch the same code, so it is ren
 Needs Steps U3 (fixed units) and U4 (converter component). Decisions: decisions.md →
 "Stock-out with recipes" and "Tables".
 
-- [ ] Shared: interfaces / payload - recipe rows (recipe + persons), extra lines, totals per
+- [x] Shared: interfaces / payload - recipe rows (recipe + persons), extra lines, totals per
       product
-- [ ] DB
-  - [ ] `stock_out_recipes`, `stock_out_recipe_lines` (`quantity` and `needed_quantity`
+- [x] DB
+  - [x] `stock_out_recipes`, `stock_out_recipe_lines` (`quantity` and `needed_quantity`
         `numeric(14,6)`)
-  - [ ] `stock_out_lines`: `extra_quantity`, `department`; unique (`stock_out_uuid`,
+  - [x] `stock_out_lines`: `extra_quantity`, `department`; unique (`stock_out_uuid`,
         `product_uuid`) - local DB recreated
-- [ ] Backend (normal stock-out create, `STOCK_OUT_CREATE`)
-  - [ ] Zod: recipes only with reason Issued; Issued → department Kitchen; each recipe once;
+- [x] Backend (normal stock-out create, `STOCK_OUT_CREATE`)
+  - [x] Zod: recipes only with reason Issued; Issued → department Kitchen; each recipe once;
         persons whole number > 0; active recipes only; each product once in the totals; total
         ≥ 0; extras ≥ 0
-  - [ ] Recipe delete: fill in `RecipeService.isUsedInStockOut` (any `stock_out_recipes` row
+  - [x] Recipe delete: the in-use lookup in `RecipeService.delete` (any `stock_out_recipes` row
         → `RECIPE_IN_USE`); test it
-  - [ ] Saves recipe rows + a copy of each recipe's lines (`needed_quantity` = quantity ×
+  - [x] Saves recipe rows + a copy of each recipe's lines (`needed_quantity` = quantity ×
         persons); lines = one row per product (total in `quantity`, extra part in
         `extra_quantity`, doc's department copied)
-  - [ ] Totals are taken as sent (the storekeeper's numbers); the backend checks that every
+  - [x] Totals are taken as sent (the storekeeper's numbers); the backend checks that every
         recipe product has a total line
-  - [ ] Same S check and product locks as today
-  - [ ] `/options/recipes` - active recipes, open to every member
-- [ ] Frontend (the normal stock-out form)
-  - [ ] Reason Issued → Department Kitchen preselected and disabled
-  - [ ] Recipes block (only enabled with reason Issued): recipe + persons rows, used recipes
+  - [x] Same S check and product locks as today
+  - [x] `/options/recipes` - active recipes, open to every member
+- [x] Frontend (the normal stock-out form)
+  - [x] Reason Issued → Department Kitchen preselected and disabled
+  - [x] Recipes block (only enabled with reason Issued): recipe + persons rows, used recipes
         hidden, "Add row" copies persons, calculated amounts shown read-only; any recipe row
         disables Reason
-  - [ ] Extra products block (today's lines), with the unit converter
-  - [ ] Totals list: each product once, prefilled recipes + extras (count units and kg / l rounded up,
+  - [x] Extra products block (today's lines), with the unit converter
+  - [x] Totals list: each product once, prefilled recipes + extras (count units and kg / l rounded up,
         kg / l to 3 decimals), editable, ≥ 0, with the unit converter; for every reason
-  - [ ] "Save" saves right away; errors in the existing error list popup (no preview popup)
-- [ ] Tests (`StockOutSuite` + new cases): recipe with other reason refused, department forced,
+  - [x] "Save" saves right away; errors in the existing error list popup (no preview popup)
+- [x] Tests (`StockOutSuite` + new cases): recipe with other reason refused, department forced,
       duplicates / archived recipes / persons 0 refused, copy saved with needed amounts, one row
       per product, extra part saved, total 0 allowed, S goes down by totals, options endpoint,
       permissions

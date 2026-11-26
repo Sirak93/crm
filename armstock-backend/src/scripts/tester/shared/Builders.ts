@@ -86,12 +86,16 @@ export const createStockIn = async (actor: ITestUser, lines: ILineInput[], field
     return data;
 };
 
-/** A stock-out body - an issue to the kitchen unless `fields` say otherwise. */
+/**
+ * A stock-out body - an issue to the kitchen unless `fields` say otherwise. No recipes: each line's
+ * total is all extra. A body with recipes sets `recipes` and `lines` in `fields`.
+ */
 export const stockOutBody = (lines: ILineInput[], fields: Record<string, unknown> = {}) => ({
     reason: StockOutReason.ISSUED,
     department: StockOutDepartment.KITCHEN,
     date: new Date().toISOString(),
-    lines: lines.map(({ productUuid, quantity }) => ({ productUuid, quantity })),
+    recipes: [],
+    lines: lines.map(({ productUuid, quantity }) => ({ productUuid, quantity, extraQuantity: quantity })),
     ...fields,
 });
 

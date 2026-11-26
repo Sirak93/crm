@@ -9,6 +9,9 @@ export const RECIPE_QUANTITY_DECIMALS = 6;
 /** numeric(14,6) leaves 8 digits before the dot. */
 export const RECIPE_QUANTITY_MAX = 99_999_999;
 
+/** Most persons one stock-out recipe row can be made for. */
+export const RECIPE_PERSONS_MAX = 10_000;
+
 /** Most packs one stock-in line can have. */
 export const PACK_COUNT_MAX = 1_000_000;
 

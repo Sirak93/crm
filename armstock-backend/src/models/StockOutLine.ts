@@ -5,15 +5,18 @@ import {
     CreateDateColumn,
     UpdateDateColumn,
     Index,
+    Unique,
     ManyToOne,
     JoinColumn,
 } from "typeorm";
+import { StockOutDepartment } from "armstock-shared";
 import { StockOut } from "./StockOut";
 import { Product } from "./Product";
 import { numericTransformer } from "../utils/numericTransformer";
 
+/** One row per product of the document - the total given out. The unique key also serves lookups by document. */
 @Entity("stock_out_lines")
-@Index("IDX_stock_out_lines_stock_out_uuid", ["stockOutUuid"])
+@Unique("UQ_stock_out_lines_stock_out_product", ["stockOutUuid", "productUuid"])
 @Index("IDX_stock_out_lines_company_product", ["companyUuid", "productUuid"])
 export class StockOutLine {
     @PrimaryGeneratedColumn("uuid")
@@ -41,8 +44,17 @@ export class StockOutLine {
     @Column({ type: "int" })
     position!: number;
 
+    /** The total really given out - stock goes down by it. */
     @Column({ type: "numeric", precision: 14, scale: 3, transformer: numericTransformer })
     quantity!: number;
+
+    /** Part typed as an extra (no recipe), 0 if none. In no sum - kept so the document shows what was typed. */
+    @Column({ name: "extra_quantity", type: "numeric", precision: 14, scale: 3, default: 0, transformer: numericTransformer })
+    extraQuantity!: number;
+
+    /** Copied from the document so the kitchen balance sums without a join. */
+    @Column({ type: "int", nullable: true })
+    department!: StockOutDepartment | null;
 
     @CreateDateColumn({ name: "created_at" })
     createdAt!: Date;

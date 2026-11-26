@@ -175,6 +175,10 @@ export const ErrorCodes = {
             CODE: "STOCK_OUT_RETURN_EXCEEDS_SUPPLIER",
             STATUS: 409,
         },
+        RECIPE_PRODUCT_MISSING: {
+            CODE: "STOCK_OUT_RECIPE_PRODUCT_MISSING",
+            STATUS: 422,
+        },
     },
     STOCK: {
         NOT_ENOUGH: {
@@ -194,6 +198,10 @@ export const ErrorCodes = {
         IN_USE: {
             CODE: "RECIPE_IN_USE",
             STATUS: 409,
+        },
+        ARCHIVED: {
+            CODE: "RECIPE_ARCHIVED",
+            STATUS: 422,
         },
     },
     SUPPLIER_CONTACT: {

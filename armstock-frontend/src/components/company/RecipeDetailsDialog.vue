@@ -1,14 +1,13 @@
 <script setup lang="ts">
 import { ref, watch } from 'vue';
-import { convertQuantity, RECIPE_QUANTITY_DECIMALS, type IRecipeDetails, type IRecipeLine } from 'armstock-shared';
+import type { IRecipeDetails } from 'armstock-shared';
 import { ChefHat, Pencil } from 'lucide-vue-next';
 import AppDialog from '../AppDialog.vue';
 import LoadError from '../LoadError.vue';
 import CodeBadge from '../CodeBadge.vue';
 import { RecipeService } from '../../services/RecipeService';
 import { RECIPE_STATUS_TAG } from '../../constants/statusTags';
-import { formatNumber, formatQuantity } from '../../utils/format';
-import { recipeUnit } from '../../utils/recipeUnit';
+import { formatNumber } from '../../utils/format';
 import { AppLogger } from '../../utils/AppLogger';
 import { useMeasureUnits } from '../../composables/useMeasureUnits';
 
@@ -22,16 +21,10 @@ const emit = defineEmits<{ edit: [uuid: string] }>();
 
 const open = defineModel<boolean>({ required: true });
 
-const { unitShortName } = useMeasureUnits();
+const { formatRecipeAmount } = useMeasureUnits();
 
 const recipe = ref<IRecipeDetails | null>(null);
 
-/** In the small unit, as typed: 5 գ, not 0.005 կգ. */
-const formatAmount = (line: IRecipeLine): string => {
-  const unit = recipeUnit(line.product.measureUnit);
-  const amount = convertQuantity(line.quantity, line.product.measureUnit, unit, RECIPE_QUANTITY_DECIMALS);
-  return `${formatQuantity(amount, RECIPE_QUANTITY_DECIMALS)} ${unitShortName(unit)}`;
-};
 const isLoading = ref(false);
 const hasError = ref(false);
 
@@ -89,7 +82,7 @@ watch(open, (isOpen) => {
         </el-table-column>
         <el-table-column :label="$t('recipes.lines.perPerson')" min-width="130" align="right">
           <template #default="{ row }">
-            <span class="cell-text">{{ formatAmount(row as IRecipeLine) }}</span>
+            <span class="cell-text">{{ formatRecipeAmount(row.quantity, row.product.measureUnit) }}</span>
           </template>
         </el-table-column>
       </el-table>

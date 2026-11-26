@@ -1,4 +1,4 @@
-import { MEASURE_UNITS, QUANTITY_DECIMALS, type IProduct, type IStockLineProduct } from 'armstock-shared';
+import type { IProduct, IStockLineProduct } from 'armstock-shared';
 import type { IScanCount } from '../interfaces/IScanCount';
 import type { IStockOutLineForm } from '../interfaces/IStockOutLineForm';
 
@@ -15,10 +15,6 @@ export const toLineProduct = (product: IProduct): IStockLineProduct => ({
   measureUnit: product.measureUnit,
   receivedAs: product.receivedAs,
 });
-
-/** Decimals a line's quantity may have - none for a whole-number unit. */
-export const quantityPrecision = (product: IStockLineProduct | null): number =>
-  product && !MEASURE_UNITS[product.measureUnit].allowsDecimals ? 0 : QUANTITY_DECIMALS;
 
 type ScannableLine = Pick<IStockOutLineForm, 'productUuid' | 'product'>;
 

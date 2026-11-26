@@ -13,6 +13,8 @@ const COMPANY_TABLES: Record<string, string> = {
     stock_in_lines: "company_uuid = $1",
     stock_outs: "company_uuid = $1",
     stock_out_lines: "company_uuid = $1",
+    stock_out_recipes: "company_uuid = $1",
+    stock_out_recipe_lines: "company_uuid = $1",
     recipes: "company_uuid = $1",
     recipe_lines: "company_uuid = $1",
 };

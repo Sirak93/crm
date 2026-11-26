@@ -3,10 +3,12 @@ import {
     DefaultRole,
     ErrorCodes,
     ProductStatus,
+    RecipeStatus,
     StockOutDepartment,
     StockOutReason,
     SupplierStatus,
     type IProduct,
+    type IRecipeDetails,
     type IStockOut,
     type IStockOutDetails,
     type IStockOutSummary,
@@ -15,7 +17,17 @@ import {
 import { defineSuite } from "../../core/Suite";
 import { equals, isNull, isTrue, matches } from "../../core/Assert";
 import { createMember, createNoLoginUser } from "../../shared/Accounts";
-import { createProduct, createStockIn, createStockOut, createSupplier, KILOS_UNIT, PIECES_UNIT, stockOutBody, lineOf } from "../../shared/Builders";
+import {
+    createProduct,
+    createRecipe,
+    createStockIn,
+    createStockOut,
+    createSupplier,
+    KILOS_UNIT,
+    PIECES_UNIT,
+    stockOutBody,
+    lineOf,
+} from "../../shared/Builders";
 import { PATHS } from "../../shared/Paths";
 import { randomUuid } from "../../shared/Random";
 import { expectStock, stockOf } from "../../shared/Stock";
@@ -127,10 +139,8 @@ export default (context: ICompanySideContext) => defineSuite("Stock-out", (test)
         await expectStock(db, pieces.uuid, 4);
     });
 
-    test("the same product on two lines counts together", async () => {
-        const response = await storekeeper.api.rejects("POST", PATHS.STOCK_OUTS, ErrorCodes.STOCK.NOT_ENOUGH,
-            stockOutBody([lineOf(pieces, 3), lineOf(pieces, 2)]));
-        matches(response.body.error.meta, [{ name: pieces.name, available: 4 }]);
+    test("each product once in the totals - a second line of it is refused", async () => {
+        await storekeeper.api.rejectsField("POST", PATHS.STOCK_OUTS, "lines", stockOutBody([lineOf(pieces, 1), lineOf(pieces, 1)]));
         await expectStock(db, pieces.uuid, 4);
     });
 
@@ -159,9 +169,37 @@ export default (context: ICompanySideContext) => defineSuite("Stock-out", (test)
         await storekeeper.api.rejectsField("POST", PATHS.STOCK_OUTS, "lines.0.quantity", stockOutBody(lines(kilos, 0.2555)));
     });
 
-    test("zero or negative quantity is refused", async () => {
-        await storekeeper.api.rejectsField("POST", PATHS.STOCK_OUTS, "lines.0.quantity", stockOutBody(lines(pieces, 0)));
+    test("a total of 0 is allowed (listed, nothing given); negative totals or extras are refused", async () => {
+        const doc = await createStockOut(storekeeper, lines(pieces, 0));
+        matches(doc, { productCount: 1, lines: [{ product: { uuid: pieces.uuid }, quantity: 0 }] });
+        await expectStock(db, pieces.uuid, 4);
         await storekeeper.api.rejectsField("POST", PATHS.STOCK_OUTS, "lines.0.quantity", stockOutBody(lines(pieces, -1)));
+        await storekeeper.api.rejectsField("POST", PATHS.STOCK_OUTS, "lines.0.extraQuantity",
+            stockOutBody([], { lines: [{ productUuid: pieces.uuid, quantity: 1, extraQuantity: -1 }] }));
+    });
+
+    test("an extra part with a fraction of a whole-number unit is refused", async () => {
+        await storekeeper.api.rejects("POST", PATHS.STOCK_OUTS, ErrorCodes.PRODUCT.QUANTITY_NOT_WHOLE,
+            stockOutBody([], { lines: [{ productUuid: pieces.uuid, quantity: 1, extraQuantity: 0.5 }] }));
+    });
+
+    test("an extra part is saved; the department is copied onto the lines (null when not an issue)", async () => {
+        const issued = await createStockOut(storekeeper, [], { lines: [{ productUuid: kilos.uuid, quantity: 0.2, extraQuantity: 0.1 }] });
+        const damaged = await createStockOut(storekeeper, lines(kilos, 0.1), { reason: StockOutReason.DAMAGED, department: null });
+        const rows = await db.query<{ stock_out_uuid: string; quantity: string; extra_quantity: string; department: number | null }>(
+            "SELECT stock_out_uuid, quantity, extra_quantity, department FROM stock_out_lines WHERE stock_out_uuid = ANY($1)",
+            [[issued.uuid, damaged.uuid]],
+        );
+        const byDoc = new Map(rows.map((r) => [r.stock_out_uuid, r]));
+        matches(byDoc.get(issued.uuid), { quantity: "0.200", extra_quantity: "0.100", department: StockOutDepartment.KITCHEN });
+        matches(byDoc.get(damaged.uuid), { extra_quantity: "0.100", department: isNull });
+        await storekeeper.api.ok("DELETE", path(issued.uuid));
+        await storekeeper.api.ok("DELETE", path(damaged.uuid));
+        await expectStock(db, kilos.uuid, 3.745);
+    });
+
+    test("an issue goes to the kitchen - another department is refused", async () => {
+        await storekeeper.api.rejectsField("POST", PATHS.STOCK_OUTS, "department", stockOutBody(lines(pieces, 1), { department: 999 }));
     });
 
     test("a date in the future is refused", async () => {
@@ -319,6 +357,148 @@ export default (context: ICompanySideContext) => defineSuite("Stock-out", (test)
         isTrue(!data.some((d) => d.uuid === doc.uuid), "company B's list does not show company A's document");
         await expectStock(db, editProduct.uuid, 8);
         await expectStock(db, productOfB.uuid, 10);
+    });
+
+    // --- Recipes ---
+
+    let chef: ITestUser;
+    let oil: IProduct;
+    let egg: IProduct;
+    let salt: IProduct;
+    let soup: IRecipeDetails;
+    let omelette: IRecipeDetails;
+
+    const recipeRow = (recipe: { uuid: string }, persons: number) => ({ recipeUuid: recipe.uuid, persons });
+    const total = (product: IProduct, quantity: number, extraQuantity = 0) => ({ productUuid: product.uuid, quantity, extraQuantity });
+    const recipeBody = (recipes: unknown[], totals: unknown[], fields: Record<string, unknown> = {}) =>
+        stockOutBody([], { recipes, lines: totals, ...fields });
+
+    test("prepares a head chef, products with stock and two recipes", async () => {
+        [chef, oil, egg, salt] = await Promise.all([
+            createMember(companyA, { role: DefaultRole.CHEF, permissions: [...DEFAULT_ROLE_PERMISSIONS[DefaultRole.CHEF]], label: "out-chef" }),
+            createProduct(storekeeper, { allowsDecimals: true }),
+            createProduct(storekeeper),
+            createProduct(storekeeper, { allowsDecimals: true }),
+        ]);
+        await createStockIn(storekeeper, [lineOf(oil, 10), lineOf(egg, 100), lineOf(salt, 1)]);
+        soup = await createRecipe(chef, [lineOf(oil, 0.05), lineOf(egg, 1)]);
+        omelette = await createRecipe(chef, [lineOf(egg, 0.5), lineOf(salt, 0.0004)]);
+    });
+
+    test("recipes + extras: recipe rows, a copy with needed amounts, one row per product with its extra part; stock goes down by the totals", async () => {
+        const { data: doc } = await storekeeper.api.ok<IStockOutDetails>("POST", PATHS.STOCK_OUTS, recipeBody(
+            [recipeRow(soup, 10), recipeRow(omelette, 3)],
+            [total(oil, 1, 0.3), total(egg, 12), total(salt, 0.002)],
+        ));
+        matches(doc, { productCount: 3 });
+
+        const rows = await db.query<{ recipe_uuid: string; position: number; persons: number }>(
+            "SELECT recipe_uuid, position, persons FROM stock_out_recipes WHERE stock_out_uuid = $1 ORDER BY position", [doc.uuid]);
+        matches(rows, [{ recipe_uuid: soup.uuid, position: 1, persons: 10 }, { recipe_uuid: omelette.uuid, position: 2, persons: 3 }]);
+
+        const copied = await db.query<{ recipe_uuid: string; product_uuid: string; position: number; quantity: string; needed_quantity: string }>(
+            `SELECT r.recipe_uuid, l.product_uuid, l.position, l.quantity, l.needed_quantity
+             FROM stock_out_recipe_lines l JOIN stock_out_recipes r ON r.uuid = l.stock_out_recipe_uuid
+             WHERE r.stock_out_uuid = $1 AND l.company_uuid = $2 ORDER BY r.position, l.position`,
+            [doc.uuid, companyA.uuid],
+        );
+        matches(copied.map((l) => [l.product_uuid, l.position, Number(l.quantity), Number(l.needed_quantity)]), [
+            [oil.uuid, 1, 0.05, 0.5],
+            [egg.uuid, 2, 1, 10],
+            [egg.uuid, 1, 0.5, 1.5],
+            [salt.uuid, 2, 0.0004, 0.0012],
+        ]);
+
+        const saved = await db.query<{ product_uuid: string; quantity: string; extra_quantity: string; department: number }>(
+            "SELECT product_uuid, quantity, extra_quantity, department FROM stock_out_lines WHERE stock_out_uuid = $1 ORDER BY position", [doc.uuid]);
+        matches(saved.map((l) => [l.product_uuid, Number(l.quantity), Number(l.extra_quantity), l.department]), [
+            [oil.uuid, 1, 0.3, StockOutDepartment.KITCHEN],
+            [egg.uuid, 12, 0, StockOutDepartment.KITCHEN],
+            [salt.uuid, 0.002, 0, StockOutDepartment.KITCHEN],
+        ]);
+
+        await expectStock(db, oil.uuid, 9);
+        await expectStock(db, egg.uuid, 88);
+        await expectStock(db, salt.uuid, 0.998);
+    });
+
+    test("a total may be 0 or below the recipe needs", async () => {
+        await storekeeper.api.ok("POST", PATHS.STOCK_OUTS, recipeBody([recipeRow(soup, 10)], [total(oil, 0), total(egg, 4)]));
+        await expectStock(db, oil.uuid, 9);
+        await expectStock(db, egg.uuid, 84);
+    });
+
+    test("recipes only with reason Issued", async () => {
+        for (const fields of [
+            { reason: StockOutReason.DAMAGED, department: null },
+            { reason: StockOutReason.RETURNED, supplierUuid: supplier.uuid },
+            { reason: StockOutReason.OTHER, note: "Tasting" },
+        ]) {
+            await storekeeper.api.rejectsField("POST", PATHS.STOCK_OUTS, "recipes",
+                recipeBody([recipeRow(soup, 1)], [total(oil, 1), total(egg, 1)], fields));
+        }
+    });
+
+    test("each recipe once; persons a whole number above 0", async () => {
+        const totals = [total(oil, 1), total(egg, 1)];
+        await storekeeper.api.rejectsField("POST", PATHS.STOCK_OUTS, "recipes", recipeBody([recipeRow(soup, 1), recipeRow(soup, 2)], totals));
+        for (const persons of [0, -1, 1.5]) {
+            await storekeeper.api.rejectsField("POST", PATHS.STOCK_OUTS, "recipes.0.persons", recipeBody([recipeRow(soup, persons)], totals));
+        }
+    });
+
+    test("every recipe product needs a line in the totals", async () => {
+        const before = await stockOutCount();
+        await storekeeper.api.rejects("POST", PATHS.STOCK_OUTS, ErrorCodes.STOCK_OUT.RECIPE_PRODUCT_MISSING,
+            recipeBody([recipeRow(soup, 1)], [total(oil, 1)]));
+        equals(await stockOutCount(), before, "stock-out count");
+    });
+
+    test("an archived recipe is refused; an unknown or another company's recipe is not found", async () => {
+        const archived = await createRecipe(chef, [lineOf(oil, 1)]);
+        await chef.api.ok("PATCH", `${PATHS.RECIPES}/${archived.uuid}/status`, { status: RecipeStatus.ARCHIVED });
+        await storekeeper.api.rejects("POST", PATHS.STOCK_OUTS, ErrorCodes.RECIPE.ARCHIVED, recipeBody([recipeRow(archived, 1)], [total(oil, 1)]));
+
+        const productOfBRecipe = await createRecipe(companyB.owner, [lineOf(productOfB, 1)]);
+        await storekeeper.api.rejects("POST", PATHS.STOCK_OUTS, ErrorCodes.RECIPE.NOT_FOUND,
+            recipeBody([recipeRow(productOfBRecipe, 1)], [total(oil, 1)]));
+        await storekeeper.api.rejects("POST", PATHS.STOCK_OUTS, ErrorCodes.RECIPE.NOT_FOUND,
+            recipeBody([{ recipeUuid: randomUuid(), persons: 1 }], [total(oil, 1)]));
+    });
+
+    test("totals over the stock are refused, with what is available", async () => {
+        const response = await storekeeper.api.rejects("POST", PATHS.STOCK_OUTS, ErrorCodes.STOCK.NOT_ENOUGH,
+            recipeBody([recipeRow(soup, 1)], [total(oil, 9.001), total(egg, 1)]));
+        matches(response.body.error.meta, [{ name: oil.name, available: 9 }]);
+        await expectStock(db, oil.uuid, 9);
+    });
+
+    test("a recipe used in a stock-out can't be deleted; once the document is gone it can", async () => {
+        const used = await createRecipe(chef, [lineOf(oil, 0.1)]);
+        const { data: doc } = await storekeeper.api.ok<IStockOutDetails>("POST", PATHS.STOCK_OUTS,
+            recipeBody([recipeRow(used, 2)], [total(oil, 0.2)]));
+        await chef.api.rejects("DELETE", `${PATHS.RECIPES}/${used.uuid}`, ErrorCodes.RECIPE.IN_USE);
+
+        await storekeeper.api.ok("DELETE", path(doc.uuid));
+        equals(await db.count("stock_out_recipes", "stock_out_uuid = $1", [doc.uuid]), 0, "recipe rows left");
+        await chef.api.ok("DELETE", `${PATHS.RECIPES}/${used.uuid}`);
+        await expectStock(db, oil.uuid, 9);
+    });
+
+    test("edit replaces the recipe rows", async () => {
+        const { data: doc } = await storekeeper.api.ok<IStockOutDetails>("POST", PATHS.STOCK_OUTS,
+            recipeBody([recipeRow(soup, 2)], [total(oil, 0.1), total(egg, 2)]));
+        await storekeeper.api.ok("PUT", path(doc.uuid), recipeBody([recipeRow(omelette, 4)], [total(egg, 2), total(salt, 0.002)]));
+        const rows = await db.query<{ recipe_uuid: string; persons: number }>(
+            "SELECT recipe_uuid, persons FROM stock_out_recipes WHERE stock_out_uuid = $1", [doc.uuid]);
+        matches(rows, [{ recipe_uuid: omelette.uuid, persons: 4 }]);
+        equals(await db.count("stock_out_recipe_lines", "company_uuid = $1 AND stock_out_recipe_uuid NOT IN (SELECT uuid FROM stock_out_recipes)",
+            [companyA.uuid]), 0, "copied lines without a recipe row");
+        await storekeeper.api.ok("DELETE", path(doc.uuid));
+    });
+
+    test("a member without stock-out permissions can't save a doc with recipes", async () => {
+        await chef.api.rejects("POST", PATHS.STOCK_OUTS, ErrorCodes.AUTH.FORBIDDEN, recipeBody([recipeRow(soup, 1)], [total(oil, 1), total(egg, 1)]));
     });
 
     // --- List and summary ---
