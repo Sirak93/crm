@@ -80,7 +80,9 @@ export const seedDevCompany = async () => {
             code: null,
             barcode: null,
             measureUnit: MeasureUnit[product.unit as keyof typeof MeasureUnit],
-            receivedAs: ProductReceivedAs.LOOSE,
+            receivedAs: product.receivedAs
+                ? ProductReceivedAs[product.receivedAs as keyof typeof ProductReceivedAs]
+                : ProductReceivedAs.LOOSE,
             categoryUuid: findByName(categories, product.category),
         });
     }
