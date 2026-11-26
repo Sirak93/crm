@@ -1,6 +1,6 @@
 <script setup lang="ts">
-import type { IRecipe } from 'armstock-shared';
-import { Eye, Pencil } from 'lucide-vue-next';
+import { RecipeStatus, type IRecipe } from 'armstock-shared';
+import { Archive, ArchiveRestore, Eye, Pencil, Trash2 } from 'lucide-vue-next';
 import RowActionsMenu from '../RowActionsMenu.vue';
 import { RECIPE_STATUS_TAG } from '../../constants/statusTags';
 import { ROW_ACTION, type RowAction } from '../../constants/rowActions';
@@ -9,16 +9,24 @@ import { formatNumber } from '../../utils/format';
 defineProps<{
   recipes: IRecipe[];
   canEdit: boolean;
+  canArchive: boolean;
+  canDelete: boolean;
+  /** uuid of the recipe being saved or deleted. */
+  updatingUuid: string | null;
 }>();
 
 const emit = defineEmits<{
   view: [recipe: IRecipe];
   edit: [recipe: IRecipe];
+  setStatus: [recipe: IRecipe, status: RecipeStatus];
+  delete: [recipe: IRecipe];
 }>();
 
 const onAction = (recipe: IRecipe, action: RowAction) => {
-  if (action === ROW_ACTION.EDIT) emit('edit', recipe);
-  else emit('view', recipe);
+  if (action === ROW_ACTION.VIEW) emit('view', recipe);
+  else if (action === ROW_ACTION.EDIT) emit('edit', recipe);
+  else if (action === ROW_ACTION.DELETE) emit('delete', recipe);
+  else emit('setStatus', recipe, action === ROW_ACTION.ARCHIVE ? RecipeStatus.ARCHIVED : RecipeStatus.ACTIVE);
 };
 </script>
 
@@ -46,6 +54,7 @@ const onAction = (recipe: IRecipe, action: RowAction) => {
         <div @click.stop>
           <RowActionsMenu
             :label="$t('recipes.actionsFor', { name: row.name })"
+            :disabled="updatingUuid === row.uuid"
             @command="(action) => onAction(row as IRecipe, action as RowAction)"
           >
             <el-dropdown-item :command="ROW_ACTION.VIEW">
@@ -55,6 +64,18 @@ const onAction = (recipe: IRecipe, action: RowAction) => {
             <el-dropdown-item v-if="canEdit" :command="ROW_ACTION.EDIT">
               <Pencil :size="16" aria-hidden="true" />
               <span>{{ $t('recipes.actions.edit') }}</span>
+            </el-dropdown-item>
+            <el-dropdown-item v-if="canArchive && row.status === RecipeStatus.ACTIVE" :command="ROW_ACTION.ARCHIVE">
+              <Archive :size="16" aria-hidden="true" />
+              <span>{{ $t('recipes.actions.archive') }}</span>
+            </el-dropdown-item>
+            <el-dropdown-item v-else-if="canArchive" :command="ROW_ACTION.RESTORE">
+              <ArchiveRestore :size="16" aria-hidden="true" />
+              <span>{{ $t('recipes.actions.restore') }}</span>
+            </el-dropdown-item>
+            <el-dropdown-item v-if="canDelete" :command="ROW_ACTION.DELETE" class="dropdown-item--danger">
+              <Trash2 :size="16" aria-hidden="true" />
+              <span>{{ $t('recipes.actions.delete') }}</span>
             </el-dropdown-item>
           </RowActionsMenu>
         </div>

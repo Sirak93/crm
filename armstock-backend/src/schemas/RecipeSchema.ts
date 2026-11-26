@@ -22,5 +22,10 @@ export const RecipesQuerySchema = PaginatedSearchQuerySchema.extend({
     status: z.coerce.number().pipe(z.enum(RecipeStatus)).optional(),
 });
 
+export const RecipeStatusBodySchema = z.object({
+    status: z.enum(RecipeStatus),
+});
+
 export type RecipeBody = z.infer<typeof RecipeBodySchema>;
 export type RecipesQuery = z.infer<typeof RecipesQuerySchema>;
+export type RecipeStatusBody = z.infer<typeof RecipeStatusBodySchema>;

@@ -5,6 +5,7 @@ import {
     type IPaginationMeta,
     type IRecipe,
     type IRecipeDetails,
+    type RecipeStatus,
 } from "armstock-shared";
 import { AppDataSource } from "../config/database";
 import { Recipe } from "../models/Recipe";
@@ -153,5 +154,24 @@ export class RecipeService {
             await RecipeService.saveLines(manager, recipe, body);
         }).catch(onUniqueViolation(UNIQUE_ERRORS));
         return this.get(companyUuid, uuid);
+    }
+
+    async setStatus(companyUuid: string, uuid: string, status: RecipeStatus): Promise<IRecipe> {
+        const recipe = await this.findOrFail(companyUuid, uuid);
+        recipe.status = status;
+        const [, lineCount] = await Promise.all([this.repo.save(recipe), this.lineRepo.count({ where: { recipeUuid: uuid } })]);
+        return RecipeService.toRecipe(recipe, lineCount);
+    }
+
+    /** Only while no stock-out used it - otherwise it is archived instead. Its lines go with it (CASCADE). */
+    async delete(companyUuid: string, uuid: string): Promise<void> {
+        const recipe = await this.findOrFail(companyUuid, uuid);
+        if (await RecipeService.isUsedInStockOut()) throw new AppError(ErrorCodes.RECIPE.IN_USE, undefined, undefined, { uuid });
+        await this.repo.remove(recipe);
+    }
+
+    /** No stock-out saves recipes until Step 3 - it then looks this recipe up in the stock-out recipe rows. */
+    private static async isUsedInStockOut(): Promise<boolean> {
+        return false;
     }
 }

@@ -176,12 +176,13 @@ read only once.
 
 ## Step 2c — Recipes: archive, restore, delete
 
-- [ ] Backend: archive, restore, delete
-  - [ ] Delete only while never used in a stock-out (else archive) - the check is wired
+- [x] Backend: archive, restore, delete
+  - [x] Delete only while never used in a stock-out (else archive) - the check is wired
         now, it starts refusing once Step 3 saves by-recipe docs
-  - [ ] Product delete blocked while a recipe uses it - clear error, not a DB error
-- [ ] Frontend: archive / restore / delete row actions, by permission
-- [ ] Tests: archive / restore / delete, permissions, product delete refused while used
+        (`RecipeService.isUsedInStockOut` - **Step 3 fills in the lookup**)
+  - [x] Product delete blocked while a recipe uses it - clear error, not a DB error
+- [x] Frontend: archive / restore / delete row actions, by permission
+- [x] Tests: archive / restore / delete, permissions, product delete refused while used
 - [ ] Checked in browser: the head chef archives, restores and deletes a recipe; deleting a
       product used in a recipe shows the error
 
@@ -201,6 +202,8 @@ Needs Steps U3 (fixed units) and U4 (converter component). Decisions: decisions.
   - [ ] Zod: recipes only with reason Issued; Issued → department Kitchen; each recipe once;
         persons whole number > 0; active recipes only; each product once in the totals; total
         ≥ 0; extras ≥ 0
+  - [ ] Recipe delete: fill in `RecipeService.isUsedInStockOut` (any `stock_out_recipes` row
+        → `RECIPE_IN_USE`); test it
   - [ ] Saves recipe rows + a copy of each recipe's lines (`needed_quantity` = quantity ×
         persons); lines = one row per product (total in `quantity`, extra part in
         `extra_quantity`, doc's department copied)

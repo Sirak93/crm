@@ -1,7 +1,8 @@
 <script setup lang="ts">
 import { computed, ref } from 'vue';
 import { useRouter } from 'vue-router';
-import { Permission, type IPaginationMeta, type IRecipe } from 'armstock-shared';
+import { useI18n } from 'vue-i18n';
+import { Permission, RecipeStatus, type IPaginationMeta, type IRecipe } from 'armstock-shared';
 import { ChefHat, Plus } from 'lucide-vue-next';
 import PageHeader from '../../components/PageHeader.vue';
 import AppCard from '../../components/AppCard.vue';
@@ -10,6 +11,8 @@ import RecipeFilters from '../../components/company/RecipeFilters.vue';
 import RecipesTable from '../../components/company/RecipesTable.vue';
 import RecipeDetailsDialog from '../../components/company/RecipeDetailsDialog.vue';
 import { RecipeService } from '../../services/RecipeService';
+import { NotificationService } from '../../services/NotificationService';
+import { useApiErrorMessage } from '../../composables/useApiErrorMessage';
 import { useAuthStore } from '../../stores/auth';
 import { DEFAULT_PAGE_SIZE, ROUTE_NAME } from '../../constants/constants';
 import type { IRecipeFilters } from '../../interfaces/IRecipeFilters';
@@ -17,12 +20,15 @@ import { formatNumber } from '../../utils/format';
 import { AppLogger } from '../../utils/AppLogger';
 
 const router = useRouter();
+const { t } = useI18n();
+const { parseError } = useApiErrorMessage();
 const authStore = useAuthStore();
 
 const recipes = ref<IRecipe[]>([]);
 const meta = ref<IPaginationMeta>({ page: 1, pageSize: DEFAULT_PAGE_SIZE, total: 0, totalPages: 0 });
 const filters = ref<IRecipeFilters>({});
 const isLoading = ref(true);
+const updatingUuid = ref<string | null>(null);
 const hasLoaded = ref(false);
 const hasError = ref(false);
 
@@ -32,6 +38,8 @@ const detailsUuid = ref<string | null>(null);
 const hasFilters = computed(() => !!filters.value.search);
 const canAdd = computed(() => !!authStore.user?.can(Permission.RECIPE_ADD));
 const canEdit = computed(() => !!authStore.user?.can(Permission.RECIPE_EDIT));
+const canArchive = computed(() => !!authStore.user?.can(Permission.RECIPE_ARCHIVE));
+const canDelete = computed(() => !!authStore.user?.can(Permission.RECIPE_DELETE));
 
 const load = async (page = meta.value.page) => {
   isLoading.value = true;
@@ -60,6 +68,41 @@ const openDetails = (recipe: IRecipe) => {
 };
 
 const openEdit = (uuid: string) => router.push({ name: ROUTE_NAME.COMPANY_RECIPE_EDIT, params: { uuid } });
+
+const setStatus = async (recipe: IRecipe, status: RecipeStatus) => {
+  updatingUuid.value = recipe.uuid;
+  try {
+    await RecipeService.setStatus(recipe.uuid, status);
+    NotificationService.success(t(status === RecipeStatus.ARCHIVED ? 'recipes.archived' : 'recipes.restored', { name: recipe.name }));
+    // The row may no longer match the status filter.
+    await load();
+  } catch (error) {
+    NotificationService.error(parseError(error, 'recipes.saveError'));
+  } finally {
+    updatingUuid.value = null;
+  }
+};
+
+const deleteRecipe = async (recipe: IRecipe) => {
+  const confirmed = await NotificationService.confirm(
+    t('recipes.deleteConfirmTitle', { name: recipe.name }),
+    t('recipes.deleteConfirmText'),
+    t('recipes.actions.delete'),
+  );
+  if (!confirmed) return;
+
+  updatingUuid.value = recipe.uuid;
+  try {
+    await RecipeService.delete(recipe.uuid);
+    NotificationService.success(t('recipes.deleted', { name: recipe.name }));
+    // Stays on the same page unless it became empty.
+    await load(recipes.value.length === 1 && meta.value.page > 1 ? meta.value.page - 1 : meta.value.page);
+  } catch (error) {
+    NotificationService.error(parseError(error, 'recipes.deleteError'));
+  } finally {
+    updatingUuid.value = null;
+  }
+};
 </script>
 
 <template>
@@ -93,8 +136,13 @@ const openEdit = (uuid: string) => router.push({ name: ROUTE_NAME.COMPANY_RECIPE
         v-loading="isLoading"
         :recipes="recipes"
         :can-edit="canEdit"
+        :can-archive="canArchive"
+        :can-delete="canDelete"
+        :updating-uuid="updatingUuid"
         @view="openDetails"
         @edit="(recipe) => openEdit(recipe.uuid)"
+        @set-status="setStatus"
+        @delete="deleteRecipe"
       />
     </AppCard>
 

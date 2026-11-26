@@ -157,14 +157,63 @@ export default (context: ICompanySideContext) => defineSuite("Recipes", (test) =
         matches(data, { uuid: recipe.uuid, lineCount: 2, lines: [{ product: { uuid: decimal.uuid }, quantity: 3 }, { product: { uuid: whole.uuid }, quantity: 1 }] });
     });
 
+    // --- Archive, restore, delete ---
+
+    test("archive and back; the list item comes back; bad status refused", async () => {
+        const recipe = await createRecipe(chef, [line(whole, 1), line(decimal, 1)]);
+        const setStatus = (status: RecipeStatus) => chef.api.ok<IRecipe>("PATCH", `${path(recipe.uuid)}/status`, { status });
+        const { data } = await setStatus(RecipeStatus.ARCHIVED);
+        hasExactKeys(data, RECIPE_KEYS);
+        matches(data, { uuid: recipe.uuid, status: RecipeStatus.ARCHIVED, lineCount: 2 });
+        matches((await chef.api.ok<IRecipeDetails>("GET", path(recipe.uuid))).data, { status: RecipeStatus.ARCHIVED, lineCount: 2 });
+        matches((await setStatus(RecipeStatus.ACTIVE)).data, { status: RecipeStatus.ACTIVE });
+        await chef.api.rejectsField("PATCH", `${path(recipe.uuid)}/status`, "status", { status: 999 });
+        await chef.api.rejectsField("PATCH", `${path(recipe.uuid)}/status`, "status", {});
+    });
+
+    test("an unused recipe can be deleted - active or archived - with its lines", async () => {
+        const recipe = await createRecipe(chef, [line(whole, 1), line(decimal, 1)]);
+        await chef.api.ok("DELETE", path(recipe.uuid));
+        equals(await db.count("recipes", "uuid = $1", [recipe.uuid]), 0, "recipe left");
+        equals(await db.count("recipe_lines", "recipe_uuid = $1", [recipe.uuid]), 0, "lines left");
+        await chef.api.rejects("DELETE", path(recipe.uuid), ErrorCodes.RECIPE.NOT_FOUND);
+
+        const archived = await createRecipe(chef, [line(whole, 1)]);
+        await chef.api.ok("PATCH", `${path(archived.uuid)}/status`, { status: RecipeStatus.ARCHIVED });
+        await chef.api.ok("DELETE", path(archived.uuid));
+    });
+
+    test("archive / delete: unknown, malformed or another company's recipe", async () => {
+        const productB = await createProduct(companyB.storekeeper);
+        const recipeB = await createRecipe(companyB.owner, [line(productB, 1)]);
+        for (const uuid of [randomUuid(), recipeB.uuid]) {
+            await chef.api.rejects("PATCH", `${path(uuid)}/status`, ErrorCodes.RECIPE.NOT_FOUND, { status: RecipeStatus.ARCHIVED });
+            await chef.api.rejects("DELETE", path(uuid), ErrorCodes.RECIPE.NOT_FOUND);
+        }
+        await chef.api.rejectsField("DELETE", path("nope"), "uuid");
+        equals(await db.count("recipes", "uuid = $1 AND status = $2", [recipeB.uuid, RecipeStatus.ACTIVE]), 1, "other company's recipe untouched");
+    });
+
+    test("a product used in a recipe can't be deleted (clear error); once the recipe is gone it can", async () => {
+        const product = await createProduct(storekeeper);
+        const recipe = await createRecipe(chef, [line(product, 1)]);
+        await owner.api.rejects("DELETE", `${PATHS.PRODUCTS}/${product.uuid}`, ErrorCodes.PRODUCT.IN_RECIPE);
+        await owner.api.ok("PATCH", `${path(recipe.uuid)}/status`, { status: RecipeStatus.ARCHIVED });
+        await owner.api.rejects("DELETE", `${PATHS.PRODUCTS}/${product.uuid}`, ErrorCodes.PRODUCT.IN_RECIPE);
+        await chef.api.ok("DELETE", path(recipe.uuid));
+        await owner.api.ok("DELETE", `${PATHS.PRODUCTS}/${product.uuid}`);
+    });
+
     // --- Access ---
 
-    test("the storekeeper may list and open recipes but not add or edit them; HR sees nothing", async () => {
+    test("the storekeeper may list and open recipes but not add, edit, archive or delete them; HR sees nothing", async () => {
         const recipe = await createRecipe(chef, [line(whole, 1)]);
         await storekeeper.api.ok("GET", PATHS.RECIPES);
         await storekeeper.api.ok("GET", path(recipe.uuid));
         await storekeeper.api.rejects("POST", PATHS.RECIPES, ErrorCodes.AUTH.FORBIDDEN, recipeBody([line(whole, 1)]));
         await storekeeper.api.rejects("PUT", path(recipe.uuid), ErrorCodes.AUTH.FORBIDDEN, recipeBody([line(whole, 1)]));
+        await storekeeper.api.rejects("PATCH", `${path(recipe.uuid)}/status`, ErrorCodes.AUTH.FORBIDDEN, { status: RecipeStatus.ARCHIVED });
+        await storekeeper.api.rejects("DELETE", path(recipe.uuid), ErrorCodes.AUTH.FORBIDDEN);
         await hr.api.rejects("GET", PATHS.RECIPES, ErrorCodes.AUTH.FORBIDDEN);
     });
 

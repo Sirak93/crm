@@ -149,6 +149,11 @@ To keep adding the module later cheap:
     even if that product was archived later.
 - **Delete** - only while the recipe was never used in a stock-out document. Otherwise
   archive.
+- **Archive / restore** - `PATCH /recipes/:uuid/status` (`RECIPE_ARCHIVE`), like products.
+  Delete - `DELETE /recipes/:uuid` (`RECIPE_DELETE`); its lines go with it.
+- **A product used in any recipe** (active or archived) can't be deleted: error
+  `PRODUCT_IN_RECIPE` ("remove it from the recipes or archive the product"). Archiving the
+  product is still allowed.
 - No category, photo or price for now.
 - Editing a recipe never changes documents already saved (see "Stock out by recipe").
 - Recipes list page follows the products page (search, status filter, pagination).

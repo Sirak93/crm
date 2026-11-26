@@ -1,4 +1,4 @@
-import type { IAppResponse, IPaginationMeta, IRecipe, IRecipeDetails, IRecipePayload } from 'armstock-shared';
+import type { IAppResponse, IPaginationMeta, IRecipe, IRecipeDetails, IRecipePayload, RecipeStatus } from 'armstock-shared';
 import ApiService from './ApiService';
 import type { IRecipeFilters } from '../interfaces/IRecipeFilters';
 
@@ -24,5 +24,14 @@ export const RecipeService = {
   async update(uuid: string, payload: IRecipePayload): Promise<IRecipeDetails> {
     const response = await ApiService.put<IAppResponse<IRecipeDetails>>(`/recipes/${uuid}`, payload);
     return response.data.data!;
+  },
+
+  async setStatus(uuid: string, status: RecipeStatus): Promise<IRecipe> {
+    const response = await ApiService.patch<IAppResponse<IRecipe>>(`/recipes/${uuid}/status`, { status });
+    return response.data.data!;
+  },
+
+  async delete(uuid: string): Promise<void> {
+    await ApiService.delete(`/recipes/${uuid}`);
   },
 };

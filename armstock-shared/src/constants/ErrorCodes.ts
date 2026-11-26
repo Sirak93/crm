@@ -140,6 +140,10 @@ export const ErrorCodes = {
             CODE: "PRODUCT_IN_USE",
             STATUS: 409,
         },
+        IN_RECIPE: {
+            CODE: "PRODUCT_IN_RECIPE",
+            STATUS: 409,
+        },
     },
     SUPPLIER: {
         NOT_FOUND: {

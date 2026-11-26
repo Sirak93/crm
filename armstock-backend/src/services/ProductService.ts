@@ -5,6 +5,7 @@ import { Product } from "../models/Product";
 import { MeasureUnit } from "../models/MeasureUnit";
 import { ProductCategory } from "../models/ProductCategory";
 import { StockInLine } from "../models/StockInLine";
+import { RecipeLine } from "../models/RecipeLine";
 import { StockOutLine } from "../models/StockOutLine";
 import { AppError } from "../utils/AppError";
 import { MeasureUnitService } from "./MeasureUnitService";
@@ -163,15 +164,17 @@ export class ProductService {
         return rows.map((product) => StockService.toLineProduct(Object.assign(product, { measureUnit: unitMap.get(product.measureUnitUuid)! })));
     }
 
-    /** Only while no stock document line uses it - otherwise it is archived instead. */
+    /** Only while no stock document line or recipe uses it - otherwise it is archived instead. */
     async delete(companyUuid: string, uuid: string): Promise<void> {
         const where = { productUuid: uuid, companyUuid };
-        const [product, inStockIn, inStockOut] = await Promise.all([
+        const [product, inStockIn, inStockOut, inRecipe] = await Promise.all([
             this.findOrFail(companyUuid, uuid),
             AppDataSource.getRepository(StockInLine).exists({ where }),
             AppDataSource.getRepository(StockOutLine).exists({ where }),
+            AppDataSource.getRepository(RecipeLine).exists({ where }),
         ]);
         if (inStockIn || inStockOut) throw new AppError(ErrorCodes.PRODUCT.IN_USE, undefined, undefined, { uuid });
+        if (inRecipe) throw new AppError(ErrorCodes.PRODUCT.IN_RECIPE, undefined, undefined, { uuid });
         await this.repo.remove(product);
     }
 }

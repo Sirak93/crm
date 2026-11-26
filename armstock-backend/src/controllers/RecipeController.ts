@@ -1,7 +1,7 @@
 import { Response } from "express";
 import { AuthRequest } from "../middlewares/AuthMiddleware";
 import { RecipeService } from "../services/RecipeService";
-import type { RecipeBody, RecipesQuery } from "../schemas/RecipeSchema";
+import type { RecipeBody, RecipesQuery, RecipeStatusBody } from "../schemas/RecipeSchema";
 import { AppResponse } from "../utils/AppResponse";
 import { requireCompanyUuid } from "../utils/requireCompanyUuid";
 
@@ -24,5 +24,15 @@ export class RecipeController {
 
     update = async (req: AuthRequest, res: Response) => {
         return AppResponse.send(res, await this.service.update(requireCompanyUuid(req), req.params.uuid as string, req.body as RecipeBody));
+    };
+
+    setStatus = async (req: AuthRequest, res: Response) => {
+        const { status } = req.body as RecipeStatusBody;
+        return AppResponse.send(res, await this.service.setStatus(requireCompanyUuid(req), req.params.uuid as string, status));
+    };
+
+    delete = async (req: AuthRequest, res: Response) => {
+        await this.service.delete(requireCompanyUuid(req), req.params.uuid as string);
+        return AppResponse.send(res, { success: true });
     };
 }

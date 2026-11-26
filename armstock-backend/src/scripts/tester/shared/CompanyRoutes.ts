@@ -1,4 +1,4 @@
-import { ErrorCodes, Permission, ProductStatus, SupplierStatus, UserStatus } from "armstock-shared";
+import { ErrorCodes, Permission, ProductStatus, RecipeStatus, SupplierStatus, UserStatus } from "armstock-shared";
 import { HttpMethod } from "../enums/HttpMethod";
 import { RouteTarget } from "../enums/RouteTarget";
 import { recipeBody, stockInBody, stockOutBody } from "./Builders";
@@ -140,6 +140,11 @@ export const COMPANY_ROUTES: ICompanyRoute[] = [
         method: PUT, path: (ids) => `${PATHS.RECIPES}/${ids.uuid}`, permission: P.RECIPE_EDIT, target: T.RECIPE,
         body: (refs) => recipeBody(line(refs)),
     },
+    {
+        method: PATCH, path: (ids) => `${PATHS.RECIPES}/${ids.uuid}/status`, permission: P.RECIPE_ARCHIVE, target: T.RECIPE,
+        body: () => ({ status: RecipeStatus.ARCHIVED }),
+    },
+    { method: DELETE, path: (ids) => `${PATHS.RECIPES}/${ids.uuid}`, permission: P.RECIPE_DELETE, target: T.RECIPE },
 
     // Pickers - every member
     { method: GET, path: () => `${PATHS.OPTIONS}/products`, permission: null },
