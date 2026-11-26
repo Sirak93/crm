@@ -86,7 +86,13 @@ To keep adding the module later cheap:
 - The product form stays as today; Unit is picked from the fixed list (no Միլիգրամ). No pack size
   on the product.
 - **Unit hint** (decided 2026-11-26): a short line under the Unit field - "The unit the product is
-  counted and given out in. Not the package: oil → Լիտր, eggs → Հատ." (hy + en).
+  counted and given out in." (hy + en). The examples (oil → Լիտր, eggs → Հատ) were dropped.
+- **Product form layout** (decided 2026-11-26): one field per row, full width - Name, Category, Stock-in
+  type, Unit. The **Code / SKU field is hidden** by one switch (`PRODUCT_CODE_ENABLED = false`);
+  saved codes and the DB column stay.
+- **Defaults in the product form** (decided 2026-11-26): Category is preset to the category of the
+  last created product (until the page reloads), else to the first category in the list. Unit is never preset - a
+  wrong unit is locked once there is stock. Stock-in type starts on Քանակով.
 - A product's unit cannot change once it has stock or documents.
 - Examples: Tea Ahmad / Tea Greenfield → Հատ (bags; box of 15 / 30 typed as packs on stock-in), or
   Տուփ if only whole boxes go out; Eggs → Հատ (tray 5 × 30); Ketchup / Mayonnaise → Կիլոգրամ
@@ -109,6 +115,11 @@ To keep adding the module later cheap:
   `LOOSE = 10`, `PACKS = 20`, `LOOSE_OR_PACKS = 30`; new products start on Loose. The stock-in line
   shows: Loose → only Quantity; In packs → In one pack × Packs; Loose or in packs → In one pack ×
   Packs with Packs prefilled 1. Why: "In one pack" on loose goods (25 kg potatoes) reads wrong.
+  - **Wording** (decided 2026-11-26, replaces the names above in the UI): field "Մուտքի ձև"
+    (Stock-in type); options with a grey example next to each - Քանակով (25 կգ կարտոֆիլ) /
+    Փաթեթով (0.5 լ × 6 շիշ ձեթ) / Երկուսն էլ (12.4 կգ միս կամ 5 կգ × 2), each starting with "օր.՝"
+    (e.g.). No hint under the field. Stock-in columns: Քանակ | Մեկ փաթեթում | Փաթեթ | Ընդամենը.
+    Why: "Չափածո" fits weighed goods only, and "Տուփ" is already a unit (box).
   - **Line table** (Step U4b): columns Quantity | In one pack | Packs | Total. A Loose row fills
     Quantity, the others In one pack × Packs; the other cells show "—". A column shows only while a
     row needs it. A row without a product counts as Loose. A row that has had Packs > 1 (old doc,

@@ -73,5 +73,8 @@ export const ADD_QUERY = { add: '1' } as const;
 /** Barcode scanner and barcode field are hidden for now. Code and DB column stay - set to true to bring them back. */
 export const SCANNER_ENABLED = false;
 
+/** The Code / SKU field is hidden from the product form for now. Saved codes stay - set to true to bring it back. */
+export const PRODUCT_CODE_ENABLED = false;
+
 /** Put on the product's barcode field: a scan there just fills the field instead of running the page's scan action. */
 export const BARCODE_INPUT_ATTR = 'data-barcode-input';

@@ -1,3 +1,8 @@
+<script lang="ts">
+/** Category of the last created product - kept until the page reloads, so adding many products in a row is quick. */
+let lastCategoryUuid = '';
+</script>
+
 <script setup lang="ts">
 import { computed, ref, watch } from 'vue';
 import { useI18n } from 'vue-i18n';
@@ -10,8 +15,8 @@ import { NotificationService } from '../../services/NotificationService';
 import { useApiErrorMessage } from '../../composables/useApiErrorMessage';
 import { useMeasureUnits } from '../../composables/useMeasureUnits';
 import { BARCODE_MAX_LENGTH } from 'armstock-shared';
-import { BARCODE_INPUT_ATTR, REQUIRED_RULE_TRIGGER, SCANNER_ENABLED } from '../../constants/constants';
-import { PRODUCT_RECEIVED_AS, PRODUCT_RECEIVED_AS_LABEL } from '../../constants/productReceivedAs';
+import { BARCODE_INPUT_ATTR, PRODUCT_CODE_ENABLED, REQUIRED_RULE_TRIGGER, SCANNER_ENABLED } from '../../constants/constants';
+import { PRODUCT_RECEIVED_AS, PRODUCT_RECEIVED_AS_HINT, PRODUCT_RECEIVED_AS_LABEL } from '../../constants/productReceivedAs';
 
 const props = defineProps<{
   /** null = add a new product. */
@@ -57,7 +62,12 @@ const rules: FormRules = {
   name: required('products.form.nameRequired'),
   measureUnit: [{ required: true, message: () => t('products.form.unitRequired'), trigger: REQUIRED_RULE_TRIGGER }],
   categoryUuid: required('products.form.categoryRequired'),
+  receivedAs: [{ required: true, message: () => t('products.form.receivedAsRequired'), trigger: REQUIRED_RULE_TRIGGER }],
 };
+
+/** The one used last, else the first. The unit is never preset - it is locked once there is stock. */
+const defaultCategoryUuid = (): string =>
+  props.categories.some((c) => c.uuid === lastCategoryUuid) ? lastCategoryUuid : props.categories[0]?.uuid ?? '';
 
 watch(open, (isOpen) => {
   if (!isOpen) return;
@@ -67,7 +77,7 @@ watch(open, (isOpen) => {
     code: p?.code ?? '',
     barcode: p?.barcode ?? props.initialBarcode ?? '',
     measureUnit: p?.measureUnit,
-    categoryUuid: p?.category.uuid ?? '',
+    categoryUuid: p?.category.uuid ?? defaultCategoryUuid(),
     receivedAs: p?.receivedAs ?? ProductReceivedAs.LOOSE,
   };
   formRef.value?.clearValidate();
@@ -89,6 +99,7 @@ const save = async () => {
     const saved = props.product
       ? await ProductService.update(props.product.uuid, payload)
       : await ProductService.create({ ...payload, measureUnit: form.value.measureUnit! });
+    if (!props.product) lastCategoryUuid = saved.category.uuid;
     NotificationService.success(t(isEdit.value ? 'products.updated' : 'products.created'));
     emit('saved', saved);
     open.value = false;
@@ -110,64 +121,64 @@ const save = async () => {
     <template #icon><Package :size="20" /></template>
 
     <el-form ref="formRef" :model="form" :rules="rules" label-position="top" :disabled="isSaving" @submit.prevent="save">
-      <div class="form-row">
-        <el-form-item :label="$t('products.form.name')" prop="name">
-          <el-input v-model="form.name" maxlength="200">
-            <template #prefix><Package :size="16" aria-hidden="true" /></template>
-          </el-input>
-        </el-form-item>
-        <el-form-item :label="$t('products.form.code')" prop="code">
-          <el-input v-model="form.code" maxlength="50" :placeholder="$t('products.form.codePlaceholder')">
-            <template #prefix><Barcode :size="16" aria-hidden="true" /></template>
-          </el-input>
-        </el-form-item>
-      </div>
+      <el-form-item :label="$t('products.form.name')" prop="name">
+        <el-input v-model="form.name" maxlength="200">
+          <template #prefix><Package :size="16" aria-hidden="true" /></template>
+        </el-input>
+      </el-form-item>
 
-      <div v-if="SCANNER_ENABLED" class="form-row">
-        <el-form-item :label="$t('products.form.barcode')" prop="barcode">
-          <!-- Enter is the scanner's end key here, not "save". -->
-          <el-input
-            v-model="form.barcode"
-            v-bind="{ [BARCODE_INPUT_ATTR]: '' }"
-            :maxlength="BARCODE_MAX_LENGTH"
-            :placeholder="$t('products.form.barcodePlaceholder')"
-            @keydown.enter.prevent
-          >
-            <template #prefix><ScanBarcode :size="16" aria-hidden="true" /></template>
-          </el-input>
-        </el-form-item>
-      </div>
+      <el-form-item v-if="PRODUCT_CODE_ENABLED" :label="$t('products.form.code')" prop="code">
+        <el-input v-model="form.code" maxlength="50" :placeholder="$t('products.form.codePlaceholder')">
+          <template #prefix><Barcode :size="16" aria-hidden="true" /></template>
+        </el-input>
+      </el-form-item>
 
-      <div class="form-row">
-        <el-form-item :label="$t('products.form.unit')" prop="measureUnit">
-          <el-select
-            v-model="form.measureUnit"
-            :disabled="isEdit"
-            :placeholder="$t('products.form.unitPlaceholder')"
-            filterable
-            class="full-width"
-          >
-            <el-option
-              v-for="unit in PRODUCT_MEASURE_UNITS"
-              :key="unit"
-              :label="`${unitName(unit)} (${unitShortName(unit)})`"
-              :value="unit"
-            />
-          </el-select>
-          <p class="field-hint">{{ $t(isEdit ? 'products.form.unitLocked' : 'products.form.unitHint') }}</p>
-        </el-form-item>
-        <el-form-item :label="$t('products.form.category')" prop="categoryUuid">
-          <el-select v-model="form.categoryUuid" :placeholder="$t('products.form.categoryPlaceholder')" filterable class="full-width">
-            <el-option v-for="category in categories" :key="category.uuid" :label="category.name" :value="category.uuid" />
-          </el-select>
-        </el-form-item>
-      </div>
+      <el-form-item v-if="SCANNER_ENABLED" :label="$t('products.form.barcode')" prop="barcode">
+        <!-- Enter is the scanner's end key here, not "save". -->
+        <el-input
+          v-model="form.barcode"
+          v-bind="{ [BARCODE_INPUT_ATTR]: '' }"
+          :maxlength="BARCODE_MAX_LENGTH"
+          :placeholder="$t('products.form.barcodePlaceholder')"
+          @keydown.enter.prevent
+        >
+          <template #prefix><ScanBarcode :size="16" aria-hidden="true" /></template>
+        </el-input>
+      </el-form-item>
+
+      <el-form-item :label="$t('products.form.category')" prop="categoryUuid">
+        <el-select v-model="form.categoryUuid" :placeholder="$t('products.form.categoryPlaceholder')" filterable class="full-width">
+          <el-option v-for="category in categories" :key="category.uuid" :label="category.name" :value="category.uuid" />
+        </el-select>
+      </el-form-item>
 
       <el-form-item :label="$t('products.form.receivedAs')" prop="receivedAs">
         <el-select v-model="form.receivedAs" class="full-width">
-          <el-option v-for="value in PRODUCT_RECEIVED_AS" :key="value" :label="$t(PRODUCT_RECEIVED_AS_LABEL[value])" :value="value" />
+          <el-option v-for="value in PRODUCT_RECEIVED_AS" :key="value" :label="$t(PRODUCT_RECEIVED_AS_LABEL[value])" :value="value">
+            <span class="received-as-option">
+              <span>{{ $t(PRODUCT_RECEIVED_AS_LABEL[value]) }}</span>
+              <span class="received-as-option__hint">{{ $t(PRODUCT_RECEIVED_AS_HINT[value]) }}</span>
+            </span>
+          </el-option>
         </el-select>
-        <p class="field-hint">{{ $t('products.form.receivedAsHint') }}</p>
+      </el-form-item>
+
+      <el-form-item :label="$t('products.form.unit')" prop="measureUnit">
+        <el-select
+          v-model="form.measureUnit"
+          :disabled="isEdit"
+          :placeholder="$t('products.form.unitPlaceholder')"
+          filterable
+          class="full-width"
+        >
+          <el-option
+            v-for="unit in PRODUCT_MEASURE_UNITS"
+            :key="unit"
+            :label="`${unitName(unit)} (${unitShortName(unit)})`"
+            :value="unit"
+          />
+        </el-select>
+        <p class="field-hint">{{ $t(isEdit ? 'products.form.unitLocked' : 'products.form.unitHint') }}</p>
       </el-form-item>
 
       <!-- Lets Enter submit the form. -->
@@ -184,6 +195,17 @@ const save = async () => {
 <style scoped>
 .full-width {
   width: 100%;
+}
+
+.received-as-option {
+  display: flex;
+  justify-content: space-between;
+  gap: 1rem;
+}
+
+.received-as-option__hint {
+  font-size: var(--text-xs);
+  color: var(--text-muted);
 }
 
 .field-hint {
