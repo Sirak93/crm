@@ -29,11 +29,13 @@ Decisions behind these steps: [decisions.md](decisions.md).
 - [ ] Step U2 — Hide barcode scanner and barcode field
 - [ ] Step U3 — Fixed units (replace the Units page)
 - [ ] Step U4 — Stock-in by packs + unit converter
+- [ ] Step U5 — Remove the HR default role
 - [ ] Step 2b+ — Recipes: amounts down to 1 mg + unit converter
 - [ ] Step 2c — Recipes: archive, restore, delete
-- [ ] Step 3 — Stock out by recipe: create  *(to redefine - one form)*
-- [ ] Step 4 — By-recipe docs: list mark and view  *(to redefine - one form)*
-- [ ] Step 5 — By-recipe docs: edit  *(to redefine - one form)*
+- [ ] Step 3 — Stock-out: recipes block + totals list (create)
+- [ ] Step 4 — Stock-out with recipes: list mark and view
+- [ ] Step 5 — Stock-out with recipes: edit and delete
+- [ ] Step K — Kitchen balance
 - [ ] Step 6 — Date on stock lines + "this month" default on stock lists
 - [ ] Step 7 — Stock movement page
 - [ ] Step 8 — Product movement popup
@@ -118,7 +120,7 @@ Decisions behind these steps: [decisions.md](decisions.md).
       `MEASURE_UNIT_*` permissions and their error codes removed; products, options, stock-in,
       stock-out, stock balance and recipes read unit data from the constant
 - [ ] Frontend: Units page, dialog, table, service and menu item removed; product form picks
-      from the fixed list (no Միլիգրամ); everywhere a unit is shown uses the constant; stale i18n
+      from the fixed list (no Միլիգրամ) with the unit hint under it; everywhere a unit is shown uses the constant; stale i18n
       keys removed
 - [ ] Tests: `MeasureUnitsSuite` removed; products / stock / recipes suites use the enum; unknown
       or converter-only unit refused for a product
@@ -141,6 +143,15 @@ Decisions behind these steps: [decisions.md](decisions.md).
 - [ ] Tests: amount = packs × size, 500 մլ → 0.5 լ, same product on two lines, count units refuse
       decimals in pack size
 - [ ] Checked in browser: 6 × 500 մլ oil → 3 լ in stock
+
+## Step U5 — Remove the HR default role
+
+- [ ] Shared: `DefaultRole.HR` and its default permissions removed (enum numbers of the others
+      stay)
+- [ ] Backend: HR out of `DEFAULT_ROLE_NAMES` and the dev seeder; `DEV_SEED_HR_EMAIL` out of
+      `.env.example`
+- [ ] Tests: HR member removed from the tester companies; suites that used HR switch to Staff
+- [ ] Checked in browser: a new company's roles list has no HR
 
 ## Step 2b+ — Recipes: amounts down to 1 mg + unit converter
 
@@ -169,67 +180,99 @@ Decisions behind these steps: [decisions.md](decisions.md).
 - [ ] Checked in browser: the head chef archives, restores and deletes a recipe; deleting a
       product used in a recipe shows the error
 
-## Step 3 — Stock out by recipe: create
+## Step 3 — Stock-out: recipes block + totals list (create)
 
-> **To redefine before starting.** Steps 3-5 below were written for a separate by-recipe form.
-> Decided 2026-11-25: one stock-out form with an optional recipes block, calculated + actual
-> amounts, extras kept apart (decisions.md → "Stock-out with recipes"). Rewrite Steps 3-5 once
-> its open points (reason / department, actual per recipe or per product, converter, kitchen
-> balance) are settled.
+Needs Steps U3 (fixed units) and U4 (converter component). Decisions: decisions.md →
+"Stock-out with recipes" and "Tables".
 
-- [ ] DB: `stock_out_recipes`, `stock_out_recipe_lines` (its `quantity` is `numeric(14,6)`, like recipe lines)
-- [ ] Backend
-  - [ ] Create endpoint (own router file, `STOCK_OUT_CREATE`): recipe rows + persons, date,
-        receiver, note. Reason Issued → Kitchen set by the backend
-  - [ ] Rules: at least 1 row; each recipe once; persons whole number > 0; active recipes
-        only
-  - [ ] Totals per product summed across recipes, rounded **up** - to a whole number for
-        units without decimals, to 3 decimals for the others; saved as normal `stock_out_lines`
-  - [ ] Recipe lines copied into `stock_out_recipe_lines`
-  - [ ] Same stock check and product locks as a normal stock-out (same error list)
+- [ ] Shared: interfaces / payload - recipe rows (recipe + persons), extra lines, totals per
+      product
+- [ ] DB
+  - [ ] `stock_out_recipes`, `stock_out_recipe_lines` (`quantity` and `needed_quantity`
+        `numeric(14,6)`)
+  - [ ] `stock_out_lines`: `extra_quantity`, `department`; unique (`stock_out_uuid`,
+        `product_uuid`) - local DB recreated
+- [ ] Backend (normal stock-out create, `STOCK_OUT_CREATE`)
+  - [ ] Zod: recipes only with reason Issued; Issued → department Kitchen; each recipe once;
+        persons whole number > 0; active recipes only; each product once in the totals; total
+        ≥ 0; extras ≥ 0
+  - [ ] Saves recipe rows + a copy of each recipe's lines (`needed_quantity` = quantity ×
+        persons); lines = one row per product (total in `quantity`, extra part in
+        `extra_quantity`, doc's department copied)
+  - [ ] Totals are taken as sent (the storekeeper's numbers); the backend checks that every
+        recipe product has a total line
+  - [ ] Same S check and product locks as today
   - [ ] `/options/recipes` - active recipes, open to every member
-  - [ ] Preview endpoint (or shared calculation) so the popup shows exactly what will be
-        saved
+- [ ] Frontend (the normal stock-out form)
+  - [ ] Reason Issued → Department Kitchen preselected and disabled
+  - [ ] Recipes block (only enabled with reason Issued): recipe + persons rows, used recipes
+        hidden, "Add row" copies persons, calculated amounts shown read-only; any recipe row
+        disables Reason
+  - [ ] Extra products block (today's lines), with the unit converter
+  - [ ] Totals list: each product once, prefilled recipes + extras (count units rounded up,
+        kg / l to 3 decimals), editable, ≥ 0, with the unit converter; for every reason
+  - [ ] "Save" saves right away; errors in the existing error list popup (no preview popup)
+- [ ] Tests (`StockOutSuite` + new cases): recipe with other reason refused, department forced,
+      duplicates / archived recipes / persons 0 refused, copy saved with needed amounts, one row
+      per product, extra part saved, total 0 allowed, S goes down by totals, options endpoint,
+      permissions
+- [ ] Checked in browser: doc with 2 recipes + extras, change a total, save
+
+## Step 4 — Stock-out with recipes: list mark and view
+
+- [ ] Backend: stock-out details include recipe rows, their saved lines and `extra_quantity`
 - [ ] Frontend
-  - [ ] Menu "Ելք բաղադրատոմսով" - `STOCK_OUT_CREATE`
-  - [ ] Form: recipe rows (first row's persons empty, "Add row" copies persons from the
-        row above, empty / 0 refused), used recipes hidden in the picker, date,
-        receiver, note
-  - [ ] "Confirm" checks the form only (no stock check), then opens the preview popup: exact amounts per recipe, totals with "rounded up" mark;
-        Save / Back; stock error list shown inside the popup
-- [ ] Tests: `StockOutByRecipeSuite` - totals and rounding (incl. 1.1 + 0.5 → 2 for pcs),
-      copy saved, duplicates and archived recipes refused, options endpoint, not enough stock,
-      permissions, stock balance goes down
-- [ ] Checked in browser: create a doc for 2 recipes, see the popup, save
+  - [ ] "Բաղադրատոմսով" mark in the stock-out list for docs with recipes
+  - [ ] Doc view: recipes block (recipe × persons) and per product Needed | Extra | Given
+- [ ] Tests: details return recipes, copied lines and extras; recipe edited later → doc
+      unchanged
+- [ ] Checked in browser: open a doc with recipes, change the recipe, doc stays the same
 
-## Step 4 — By-recipe docs: list mark and view
-
-- [ ] Backend: stock-out list and details include the recipe rows and their saved lines
-- [ ] Frontend
-  - [ ] "Բաղադրատոմսով" mark in the stock-out list
-  - [ ] Doc view: recipes block (recipe × persons + per-recipe breakdown) above the lines
-- [ ] Tests: details return recipes and copied lines; recipe edited later → doc unchanged
-- [ ] Checked in browser: open a by-recipe doc, change the recipe, doc stays the same
-
-## Step 5 — By-recipe docs: edit
+## Step 5 — Stock-out with recipes: edit and delete
 
 - [ ] Backend
-  - [ ] Edit endpoint (`STOCK_OUT_EDIT`, creator only): rows already in the
-        doc use their saved copy; new rows use the current recipe
-  - [ ] Normal stock-out edit refuses a by-recipe doc
+  - [ ] Edit (`STOCK_OUT_EDIT`, creator only): recipe rows already in the doc use their saved
+        copy (even if the recipe was archived); new rows use the current active recipe
   - [ ] Delete works as for any stock-out
-- [ ] Frontend: "Edit" on a by-recipe doc opens the by-recipe form with the same popup
-- [ ] Tests: edit uses the copy (recipe changed in between), new row uses current recipe,
-      normal edit refused, delete works
+- [ ] Frontend: "Edit" opens the same form rebuilt from the doc (recipes, extras from
+      `extra_quantity`, totals)
+- [ ] Tests: edit uses the copy (recipe changed in between), archived recipe kept on edit, new
+      row uses current recipe, extras kept, delete works
 - [ ] Checked in browser: edit people counts of an old doc after changing its recipe
+
+## Step K — Kitchen balance
+
+Decisions: decisions.md → "Kitchen balance".
+
+- [ ] Shared: `KITCHEN_BALANCE_ENABLED` switch; kitchen balance row interface
+- [ ] Backend
+  - [ ] K calculated in SQL, not saved: SUM(lines.quantity where department = Kitchen) −
+        SUM(recipe lines.needed_quantity), by company + product
+  - [ ] K check next to the S check (same locks) on stock-out create and edit: for every recipe
+        product, K + total ≥ recipe needs - error "Product X: not enough for the recipes" in the
+        same error list
+  - [ ] Stock-out delete gets a K check (refused if K would go below 0)
+  - [ ] Kitchen balance list (`STOCK_BALANCE_VIEW`): products with K, search, category,
+        pagination
+  - [ ] Current K for given products, for the form
+- [ ] Frontend
+  - [ ] Menu "Խոհանոցի մնացորդ" under Stock balance - read-only table
+  - [ ] Stock-out form: "Kitchen: 0.5 l" next to each total; "Use kitchen balance" switch →
+        prefill = recipe needs − K (not below 0) + extras, rounded as in Step 3
+  - [ ] Switch off in code → page, menu, hints and switch hidden; K checks skipped
+- [ ] Tests (`KitchenBalanceSuite`): K after Issued docs with / without recipes, other reasons
+      don't touch K, extras stay in K, K + total < needs refused, delete / edit refused when K
+      would go below 0, stock-in unaffected, page permissions, other company never counted
+- [ ] Checked in browser: 0.9 l oil in K, recipes need 1.5 l, give 5 l → K 4.4 l
 
 ## Step 6 — Date on stock lines + "this month" default on stock lists
 
 - [ ] DB: `date` on `stock_in_lines` and `stock_out_lines`, index
       (`company_uuid`, `product_uuid`, `date`). No backfill (no real data) - local DB
       recreated
-- [ ] Backend: lines get the document date on create and edit (stock-in, stock-out, by
-      recipe)
+- [ ] DB: `date` on `stock_out_recipe_lines` too (for a later kitchen report)
+- [ ] Backend: lines get the document date on create and edit (stock-in, stock-out lines,
+      stock-out recipe lines)
 - [ ] Frontend: stock-in and stock-out lists default to this month (still clearable)
 - [ ] Tests: lines carry the doc date; changing a doc's date moves its lines' date
 - [ ] Checked in browser: both lists open on this month

@@ -67,6 +67,9 @@ To keep adding the module later cheap:
   the field offers the units of the **same type** (kg product → կգ / գ / մգ; l product → լ / մլ). It
   starts on the product's unit. The value is always saved in the product's unit (350 գ → 0.35 կգ).
   Count units get no picker.
+- **The same converter is used on every amount field in the app** (decided 2026-11-26): recipe
+  amounts, stock-in "In one pack", stock-out extras and stock-out totals. One shared component,
+  so the storekeeper learns it once.
 - **Rule:** every amount field shows which unit it is typed in, and every amount is saved in the
   product's unit and converted only by the factors in code - so all counting stays correct.
 
@@ -79,6 +82,8 @@ To keep adding the module later cheap:
   make separate products - "Oil Firm A" is one product for 0.5 l, 1 l and 5 l bottles.
 - The product form stays as today; Unit is picked from the fixed list (no Միլիգրամ). No pack size
   on the product.
+- **Unit hint** (decided 2026-11-26): a short line under the Unit field - "The unit the product is
+  counted and given out in. Not the package: oil → Լիտր, eggs → Հատ." (hy + en).
 - A product's unit cannot change once it has stock or documents.
 - Examples: Tea Ahmad / Tea Greenfield → Հատ (bags; box of 15 / 30 typed as packs on stock-in), or
   Տուփ if only whole boxes go out; Eggs → Հատ (tray 5 × 30); Ketchup / Mayonnaise → Կիլոգրամ
@@ -104,6 +109,13 @@ To keep adding the module later cheap:
 - **Removed everywhere**: product, stock-in lines (price, total), stock-out lines, the stock balance
   page (price, value), interfaces, schemas, tests, seed data and texts. Storekeepers do not work
   with prices. The DB columns go away through the models (MVP auto-sync).
+
+## HR role removed (decided 2026-11-26)
+
+- The **HR** default role (Կադրերի մենեջեր, `DefaultRole.HR`) is removed: new companies no longer
+  get it; its default permissions, the dev seeder member and `DEV_SEED_HR_EMAIL` go away. Tests
+  that used HR as "a user without this permission" use Staff instead.
+- The `USER_*` permissions stay - the owner can still give them to any role.
 
 ## Barcode scanner (decided 2026-11-25)
 
@@ -152,63 +164,111 @@ without recipes is a normal stock-out, like today.
 
 ### Recipes block
 
-- Recipe rows: recipe + people count.
-- For each picked recipe, the form shows its products with two amounts:
-  - **Calculated** - recipe amount × persons (read only).
-  - **Actual** - what is really given out. Starts filled with the calculated amount; the
-    storekeeper changes it when the real amount differs (e.g. calculated P1 15 g, P2 90 g →
-    actual 100 g, 100 g).
-- **Stock goes down by the actual amount.** The document keeps both numbers, so the
-  difference can be seen later.
+- Recipe rows: recipe + people count. The app calculates each recipe's product amounts
+  (recipe amount × persons, read only).
 
 ### Extra products
 
 - Normal product lines (product + amount), as in today's stock-out form - for products given
   out without a recipe.
-- The same product can be both in a recipe and in the extras (oil from Dish A + 2 l extra).
-  The document shows them **separately** (recipe part and extras part); stock goes down by the
-  **total**.
+- The same product can be both in a recipe and in the extras.
 
-### From the earlier plan - re-check when the open points below are settled
+### Totals - one Actual per product (decided 2026-11-26)
 
-These were decided for the separate by-recipe form. They probably still hold, but must be
-checked against the one-form design before Step 3:
+- Below recipes and extras the storekeeper sees a **totals list: each product of the doc
+  once**, prefilled with recipes + extras summed. The storekeeper changes any total to what is
+  really given out (they can't always give exactly what the recipe needs), then submits.
+  ```
+  Recipe 1:  P1 0.5 l, P2 0.7 l
+  Recipe 2:  P2 0.8 l, P3 2 kg
+  Extras:    P4 1 kg, P1 0.7 l
+  Totals:    P1 1.2 l, P2 1.5 l, P3 2 kg, P4 1 kg   ← editable
+  ```
+- **Stock goes down by the totals.** The doc keeps the recipe and extras amounts too, so the
+  difference can be seen later.
+- Same totals list for every stock-out reason (e.g. Returned - then it is just the extras).
+- Total can be **0 or more** (0 = listed but nothing given, e.g. the kitchen still has salt).
+  Recipe products stay in the doc as they are. The doc's existing **Note** field is for any
+  explanation. Stock is checked on the **backend only**, with the existing
+  error list popup.
+
+### Recipe rows and saving (re-checked for the one form, 2026-11-26)
 
 - Each recipe only once per document (hidden in the picker, refused by the backend).
 - The first row's persons starts empty; "Add row" copies persons from the row above; empty or
   0 refused (whole number > 0).
-- Active recipes only in the picker.
+- Active recipes only in the picker. On edit, a recipe already in the doc stays even if it
+  was archived later (same as products on recipe lines).
 - The document saves which recipes and persons it was made for, plus a **copy** of each
   recipe's amounts that day, so editing a recipe never changes saved documents. Edit
   recalculates rows already in the doc from their saved copy; new rows use the current recipe.
 - "By recipe" (Բաղադրատոմսով) mark in the stock-out list for docs with recipes; detail view
   shows the recipes block.
-- Preview popup on "Confirm" and the "round up the total" rule (1.1 + 0.5 eggs → 2). With the
-  Actual field these may change or go away.
+- **Rounding (decided 2026-11-26):** the prefilled total is rounded **up** for count units
+  (1.1 + 0.5 eggs = 1.6 → 2); kg / l to 3 decimals. The storekeeper can still change it.
+  The rest goes to K, so K can hold parts of a count unit (0.4 egg) - recipe needs are exact.
+- **No preview popup (decided 2026-11-26):** the totals list is the preview. "Save" saves right
+  away; stock / kitchen errors show in the existing error list popup.
 - Same stock check and error list as a normal stock-out.
 
-### Open (stock-out)
+### Reason and department (decided 2026-11-26)
 
-- **Reason and department** when the doc has recipes: fixed Issued → Kitchen (suggested) or
-  chosen by the user?
-- **Actual amount per recipe or per product total?** When 2 recipes use the same product, is
-  there one Actual per recipe line, or one per product across all recipes?
-- **Converter on stock-out** amounts (type 300 g for a kg product) - suggested yes, not
-  confirmed.
-- **Kitchen balance** - where the difference between actual and calculated goes (a stock
-  balance for the kitchen?). Not defined yet; to discuss.
+- Department is a fixed enum (`StockOutDepartment`, only `KITCHEN` today). When the reason is
+  **Issued**, Department is **Kitchen, preselected and disabled** (with or without recipes).
+- Recipes can be picked **only when the reason is Issued**. With any other reason the recipe
+  picker is disabled.
+- Once a recipe is picked, the **Reason field is disabled** (stays Issued). Removing all recipe
+  rows enables it again. Same on edit of a doc with recipes.
+- The **backend** enforces it too: a doc with recipes and a reason other than Issued is refused;
+  department must be Kitchen.
+
+### Kitchen balance (decided 2026-11-26)
+
+- Two stocks: **S** (store) and **K** (kitchen balance, per product). K = what the kitchen got
+  but did not need yet. No one edits K by hand; no new roles.
+- Every **Issued** doc (Department = Kitchen), with or without recipes, does:
+  **S − totals; K + totals − recipe needs**. Other reasons (Returned, Damaged, ...) never touch K.
+  - So **extras stay in K** (no recipe used them). Staff food is not an extra: its people are
+    counted in the recipe persons, so K stays right without manual fixes.
+  - Example: K has 0.9 l oil, recipes need 1.5 l, only a 5 l bottle can be given →
+    0.9 + 5 − 1.5 = 4.4 l. K can go up or down.
+- **"Use kitchen balance"** switch in the totals list. The form shows K next to each product
+  (e.g. "Kitchen: 0.5 l"). Switch on → prefilled totals = recipe needs − K (not below 0) +
+  extras; the storekeeper can still change them. The switch only changes the prefill - K
+  changes after every Issued doc, switch on or off.
+- **K never goes below 0**, like S. If for a product K + total < recipe needs, the doc is
+  refused (backend) with "Product X: not enough for the recipes", in the same error list popup
+  as the stock errors.
+- **Checks:**
+  - Stock-out create / edit: the existing S check stays; the K check is added next to it (same
+    product locks).
+  - Stock-out edit / delete recalculates K and is refused if the current K would go below 0
+    (e.g. deleting an old doc whose oil a later doc already used). Today stock-out delete has
+    no check (it only gives stock back to S) - it gets this K check.
+  - Stock-in docs never touch K: their checks stay as they are (S only).
+- **How K is built (decided 2026-11-26):**
+  - **Calculated from the docs, not saved** as its own number/table - the same way S is
+    calculated today from the lines (sums in SQL by company + product index). Always right,
+    nothing to keep in sync. A saved balance table only later, if data ever gets very big.
+  - `stock_out_recipe_lines` gets a **`date`** column (copied from the doc, like the stock
+    lines in Step 6), so a later kitchen movement report (Start / In / Out / End) filters it
+    without joining the docs.
+  - One code switch **`KITCHEN_BALANCE_ENABLED`** (like `SCANNER_ENABLED`). Off → no Kitchen
+    balance page, no switch / hints in the form, no K checks. Docs and data stay.
+- **Kitchen balance page** (Խոհանոցի մնացորդ): read-only table, no actions. In the menu right
+  under "Stock balance", same permission (`STOCK_BALANCE_VIEW`).
 
 ## Tables
 
-> `stock_out_recipes` / `stock_out_recipe_lines` below were planned for the separate by-recipe
-> form. With the one-form design (calculated + actual amounts, recipe part and extras kept apart)
-> they will change - redefine at Step 3. `recipes` / `recipe_lines` are built.
+Stock-out tables decided 2026-11-26 for the one-form design. `recipes` / `recipe_lines` are
+built.
 
-`stock_outs` and `stock_out_lines` stay as they are.
+`stock_outs` stays as it is. `stock_out_lines` = the **totals**, one row per product (S reads
+`quantity` as today), with new columns below.
 
 ```
 stock_outs                       (doc - existing)
- ├─ stock_out_lines              (product totals - existing)
+ ├─ stock_out_lines              (one row per product: total + extra part)
  └─ stock_out_recipes            (recipe + persons)
      └─ stock_out_recipe_lines   (copy of the recipe amounts that day)
 
@@ -256,6 +316,18 @@ Unique: (`recipe_uuid`, `product_uuid`).
 
 Unique: (`stock_out_uuid`, `recipe_uuid`).
 
+**`stock_out_lines`** - new columns (the rest as today)
+
+| Column | Type | Note |
+| --- | --- | --- |
+| `quantity` | numeric(14,3) | existing - the **total** really given; S reads it |
+| `extra_quantity` | numeric(14,3) | part typed as extra (no recipe), 0 if none. Not used in any sum - kept so the doc view and edit show what was typed |
+| `date` | timestamp | copied from the doc (Step 6) |
+| `department` | int, null | copied from the doc (Kitchen or null), so K sums without a join |
+
+Unique: (`stock_out_uuid`, `product_uuid`) - **one row per product** (today the same product may
+be on two lines; extras of the same product are summed).
+
 **`stock_out_recipe_lines`** - copy of `recipe_lines` at save time, never changed after
 
 | Column | Type | Note |
@@ -266,7 +338,21 @@ Unique: (`stock_out_uuid`, `recipe_uuid`).
 | `product_uuid` | uuid | FK → products, `RESTRICT` |
 | `position` | int | same order as in the recipe |
 | `quantity` | numeric(14,6) | per 1 person, copied that day |
+| `needed_quantity` | numeric(14,6) | quantity × persons, so K sums without a join |
+| `date` | timestamp | copied from the doc, for a later kitchen report |
 | `created_at` / `updated_at` | timestamp | |
+
+**Sums:**
+
+- **S** = stock-in − SUM(`stock_out_lines.quantity`) - as today.
+- **K** = SUM(`stock_out_lines.quantity` where department = Kitchen) −
+  SUM(`stock_out_recipe_lines.needed_quantity`).
+- Doc view per product: Needed (recipe lines) | Extra | Given (total).
+
+Example: Recipe A × 10 (P1 0.05 l, P2 0.2 kg per person) + extras P3 1 kg, P1 0.3 l; the
+storekeeper sets P1 total to 1 l → lines P1 (extra 0.3, total 1), P2 (0, 2), P3 (1, 1);
+recipe lines P1 needed 0.5, P2 needed 2 → S: −1, −2, −1; K: P1 +0.5, P2 0, P3 +1. A total
+below needed + extra is allowed (only K + total ≥ recipe needs); the Note explains why.
 
 ## Names
 
@@ -411,11 +497,6 @@ Not part of recipes - works for every company.
 
 Do not build any of this until it is settled.
 
-- **Kitchen balance** - where the difference between actual and calculated recipe amounts goes.
-  To discuss / define.
-- The stock-out open points listed in "Stock-out with recipes → Open (stock-out)".
-- **Unit hint** under the product form's Unit field ("pick the unit it goes out in") - suggested,
-  not confirmed.
 
 ## Later
 
