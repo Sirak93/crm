@@ -370,7 +370,7 @@ export default {
       unitPlaceholder: 'Choose a unit',
       unitRequired: 'Choose a unit',
       unitLocked: 'The unit cannot be changed - stock is counted in it.',
-      unitHint: 'The unit the product is counted and given out in. Not the package: oil → Liter, eggs → Piece.',
+      unitHint: 'The unit the product is counted and given out in.\nOil → Liter\nEggs → Piece',
       category: 'Category',
       categoryPlaceholder: 'Choose a category',
       categoryRequired: 'Choose a category',

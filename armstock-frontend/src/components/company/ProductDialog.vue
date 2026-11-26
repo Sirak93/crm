@@ -174,5 +174,7 @@ const save = async () => {
   font-size: var(--text-xs);
   line-height: 1.4;
   color: var(--text-muted);
+  /* Keeps the hint's line breaks (one example per row). */
+  white-space: pre-line;
 }
 </style>
