@@ -256,7 +256,7 @@ without recipes is a normal stock-out, like today.
 
 - Each recipe only once per document (hidden in the picker, refused by the backend).
 - The first row's persons starts empty; "Add row" copies persons from the row above; empty or
-  0 refused (whole number > 0).
+  0 refused (whole number > 0). Most persons per row: **1000** (`RECIPE_PERSONS_MAX`, decided 2026-11-26).
 - Active recipes only in the picker. On edit, a recipe already in the doc stays even if it
   was archived later (same as products on recipe lines).
 - The document saves which recipes and persons it was made for, plus a **copy** of each
