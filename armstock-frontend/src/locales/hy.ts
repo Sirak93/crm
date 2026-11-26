@@ -691,6 +691,7 @@ const hy: typeof en = {
       amounts: 'Քանակներ',
       add: 'Ավելացնել բաղադրատոմս',
       remove: 'Հեռացնել բաղադրատոմսի տողը՝ {row}',
+      personCount: '{count} անձ',
     },
     totals: {
       title: 'Ընդհանուր',

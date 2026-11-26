@@ -691,6 +691,7 @@ export default {
       amounts: 'Amounts',
       add: 'Add recipe',
       remove: 'Remove recipe row {row}',
+      personCount: '{count} persons',
     },
     totals: {
       title: 'Totals',
