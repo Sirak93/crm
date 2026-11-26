@@ -254,7 +254,7 @@ Needs Steps U3 (fixed units) and U4 (converter component). Decisions: decisions.
         hidden, "Add row" copies persons, calculated amounts shown read-only; any recipe row
         disables Reason
   - [ ] Extra products block (today's lines), with the unit converter
-  - [ ] Totals list: each product once, prefilled recipes + extras (count units rounded up,
+  - [ ] Totals list: each product once, prefilled recipes + extras (count units and kg / l rounded up,
         kg / l to 3 decimals), editable, ≥ 0, with the unit converter; for every reason
   - [ ] "Save" saves right away; errors in the existing error list popup (no preview popup)
 - [ ] Tests (`StockOutSuite` + new cases): recipe with other reason refused, department forced,

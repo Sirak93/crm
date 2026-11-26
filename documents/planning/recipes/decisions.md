@@ -267,6 +267,14 @@ without recipes is a normal stock-out, like today.
 - **Rounding (decided 2026-11-26):** the prefilled total is rounded **up** for count units
   (1.1 + 0.5 eggs = 1.6 → 2); kg / l to 3 decimals. The storekeeper can still change it.
   The rest goes to K, so K can hold parts of a count unit (0.4 egg) - recipe needs are exact.
+- **kg / l round up too (decided 2026-11-26):** recipe needs have up to 6 decimals, stock totals
+  only 3, so the prefilled kg / l total is rounded **up** to 3 decimals (0.0012 kg → 0.002 kg),
+  never down - the prefill never gives less than the recipes need. The rest (0.0008 kg) goes to K.
+- **Nothing is lost by rounding:** only the prefill is rounded. The saved total is exact (3
+  decimals), recipe needs are saved exact (6 decimals), and K = totals − needs is summed in SQL
+  (`numeric`, no float errors). So came in = in store + in kitchen + used by recipes, always.
+- **Float noise:** the form clears it before rounding up (e.g. `toFixed(6)` first), so 0.5 × 3 =
+  1.5000000001 does not become 1.501.
 - **No preview popup (decided 2026-11-26):** the totals list is the preview. "Save" saves right
   away; stock / kitchen errors show in the existing error list popup.
 - Same stock check and error list as a normal stock-out.
