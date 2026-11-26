@@ -39,17 +39,26 @@ const typedDecimals = (typedUnit: MeasureUnit): number =>
 const units = computed(() =>
   props.productUnit === null ? [] : convertibleUnits(props.productUnit).filter((u) => typedDecimals(u) >= 0));
 
-const typedUnit = computed(() => unit.value ?? props.productUnit);
+const startingUnit = () => props.startUnit ?? props.productUnit;
+
+// Kept here, not read from the v-model: a bound unit reaches the prop a render later, and the
+// math must use the new unit at once (else 700 լ is saved for 700 մլ, or մլ → հատ crashes).
+const current = ref<MeasureUnit | null>(unit.value !== null && units.value.includes(unit.value) ? unit.value : startingUnit());
+if (unit.value !== current.value) unit.value = current.value;
+
+const setUnit = (next: MeasureUnit | null) => {
+  current.value = next;
+  unit.value = next;
+};
+
+// Watchers on the amount and the product may run in any order, so the math never uses a unit
+// left over from the previous product.
+const typedUnit = computed(() => (current.value !== null && units.value.includes(current.value) ? current.value : startingUnit()));
 const ratio = computed(() => (typedUnit.value !== null && props.productUnit !== null ? unitRatio(typedUnit.value, props.productUnit) : 1));
 const precision = computed(() => (typedUnit.value !== null ? typedDecimals(typedUnit.value) : valueDecimals.value));
 
 const toTyped = (v: number | undefined) => (v === undefined ? undefined : Number((v / ratio.value).toFixed(precision.value)));
 const toValue = (typed: number | undefined) => (typed === undefined ? undefined : Number((typed * ratio.value).toFixed(valueDecimals.value)));
-
-const startingUnit = () => props.startUnit ?? props.productUnit;
-
-// Starts on the start unit unless a fitting one was already picked (an edit); a new product starts over.
-if (unit.value === null || !units.value.includes(unit.value)) unit.value = startingUnit();
 
 const typed = ref<number | undefined>(toTyped(value.value));
 
@@ -60,13 +69,15 @@ const onTyped = (next: number | null | undefined) => {
 };
 
 // Switching the unit keeps the typed number: 500 typed, then մլ picked = 500 մլ.
-const onUnitChange = () => {
+const onUnitChange = (next: MeasureUnit) => {
+  setUnit(next);
   if (typed.value !== undefined) typed.value = Number(typed.value.toFixed(precision.value));
   value.value = toValue(typed.value);
 };
 
+// A new product starts over on its start unit.
 watch(() => props.productUnit, () => {
-  unit.value = startingUnit();
+  setUnit(startingUnit());
   typed.value = toTyped(value.value);
 });
 
@@ -90,11 +101,11 @@ watch(value, (next) => {
     />
     <el-select
       v-if="units.length > 1"
-      v-model="unit"
+      :model-value="typedUnit"
       :disabled="disabled"
       :aria-label="$t('common.unit')"
       class="unit-amount__unit"
-      @change="onUnitChange"
+      @update:model-value="onUnitChange"
     >
       <el-option v-for="u in units" :key="u" :label="unitShortName(u)" :value="u" />
     </el-select>
