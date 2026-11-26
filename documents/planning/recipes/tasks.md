@@ -38,7 +38,7 @@ read only once.
 - [x] Step U4 — Stock-in by packs + unit converter
 - [x] Step U4b — Nested `pack` on stock-in lines + "Received as" on the product
 - [x] Step 2b+ — Recipes: amounts down to 1 mg + unit converter
-- [ ] Step 3 — Stock-out: recipes block + totals list (create)
+- [x] Step 3 — Stock-out: recipes block + totals list (create)
 - [ ] Step 4 — Stock-out with recipes: list mark and view
 - [ ] Step 5 — Stock-out with recipes: edit and delete
 - [ ] Step K — Kitchen balance
@@ -261,7 +261,7 @@ Needs Steps U3 (fixed units) and U4 (converter component). Decisions: decisions.
       duplicates / archived recipes / persons 0 refused, copy saved with needed amounts, one row
       per product, extra part saved, total 0 allowed, S goes down by totals, options endpoint,
       permissions
-- [ ] Checked in browser: doc with 2 recipes + extras, change a total, save
+- [x] Checked in browser: doc with 2 recipes + extras, change a total, save
 
 ## Step 4 — Stock-out with recipes: list mark and view
 
