@@ -355,11 +355,11 @@ export default {
     },
     receivedAs: {
       loose: 'By quantity',
-      looseHint: 'e.g. 25 kg potatoes',
+      looseHint: 'e.g. 25 kg',
       packs: 'By package',
-      packsHint: 'e.g. 0.5 l × 6 bottles of oil',
+      packsHint: 'e.g. 0.5 l × 6 bottles',
       looseOrPacks: 'Both',
-      looseOrPacksHint: 'e.g. 12.4 kg meat or 5 kg × 2',
+      looseOrPacksHint: 'e.g. 12.4 kg or 5 kg × 2',
     },
     table: {
       name: 'Name',

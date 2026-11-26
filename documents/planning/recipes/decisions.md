@@ -116,8 +116,8 @@ To keep adding the module later cheap:
   shows: Loose → only Quantity; In packs → In one pack × Packs; Loose or in packs → In one pack ×
   Packs with Packs prefilled 1. Why: "In one pack" on loose goods (25 kg potatoes) reads wrong.
   - **Wording** (decided 2026-11-26, replaces the names above in the UI): field "Մուտքի ձև"
-    (Stock-in type); options with a grey example next to each - Քանակով (25 կգ կարտոֆիլ) /
-    Փաթեթով (0.5 լ × 6 շիշ ձեթ) / Երկուսն էլ (12.4 կգ միս կամ 5 կգ × 2), each starting with "օր.՝"
+    (Stock-in type); options with a grey example next to each - Քանակով (25 կգ) /
+    Փաթեթով (0.5 լ × 6 շիշ) / Երկուսն էլ (12.4 կգ կամ 5 կգ × 2), each starting with "օր.՝"
     (e.g.). No hint under the field. Stock-in columns: Քանակ | Մեկ փաթեթում | Փաթեթ | Ընդամենը.
     Why: "Չափածո" fits weighed goods only, and "Տուփ" is already a unit (box).
   - **Line table** (Step U4b): columns Quantity | In one pack | Packs | Total. A Loose row fills

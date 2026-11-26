@@ -355,11 +355,11 @@ const hy: typeof en = {
     },
     receivedAs: {
       loose: 'Քանակով',
-      looseHint: 'օր.՝ 25 կգ կարտոֆիլ',
+      looseHint: 'օր.՝ 25 կգ',
       packs: 'Փաթեթով',
-      packsHint: 'օր.՝ 0.5 լ × 6 շիշ ձեթ',
+      packsHint: 'օր.՝ 0.5 լ × 6 շիշ',
       looseOrPacks: 'Երկուսն էլ',
-      looseOrPacksHint: 'օր.՝ 12.4 կգ միս կամ 5 կգ × 2',
+      looseOrPacksHint: 'օր.՝ 12.4 կգ կամ 5 կգ × 2',
     },
     table: {
       name: 'Անվանում',
