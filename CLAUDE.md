@@ -213,8 +213,9 @@ export enum UserRole {
   that are faster done directly.
 - **Commit messages:** after finishing any implementation task, always propose a draft
   commit message in Conventional Commits format — `type(scope): description`, e.g.
-  `feat(api): add contact search` — without waiting to be asked. Commit only when the
-  user asks.
+  `feat(api): add contact search` — without waiting to be asked. Always give **one**
+  commit message that covers all uncommitted changes (even when they span several steps
+  or tasks) — never one message per step. Commit only when the user asks.
 - **Git write actions — banned unless the user orders one.** Never run `git commit`,
   `git push`, or any other write/mutating git command, and never offer or ask to run
   one — the user commits. The only exception: the user explicitly tells you to run a

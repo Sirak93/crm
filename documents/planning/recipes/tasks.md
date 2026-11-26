@@ -1,7 +1,7 @@
 # Recipes & Stock movement — Task List
 
 Each step is one small, finished piece — backend, frontend and tests together — so it can be
-reviewed in code, tested, and checked in the browser. One step = one review = one commit.
+reviewed in code, tested, and checked in the browser. One session = one review = one commit.
 
 How to use this file:
 
@@ -24,15 +24,15 @@ Decisions behind these steps: [decisions.md](decisions.md).
 
 ## Progress
 
-Work in this order, **one session per line** (a line with two steps = one session, one commit per
-step). Start a new session and say which step(s) to do. Smallest first, and each step's code is
+Work in this order, **one session per line** (a line with two steps = one session, one commit for
+both). Start a new session and say which step(s) to do. Smallest first, and each step's code is
 read only once.
 
 - [x] Step 1 — Recipe permissions and Chef role
 - [x] Step 2a — Recipes: base (enums, tables, interfaces)
 - [x] Step 2b — Recipes: list, create, edit, details
 - [x] Step 2c — Recipes: archive, restore, delete
-- [ ] Step U5 — Remove the HR default role  +  Step U2 — Hide barcode scanner and barcode field  *(both small, one session)*
+- [x] Step U5 — Remove the HR default role  +  Step U2 — Hide barcode scanner and barcode field  *(both small, one session)*
 - [ ] Step U1 — Remove prices
 - [ ] Step U3 — Fixed units (replace the Units page)
 - [ ] Step U4 — Stock-in by packs + unit converter
@@ -112,7 +112,7 @@ read only once.
 - [x] Frontend: one constant `SCANNER_ENABLED = false`; it hides the header connect button, scan in
       stock-in / stock-out lines, scan search on the products page, the product form's Barcode
       field and any barcode column / search. Code and DB column stay
-- [ ] Checked in browser: no scanner or barcode anywhere; switch on → all back
+- [x] Checked in browser: no scanner or barcode anywhere; switch on → all back
 
 ## Step U3 — Fixed units (replace the Units page)
 
@@ -156,7 +156,7 @@ read only once.
 - [x] Backend: HR out of `DEFAULT_ROLE_NAMES` and the dev seeder; `DEV_SEED_HR_EMAIL` out of
       `.env.example`
 - [x] Tests: HR member removed from the tester companies; suites that used HR switch to Staff
-- [ ] Checked in browser: a new company's roles list has no HR
+- [x] Checked in browser: a new company's roles list has no HR
 
 ## Step 2b+ — Recipes: amounts down to 1 mg + unit converter
 
