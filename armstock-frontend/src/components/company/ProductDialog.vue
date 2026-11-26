@@ -7,7 +7,7 @@ let lastCategoryUuid = '';
 import { computed, ref, watch } from 'vue';
 import { useI18n } from 'vue-i18n';
 import type { FormInstance, FormRules } from 'element-plus';
-import { PRODUCT_MEASURE_UNITS, ProductReceivedAs, type IProduct, type IProductCategory, type MeasureUnit } from 'armstock-shared';
+import { MEASURE_UNITS, PRODUCT_MEASURE_UNITS, ProductReceivedAs, type IProduct, type IProductCategory, type MeasureUnit } from 'armstock-shared';
 import { Barcode, Package, ScanBarcode } from 'lucide-vue-next';
 import AppDialog from '../AppDialog.vue';
 import { ProductService } from '../../services/ProductService';
@@ -16,7 +16,7 @@ import { useApiErrorMessage } from '../../composables/useApiErrorMessage';
 import { useMeasureUnits } from '../../composables/useMeasureUnits';
 import { BARCODE_MAX_LENGTH } from 'armstock-shared';
 import { BARCODE_INPUT_ATTR, PRODUCT_CODE_ENABLED, REQUIRED_RULE_TRIGGER, SCANNER_ENABLED } from '../../constants/constants';
-import { PRODUCT_RECEIVED_AS, PRODUCT_RECEIVED_AS_HINT, PRODUCT_RECEIVED_AS_LABEL } from '../../constants/productReceivedAs';
+import { PRODUCT_RECEIVED_AS, PRODUCT_RECEIVED_AS_HINT, PRODUCT_RECEIVED_AS_LABEL, UNIT_TYPE_HINT_KEY } from '../../constants/productReceivedAs';
 
 const props = defineProps<{
   /** null = add a new product. */
@@ -55,6 +55,12 @@ const form = ref<{
 });
 
 const isEdit = computed(() => !!props.product);
+
+/** The stock-in type examples speak in the chosen unit; none until a unit is picked. */
+const hintUnit = computed(() => {
+  const unit = form.value.measureUnit;
+  return unit ? { typeKey: UNIT_TYPE_HINT_KEY[MEASURE_UNITS[unit].type], shortName: unitShortName(unit) } : null;
+});
 
 const required = (key: string) => [{ required: true, whitespace: true, message: () => t(key), trigger: REQUIRED_RULE_TRIGGER }];
 
@@ -152,17 +158,6 @@ const save = async () => {
         </el-select>
       </el-form-item>
 
-      <el-form-item :label="$t('products.form.receivedAs')" prop="receivedAs">
-        <el-select v-model="form.receivedAs" class="full-width">
-          <el-option v-for="value in PRODUCT_RECEIVED_AS" :key="value" :label="$t(PRODUCT_RECEIVED_AS_LABEL[value])" :value="value">
-            <span class="received-as-option">
-              <span>{{ $t(PRODUCT_RECEIVED_AS_LABEL[value]) }}</span>
-              <span class="received-as-option__hint">{{ $t(PRODUCT_RECEIVED_AS_HINT[value]) }}</span>
-            </span>
-          </el-option>
-        </el-select>
-      </el-form-item>
-
       <el-form-item :label="$t('products.form.unit')" prop="measureUnit">
         <el-select
           v-model="form.measureUnit"
@@ -179,6 +174,19 @@ const save = async () => {
           />
         </el-select>
         <p class="field-hint">{{ $t(isEdit ? 'products.form.unitLocked' : 'products.form.unitHint') }}</p>
+      </el-form-item>
+
+      <el-form-item :label="$t('products.form.receivedAs')" prop="receivedAs">
+        <el-select v-model="form.receivedAs" :disabled="!form.measureUnit" class="full-width">
+          <el-option v-for="value in PRODUCT_RECEIVED_AS" :key="value" :label="$t(PRODUCT_RECEIVED_AS_LABEL[value])" :value="value">
+            <span class="received-as-option">
+              <span>{{ $t(PRODUCT_RECEIVED_AS_LABEL[value]) }}</span>
+              <span v-if="hintUnit" class="received-as-option__hint">
+                {{ $t(`${PRODUCT_RECEIVED_AS_HINT[value]}.${hintUnit.typeKey}`, { unit: hintUnit.shortName }) }}
+              </span>
+            </span>
+          </el-option>
+        </el-select>
       </el-form-item>
 
       <!-- Lets Enter submit the form. -->

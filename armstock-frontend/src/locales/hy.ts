@@ -355,11 +355,15 @@ const hy: typeof en = {
     },
     receivedAs: {
       loose: 'Քանակով',
-      looseHint: 'օր.՝ 25 կգ',
+      looseHint: { count: 'օր.՝ 24 {unit}', weight: 'օր.՝ 25 {unit}', volume: 'օր.՝ 20 {unit}' },
       packs: 'Փաթեթով',
-      packsHint: 'օր.՝ 0.5 լ × 6 շիշ',
+      packsHint: { count: 'օր.՝ 12 {unit} × 6', weight: 'օր.՝ 5 {unit} × 4', volume: 'օր.՝ 0.5 {unit} × 6' },
       looseOrPacks: 'Երկուսն էլ',
-      looseOrPacksHint: 'օր.՝ 12.4 կգ կամ 5 կգ × 2',
+      looseOrPacksHint: {
+        count: 'օր.՝ 30 {unit} կամ 12 {unit} × 2',
+        weight: 'օր.՝ 12.4 {unit} կամ 5 {unit} × 2',
+        volume: 'օր.՝ 7.5 {unit} կամ 5 {unit} × 2',
+      },
     },
     table: {
       name: 'Անվանում',
@@ -379,7 +383,7 @@ const hy: typeof en = {
       unitPlaceholder: 'Ընտրեք միավորը',
       unitRequired: 'Ընտրեք միավորը',
       unitLocked: 'Միավորը հնարավոր չէ փոխել. մնացորդը հաշվվում է դրանով։',
-      unitHint: 'Միավորը, որով ապրանքը հաշվվում և դուրս է գրվում։',
+      unitHint: 'Միավորը, որով ապրանքը մուտք է արվում, հաշվվում և դուրս է գրվում։',
       category: 'Կատեգորիա',
       categoryPlaceholder: 'Ընտրեք կատեգորիան',
       categoryRequired: 'Ընտրեք կատեգորիան',

@@ -355,11 +355,15 @@ export default {
     },
     receivedAs: {
       loose: 'By quantity',
-      looseHint: 'e.g. 25 kg',
+      looseHint: { count: 'e.g. 24 {unit}', weight: 'e.g. 25 {unit}', volume: 'e.g. 20 {unit}' },
       packs: 'By package',
-      packsHint: 'e.g. 0.5 l × 6 bottles',
+      packsHint: { count: 'e.g. 12 {unit} × 6', weight: 'e.g. 5 {unit} × 4', volume: 'e.g. 0.5 {unit} × 6' },
       looseOrPacks: 'Both',
-      looseOrPacksHint: 'e.g. 12.4 kg or 5 kg × 2',
+      looseOrPacksHint: {
+        count: 'e.g. 30 {unit} or 12 {unit} × 2',
+        weight: 'e.g. 12.4 {unit} or 5 {unit} × 2',
+        volume: 'e.g. 7.5 {unit} or 5 {unit} × 2',
+      },
     },
     table: {
       name: 'Name',
@@ -379,7 +383,7 @@ export default {
       unitPlaceholder: 'Choose a unit',
       unitRequired: 'Choose a unit',
       unitLocked: 'The unit cannot be changed - stock is counted in it.',
-      unitHint: 'The unit the product is counted and given out in.',
+      unitHint: 'The unit the product comes in, is counted in and goes out in.',
       category: 'Category',
       categoryPlaceholder: 'Choose a category',
       categoryRequired: 'Choose a category',
