@@ -81,7 +81,7 @@ export default (context: ICompanySideContext) => defineSuite("Company isolation"
         uuidsOfB = [
             companyB.uuid, productB.uuid, supplierB.uuid, contactB.uuid, unitB, categoryB, roleB.uuid, receiverB,
             stockInB.uuid, stockOutB.uuid, recipeB.uuid,
-            ...[companyB.owner, companyB.storekeeper, companyB.accountant, companyB.hr, companyB.staff].map((u) => u.uuid),
+            ...[companyB.owner, companyB.storekeeper, companyB.accountant, companyB.staff].map((u) => u.uuid),
         ];
         snapshotBefore = await companySnapshot(db, companyB.uuid);
     });

@@ -31,7 +31,7 @@ read only once.
 - [x] Step 1 — Recipe permissions and Chef role
 - [x] Step 2a — Recipes: base (enums, tables, interfaces)
 - [x] Step 2b — Recipes: list, create, edit, details
-- [ ] Step 2c — Recipes: archive, restore, delete
+- [x] Step 2c — Recipes: archive, restore, delete
 - [ ] Step U5 — Remove the HR default role  +  Step U2 — Hide barcode scanner and barcode field  *(both small, one session)*
 - [ ] Step U1 — Remove prices
 - [ ] Step U3 — Fixed units (replace the Units page)
@@ -109,7 +109,7 @@ read only once.
 
 ## Step U2 — Hide barcode scanner and barcode field
 
-- [ ] Frontend: one constant `SCANNER_ENABLED = false`; it hides the header connect button, scan in
+- [x] Frontend: one constant `SCANNER_ENABLED = false`; it hides the header connect button, scan in
       stock-in / stock-out lines, scan search on the products page, the product form's Barcode
       field and any barcode column / search. Code and DB column stay
 - [ ] Checked in browser: no scanner or barcode anywhere; switch on → all back
@@ -151,11 +151,11 @@ read only once.
 
 ## Step U5 — Remove the HR default role
 
-- [ ] Shared: `DefaultRole.HR` and its default permissions removed (enum numbers of the others
+- [x] Shared: `DefaultRole.HR` and its default permissions removed (enum numbers of the others
       stay)
-- [ ] Backend: HR out of `DEFAULT_ROLE_NAMES` and the dev seeder; `DEV_SEED_HR_EMAIL` out of
+- [x] Backend: HR out of `DEFAULT_ROLE_NAMES` and the dev seeder; `DEV_SEED_HR_EMAIL` out of
       `.env.example`
-- [ ] Tests: HR member removed from the tester companies; suites that used HR switch to Staff
+- [x] Tests: HR member removed from the tester companies; suites that used HR switch to Staff
 - [ ] Checked in browser: a new company's roles list has no HR
 
 ## Step 2b+ — Recipes: amounts down to 1 mg + unit converter
@@ -183,7 +183,7 @@ read only once.
   - [x] Product delete blocked while a recipe uses it - clear error, not a DB error
 - [x] Frontend: archive / restore / delete row actions, by permission
 - [x] Tests: archive / restore / delete, permissions, product delete refused while used
-- [ ] Checked in browser: the head chef archives, restores and deletes a recipe; deleting a
+- [x] Checked in browser: the head chef archives, restores and deletes a recipe; deleting a
       product used in a recipe shows the error
 
 ## Step 3 — Stock-out: recipes block + totals list (create)

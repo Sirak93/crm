@@ -4,7 +4,6 @@ import { DefaultRole } from "armstock-shared";
 export const DEFAULT_ROLE_NAMES: Readonly<Record<DefaultRole, string>> = {
     [DefaultRole.STOREKEEPER]: "Պահեստապետ",
     [DefaultRole.ACCOUNTANT]: "Հաշվապահ",
-    [DefaultRole.HR]: "Կադրերի մենեջեր",
     [DefaultRole.STAFF]: "Աշխատակից",
     [DefaultRole.CHEF]: "Շեֆ-խոհարար",
 };

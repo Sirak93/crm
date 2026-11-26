@@ -6,7 +6,7 @@ import { randomPassword, uniqueEmail, uniqueName } from "./Random";
 import type { ITestCompany } from "../interfaces/ITestCompany";
 import type { ITestContext } from "../interfaces/ITestContext";
 
-const DEFAULT_ROLES = [DefaultRole.STOREKEEPER, DefaultRole.ACCOUNTANT, DefaultRole.HR, DefaultRole.STAFF, DefaultRole.CHEF];
+const DEFAULT_ROLES = [DefaultRole.STOREKEEPER, DefaultRole.ACCOUNTANT, DefaultRole.STAFF, DefaultRole.CHEF];
 
 /**
  * A company made through the platform API like a real onboarding, with its Owner and one
@@ -33,11 +33,10 @@ export const createCompany = async (context: ITestContext, label: string): Promi
     const member = (role: DefaultRole, memberLabel: string) =>
         createMember(partial, { role, permissions: [...DEFAULT_ROLE_PERMISSIONS[role]], label: `${memberLabel}-${label}` });
 
-    const [storekeeper, accountant, hr, staff] = await Promise.all([
+    const [storekeeper, accountant, staff] = await Promise.all([
         member(DefaultRole.STOREKEEPER, "storekeeper"),
         member(DefaultRole.ACCOUNTANT, "accountant"),
-        member(DefaultRole.HR, "hr"),
         member(DefaultRole.STAFF, "staff"),
     ]);
-    return { ...partial, storekeeper, accountant, hr, staff };
+    return { ...partial, storekeeper, accountant, staff };
 };

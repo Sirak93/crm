@@ -8,7 +8,6 @@ export interface ITestCompany {
     owner: ITestUser;
     storekeeper: ITestUser;
     accountant: ITestUser;
-    hr: ITestUser;
     /** Staff role - no permissions at all. */
     staff: ITestUser;
     /** Role uuid per default role. */

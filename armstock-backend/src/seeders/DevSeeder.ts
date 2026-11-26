@@ -21,7 +21,6 @@ const ENV = {
     OWNER_EMAIL: "DEV_SEED_OWNER_EMAIL",
     STOREKEEPER_EMAIL: "DEV_SEED_STOREKEEPER_EMAIL",
     ACCOUNTANT_EMAIL: "DEV_SEED_ACCOUNTANT_EMAIL",
-    HR_EMAIL: "DEV_SEED_HR_EMAIL",
     CHEF_EMAIL: "DEV_SEED_CHEF_EMAIL",
 } as const;
 
@@ -71,7 +70,6 @@ export const seedDevCompany = async () => {
 
     await member("Գոռ", "Սարգսյան", "Պահեստապետ", DEFAULT_ROLE_NAMES[DefaultRole.STOREKEEPER], env("STOREKEEPER_EMAIL"));
     await member("Անի", "Հակոբյան", "Հաշվապահ", DEFAULT_ROLE_NAMES[DefaultRole.ACCOUNTANT], env("ACCOUNTANT_EMAIL"));
-    await member("Լիլիթ", "Մարտիրոսյան", "Կադրերի մենեջեր", DEFAULT_ROLE_NAMES[DefaultRole.HR], env("HR_EMAIL"));
     await member("Արմեն", "Ավետիսյան", "Շեֆ-խոհարար", DEFAULT_ROLE_NAMES[DefaultRole.CHEF], env("CHEF_EMAIL"));
     await member("Կարեն", "Գրիգորյան", "Խոհարար", DEFAULT_ROLE_NAMES[DefaultRole.STAFF], null);
 

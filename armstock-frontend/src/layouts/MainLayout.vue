@@ -12,6 +12,7 @@ import { useRouter } from 'vue-router';
 import { useAuthStore } from '../stores/auth';
 import { canOpen } from '../utils/canOpen';
 import { SerialScannerService } from '../services/SerialScannerService';
+import { SCANNER_ENABLED } from '../constants/constants';
 
 const authStore = useAuthStore();
 const router = useRouter();
@@ -36,7 +37,9 @@ const closeSidebar = () => {
   isSidebarOpen.value = false;
 };
 
-onMounted(() => SerialScannerService.init());
+onMounted(() => {
+  if (SCANNER_ENABLED) SerialScannerService.init();
+});
 </script>
 
 <template>

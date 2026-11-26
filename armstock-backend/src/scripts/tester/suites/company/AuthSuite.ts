@@ -77,7 +77,7 @@ export default (context: ICompanySideContext) => defineSuite("Auth and sessions"
     test("the current user: Owner, member and Platform Owner", async () => {
         const read = async (user: ITestUser) => (await user.api.ok<{ user: IAuthUser }>("GET", PATHS.AUTH_USER)).data.user;
         matches(await read(companyA.owner), { uuid: companyA.owner.uuid, accountType: AccountType.COMPANY_OWNER, permissions: [] });
-        matches(await read(companyA.hr), { uuid: companyA.hr.uuid, accountType: AccountType.COMPANY_MEMBER });
+        matches(await read(companyA.staff), { uuid: companyA.staff.uuid, accountType: AccountType.COMPANY_MEMBER });
         matches(await read(context.platformOwner), {
             uuid: context.platformOwner.uuid,
             accountType: AccountType.PLATFORM_OWNER,

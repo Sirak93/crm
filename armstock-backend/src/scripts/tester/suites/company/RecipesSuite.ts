@@ -22,7 +22,7 @@ const LINE_KEYS = ["uuid", "product", "quantity"];
 
 export default (context: ICompanySideContext) => defineSuite("Recipes", (test) => {
     const { db, companyA, companyB } = context;
-    const { storekeeper, hr, owner } = companyA;
+    const { storekeeper, staff, owner } = companyA;
     const path = (uuid: string) => `${PATHS.RECIPES}/${uuid}`;
     const tag = uniqueName("Rcp").replace(" ", "");
     const line = (product: IProduct, quantity: number) => ({ productUuid: product.uuid, quantity });
@@ -206,7 +206,7 @@ export default (context: ICompanySideContext) => defineSuite("Recipes", (test) =
 
     // --- Access ---
 
-    test("the storekeeper may list and open recipes but not add, edit, archive or delete them; HR sees nothing", async () => {
+    test("the storekeeper may list and open recipes but not add, edit, archive or delete them; Staff sees nothing", async () => {
         const recipe = await createRecipe(chef, [line(whole, 1)]);
         await storekeeper.api.ok("GET", PATHS.RECIPES);
         await storekeeper.api.ok("GET", path(recipe.uuid));
@@ -214,7 +214,7 @@ export default (context: ICompanySideContext) => defineSuite("Recipes", (test) =
         await storekeeper.api.rejects("PUT", path(recipe.uuid), ErrorCodes.AUTH.FORBIDDEN, recipeBody([line(whole, 1)]));
         await storekeeper.api.rejects("PATCH", `${path(recipe.uuid)}/status`, ErrorCodes.AUTH.FORBIDDEN, { status: RecipeStatus.ARCHIVED });
         await storekeeper.api.rejects("DELETE", path(recipe.uuid), ErrorCodes.AUTH.FORBIDDEN);
-        await hr.api.rejects("GET", PATHS.RECIPES, ErrorCodes.AUTH.FORBIDDEN);
+        await staff.api.rejects("GET", PATHS.RECIPES, ErrorCodes.AUTH.FORBIDDEN);
     });
 
     test("another company's recipe is not found and its list is empty for us", async () => {

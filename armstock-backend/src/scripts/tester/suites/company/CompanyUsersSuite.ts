@@ -57,12 +57,14 @@ export default (context: ICompanySideContext) => defineSuite("Company users", (t
             "SELECT email, password, permissions FROM users WHERE uuid = $1", [uuid]))[0];
 
     let manager: ITestUser;
+    let adder: ITestUser;
 
-    test("prepares a member who may manage permissions (but not the Owner)", async () => {
+    test("prepares a member who may manage permissions (but not the Owner) and one who may only add users", async () => {
         manager = await createMember(companyA, {
             permissions: [Permission.USER_VIEW, Permission.USER_ADD, Permission.USER_EDIT, Permission.MANAGE_USER_PERMISSIONS],
             label: "manager",
         });
+        adder = await createMember(companyA, { permissions: [Permission.USER_VIEW, Permission.USER_ADD], label: "adder" });
     });
 
     // --- Create ---
@@ -117,11 +119,11 @@ export default (context: ICompanySideContext) => defineSuite("Company users", (t
     test("an email already used - in any company, in any case - is refused", async () => {
         const first = await create(owner);
         await owner.api.rejects("POST", PATHS.COMPANY_USERS, ErrorCodes.USER.EMAIL_TAKEN, createBody({ email: first.email!.toUpperCase() }));
-        await owner.api.rejects("POST", PATHS.COMPANY_USERS, ErrorCodes.USER.EMAIL_TAKEN, createBody({ email: companyB.hr.email }));
+        await owner.api.rejects("POST", PATHS.COMPANY_USERS, ErrorCodes.USER.EMAIL_TAKEN, createBody({ email: companyB.staff.email }));
     });
 
     test("someone who can't manage permissions adds a user: the role's permissions are copied, the sent ones ignored", async () => {
-        const user = await create(companyA.hr, { roleUuid: storekeeperRole, permissions: [Permission.COMPANY_EDIT] });
+        const user = await create(adder, { roleUuid: storekeeperRole, permissions: [Permission.COMPANY_EDIT] });
         const { data: roles } = await owner.api.ok<IRole[]>("GET", PATHS.ROLES);
         const role = roles.find((r) => r.uuid === storekeeperRole)!;
         matches([...user.permissions].sort(), [...role.permissions].sort());
@@ -140,8 +142,8 @@ export default (context: ICompanySideContext) => defineSuite("Company users", (t
         const byOwner = await create(owner, { roleUuid: role.uuid });
         isTrue(byOwner.permissions.includes(Permission.MANAGE_USER_PERMISSIONS), "the Owner's new user gets it from the role");
 
-        const byHr = await create(companyA.hr, { roleUuid: role.uuid });
-        matches(byHr.permissions, [Permission.USER_VIEW], "HR's new user does not get it");
+        const byAdder = await create(adder, { roleUuid: role.uuid });
+        matches(byAdder.permissions, [Permission.USER_VIEW], "the adder's new user does not get it");
 
         const byManager = await create(manager, { roleUuid: role.uuid, permissions: [Permission.MANAGE_USER_PERMISSIONS, Permission.PRODUCT_VIEW] });
         matches(byManager.permissions, [Permission.PRODUCT_VIEW], "the manager's new user does not get it");

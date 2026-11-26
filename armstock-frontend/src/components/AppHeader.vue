@@ -5,6 +5,7 @@ import logoIcon from 'armstock-assets/brand/logo-animated.svg';
 import LanguageSwitcher from './LanguageSwitcher.vue';
 import ProfileDropdown from './ProfileDropdown.vue';
 import ScannerConnectButton from './ScannerConnectButton.vue';
+import { SCANNER_ENABLED } from '../constants/constants';
 
 defineEmits<{ 'toggle-sidebar': [] }>();
 </script>
@@ -26,7 +27,7 @@ defineEmits<{ 'toggle-sidebar': [] }>();
     </div>
 
     <div class="app-header__end">
-      <ScannerConnectButton />
+      <ScannerConnectButton v-if="SCANNER_ENABLED" />
       <LanguageSwitcher />
       <ProfileDropdown />
     </div>

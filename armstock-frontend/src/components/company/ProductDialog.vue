@@ -9,7 +9,7 @@ import { ProductService } from '../../services/ProductService';
 import { NotificationService } from '../../services/NotificationService';
 import { useApiErrorMessage } from '../../composables/useApiErrorMessage';
 import { BARCODE_MAX_LENGTH } from 'armstock-shared';
-import { BARCODE_INPUT_ATTR, REQUIRED_RULE_TRIGGER } from '../../constants/constants';
+import { BARCODE_INPUT_ATTR, REQUIRED_RULE_TRIGGER, SCANNER_ENABLED } from '../../constants/constants';
 
 const props = defineProps<{
   /** null = add a new product. */
@@ -105,7 +105,7 @@ const save = async () => {
         </el-form-item>
       </div>
 
-      <div class="form-row">
+      <div v-if="SCANNER_ENABLED" class="form-row">
         <el-form-item :label="$t('products.form.barcode')" prop="barcode">
           <!-- Enter is the scanner's end key here, not "save". -->
           <el-input

@@ -134,10 +134,10 @@ export default (context: ICompanySideContext) => defineSuite("Stock balance", (t
         await storekeeper.api.rejectsField("GET", `${PATHS.STOCK_BALANCE}/summary?categoryUuid=nope`, "categoryUuid");
     });
 
-    test("Accountant can see it; HR, Staff, no token and the Platform Owner can't", async () => {
+    test("Accountant can see it; Staff, no token and the Platform Owner can't", async () => {
         await companyA.accountant.api.ok("GET", PATHS.STOCK_BALANCE);
         await companyA.accountant.api.ok("GET", `${PATHS.STOCK_BALANCE}/summary`);
-        for (const user of [companyA.hr, companyA.staff, context.platformOwner]) {
+        for (const user of [companyA.staff, context.platformOwner]) {
             await user.api.rejects("GET", PATHS.STOCK_BALANCE, ErrorCodes.AUTH.FORBIDDEN);
             await user.api.rejects("GET", `${PATHS.STOCK_BALANCE}/summary`, ErrorCodes.AUTH.FORBIDDEN);
         }

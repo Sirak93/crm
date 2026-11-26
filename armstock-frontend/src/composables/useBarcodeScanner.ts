@@ -1,5 +1,5 @@
 import { onBeforeUnmount, onMounted, toValue, type MaybeRefOrGetter } from 'vue';
-import { BARCODE_INPUT_ATTR } from '../constants/constants';
+import { BARCODE_INPUT_ATTR, SCANNER_ENABLED } from '../constants/constants';
 import { SerialScannerService } from '../services/SerialScannerService';
 
 // A USB scanner types like a keyboard, but far faster than a person, and ends with Enter.
@@ -18,6 +18,8 @@ const asTextField = (target: EventTarget | null): TextField | null =>
  * A serial (COM mode) scanner follows the same rules, but never types, so there is nothing to undo.
  */
 export const useBarcodeScanner = (onScan: (barcode: string) => void, enabled: MaybeRefOrGetter<boolean> = true) => {
+  if (!SCANNER_ENABLED) return;
+
   let buffer = '';
   let lastKeyAt = 0;
   // The focused field and its value before the scan's first character landed in it.
