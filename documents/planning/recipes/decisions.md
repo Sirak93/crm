@@ -534,6 +534,13 @@ Not part of recipes - works for every company.
   come from the saved copy (`stock_out_recipe_lines` × persons), so they are exact for that
   day. The recipe amounts are exact; the doc's out amount may be rounded up (e.g. eggs 1.6 →
   2) - both are shown.
+- **Opened recipes - full-width row (decided 2026-11-27):** a row under the document spanning
+  the whole table, one line per recipe: "Dish A × 11 persons" on the left, amount + unit on
+  the right. Long names wrap, nothing is cut (before, they sat in the narrow reason column
+  with "…"). The row has a chef-hat icon (`RecipeIcon`, like the stock-out list) instead of a
+  "By recipe" text badge.
+- **One scroll only:** the table has no height of its own; the popup body is the only
+  scroll (the next page still loads when the end scrolls into view).
 - Endpoint: `GET /stock/movement/:uuid` (`STOCK_BALANCE_VIEW`), same range as the table.
   Each page also sends the header numbers (the product's movement row). A stock-in that has
   the product on two lines is one row (summed).

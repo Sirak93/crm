@@ -133,6 +133,8 @@ const canOpenDocument = (doc: IStockMovementDocument): boolean =>
 const documentHref = (doc: IStockMovementDocument): string =>
   router.resolve({ name: DOCUMENT_TYPES[doc.type].route, params: { uuid: doc.uuid } }).href;
 
+const expandedRows = computed(() => Object.keys(openRows.value).filter((uuid) => openRows.value[uuid]));
+
 const toggleRow = (doc: IStockMovementDocument) => {
   openRows.value = { ...openRows.value, [doc.uuid]: !openRows.value[doc.uuid] };
 };
@@ -166,7 +168,29 @@ const quantity = (value: number): string => (value ? formatQuantity(value) : '')
 
       <el-empty v-if="!documents.length" :description="$t('stockMovement.popup.empty')" :image-size="64" />
 
-      <el-table v-else :data="documents" class="app-table app-table--nowrap product-movement__table" max-height="440" row-key="uuid">
+      <el-table
+        v-else
+        :data="documents"
+        class="app-table app-table--nowrap product-movement__table"
+        row-key="uuid"
+        :expand-row-keys="expandedRows"
+      >
+        <!-- Only for the recipe rows under a document - opened by the reason toggle, so its own arrow is hidden. -->
+        <el-table-column type="expand" width="1" class-name="product-movement__expand">
+          <template #default="{ row }">
+            <ul class="product-movement__recipes">
+              <li v-for="(recipe, index) in row.recipes" :key="index">
+                <span class="product-movement__recipe-name">
+                  {{ $t('stockMovement.popup.recipe', { name: recipe.name, persons: formatNumber(recipe.persons) }) }}
+                </span>
+                <span class="product-movement__recipe-amount">
+                  {{ formatQuantity(recipe.quantity, RECIPE_QUANTITY_DECIMALS) }}
+                  <span class="product-movement__unit">{{ unit }}</span>
+                </span>
+              </li>
+            </ul>
+          </template>
+        </el-table-column>
         <el-table-column :label="$t('stockMovement.popup.date')" min-width="130">
           <template #default="{ row }"><span class="cell-text">{{ formatDateTimeShort(row.date) }}</span></template>
         </el-table-column>
@@ -202,11 +226,6 @@ const quantity = (value: number): string => (value ? formatQuantity(value) : '')
               <RecipeIcon />
             </button>
             <span v-else class="cell-text">{{ DOCUMENT_TYPES[(row as IStockMovementDocument).type].reason(row.reason) }}</span>
-            <ul v-if="openRows[row.uuid]" class="product-movement__recipes product-movement__recipes--names">
-              <li v-for="(recipe, index) in row.recipes" :key="index">
-                {{ $t('stockMovement.popup.recipe', { name: recipe.name, persons: formatNumber(recipe.persons) }) }}
-              </li>
-            </ul>
           </template>
         </el-table-column>
         <el-table-column :label="$t('stockMovement.table.in')" min-width="100" align="right">
@@ -215,9 +234,6 @@ const quantity = (value: number): string => (value ? formatQuantity(value) : '')
         <el-table-column :label="$t('stockMovement.table.out')" min-width="100" align="right">
           <template #default="{ row }">
             <span class="cell-text">{{ row.recipes.length ? formatQuantity(row.outgoing) : quantity(row.outgoing) }}</span>
-            <ul v-if="openRows[row.uuid]" class="product-movement__recipes">
-              <li v-for="(recipe, index) in row.recipes" :key="index">{{ formatQuantity(recipe.quantity, RECIPE_QUANTITY_DECIMALS) }}</li>
-            </ul>
           </template>
         </el-table-column>
         <el-table-column :label="$t('stockMovement.popup.stockAfter')" min-width="120" align="right">
@@ -333,18 +349,54 @@ const quantity = (value: number): string => (value ? formatQuantity(value) : '')
   transform: rotate(90deg);
 }
 
-/* Same line height in the reason and out cells, so each recipe lines up with its amount. */
+.product-movement__table :deep(.product-movement__expand .cell) {
+  display: none;
+}
+
+.product-movement__table :deep(.el-table__expanded-cell) {
+  padding: 0.5rem 1rem 0.75rem 2.5rem !important;
+  background-color: var(--bg-app);
+}
+
+.product-movement__table :deep(.el-table__expanded-cell:hover) {
+  background-color: var(--bg-app) !important;
+}
+
 .product-movement__recipes {
-  margin: 0.375rem 0 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+  margin: 0;
   padding: 0;
   list-style: none;
   font-size: var(--text-sm);
-  line-height: 1.75;
   color: var(--text-muted);
 }
 
-.product-movement__recipes--names {
-  padding-left: 1.375rem;
+.product-movement__recipes li {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 1rem;
+  padding: 0.375rem 0.75rem;
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  background-color: var(--bg-card);
+}
+
+.product-movement__recipe-name {
+  min-width: 0;
+  white-space: normal;
+  overflow-wrap: anywhere;
+  color: var(--text-main);
+}
+
+.product-movement__recipe-amount {
+  flex-shrink: 0;
+  white-space: nowrap;
+  font-weight: 600;
+  color: var(--text-main);
+  font-variant-numeric: tabular-nums;
 }
 
 .product-movement__more {
