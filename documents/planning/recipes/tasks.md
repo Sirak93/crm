@@ -48,7 +48,7 @@ read only once.
 - [x] Step 9 — Excel export
 - [x] Step 9b — Excel export for the lists (stock-in, stock-out, stock balance, kitchen balance)
 - [x] Step 9c — Excel: row limit, recipes in the product file, single-document export
-- [ ] Step T — Armenian time everywhere
+- [x] Step T — Armenian time everywhere
 - [ ] Step 10 — Excel review
 
 ---
@@ -400,7 +400,7 @@ Decisions: decisions.md → "Kitchen balance".
 - [x] Frontend: stock-in / stock-out form date picker - shown and saved in Armenian time
 - [x] Backend: document number year from Armenian time, not the server clock
 - [x] Tests: document number year on 1 Jan 00:00–04:00 Armenian time
-- [ ] Checked in browser: dates and "this month" right with the computer set to another
+- [x] Checked in browser: dates and "this month" right with the computer set to another
       time zone
 
 ## Step 10 — Excel review
