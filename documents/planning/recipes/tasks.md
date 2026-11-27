@@ -40,7 +40,7 @@ read only once.
 - [x] Step 2b+ — Recipes: amounts down to 1 mg + unit converter
 - [x] Step 3 — Stock-out: recipes block + totals list (create)
 - [x] Step 4 — Stock-out with recipes: list mark and view
-- [ ] Step 5 — Stock-out with recipes: edit and delete
+- [x] Step 5 — Stock-out with recipes: edit and delete
 - [ ] Step K — Kitchen balance
 - [ ] Step 6 — Date on stock lines + "this month" default on stock lists
 - [ ] Step 7 — Stock movement page
@@ -283,7 +283,7 @@ Needs Steps U3 (fixed units) and U4 (converter component). Decisions: decisions.
       `extra_quantity`, totals)
 - [x] Tests: edit uses the copy (recipe changed in between), archived recipe kept on edit, new
       row uses current recipe, extras kept, delete works
-- [ ] Checked in browser: edit people counts of an old doc after changing its recipe
+- [x] Checked in browser: edit people counts of an old doc after changing its recipe
 
 ## Step K — Kitchen balance
 
