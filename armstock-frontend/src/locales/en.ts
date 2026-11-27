@@ -23,6 +23,7 @@ export default {
     connectError: 'Could not connect the scanner. It may be in use in another tab.',
   },
   common: {
+    fieldLabel: '{label}:',
     logout: 'Log out',
     cancel: 'Cancel',
     retry: 'Try again',

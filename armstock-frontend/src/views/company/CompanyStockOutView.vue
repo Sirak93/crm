@@ -3,10 +3,11 @@ import { computed, onMounted, ref, watch } from 'vue';
 import { useRouter } from 'vue-router';
 import { useI18n } from 'vue-i18n';
 import { Permission, type IStockOutDetails } from 'armstock-shared';
-import { Pencil, Trash2 } from 'lucide-vue-next';
+import { CalendarDays, Pencil, Trash2 } from 'lucide-vue-next';
 import BackLink from '../../components/BackLink.vue';
 import PageHeader from '../../components/PageHeader.vue';
 import AppCard from '../../components/AppCard.vue';
+import DocFacts from '../../components/DocFacts.vue';
 import LoadError from '../../components/LoadError.vue';
 import StockOutLinesTable from '../../components/company/StockOutLinesTable.vue';
 import StockOutPanel from '../../components/company/StockOutPanel.vue';
@@ -14,7 +15,8 @@ import { StockOutService } from '../../services/StockOutService';
 import { useStockOutDelete } from '../../composables/useStockOutDelete';
 import { useAuthStore } from '../../stores/auth';
 import { ROUTE_NAME } from '../../constants/constants';
-import { STOCK_OUT_DEPARTMENT_LABEL, STOCK_OUT_REASON_LABEL } from '../../constants/stockOutReasons';
+import { STOCK_OUT_DEPARTMENT_LABEL, STOCK_OUT_REASON_ICON, STOCK_OUT_REASON_LABEL } from '../../constants/stockOutReasons';
+import type { IDocFact } from '../../interfaces/IDocFact';
 import { formatDateTimeShort, formatNumber } from '../../utils/format';
 import { docPanelGroups } from '../../utils/stockOutPanel';
 import { AppLogger } from '../../utils/AppLogger';
@@ -39,6 +41,27 @@ const hoveredProduct = ref<string | null>(null);
 const isCreator = computed(() => !!doc.value && doc.value.createdBy.uuid === authStore.user?.uuid);
 const canEdit = computed(() => isCreator.value && !!authStore.user?.can(Permission.STOCK_OUT_EDIT));
 const canDelete = computed(() => isCreator.value && !!authStore.user?.can(Permission.STOCK_OUT_DELETE));
+
+const facts = computed((): IDocFact[] => {
+  const d = doc.value;
+  if (!d) return [];
+  return [
+    { key: 'reason', icon: STOCK_OUT_REASON_ICON[d.reason], label: t('stockOut.form.reason'), text: t(STOCK_OUT_REASON_LABEL[d.reason]), primary: true },
+    { key: 'date', icon: CalendarDays, label: t('stockOut.form.date'), text: formatDateTimeShort(d.date) },
+  ];
+});
+
+// Creator always first; then where it went (department or supplier) and, if set, who received it.
+const parties = computed(() => {
+  const d = doc.value;
+  if (!d) return [];
+  return [
+    { key: 'createdBy', label: t('stockOut.table.createdBy'), text: d.createdBy.name },
+    ...(d.department ? [{ key: 'department', label: t('stockOut.form.department'), text: t(STOCK_OUT_DEPARTMENT_LABEL[d.department]) }] : []),
+    ...(d.supplier ? [{ key: 'supplier', label: t('stockOut.form.supplier'), text: d.supplier.name }] : []),
+    ...(d.receiver ? [{ key: 'receiver', label: t('stockOut.form.receiver'), text: d.receiver.name }] : []),
+  ];
+});
 
 const hasRecipes = computed(() => !!doc.value?.recipes.length);
 const panelGroups = computed(() => (doc.value ? docPanelGroups(doc.value, t('stockOut.lines.title')) : []));
@@ -79,7 +102,7 @@ const onDelete = async () => {
     <el-skeleton v-else-if="isLoading || !doc" :rows="8" animated />
 
     <template v-else>
-      <PageHeader :title="doc.number" :subtitle="$t(STOCK_OUT_REASON_LABEL[doc.reason])">
+      <PageHeader :title="doc.number">
         <template v-if="canEdit || canDelete" #actions>
           <el-button v-if="canEdit" @click="router.push({ name: ROUTE_NAME.COMPANY_STOCK_OUT_EDIT, params: { uuid: doc.uuid } })">
             <Pencil :size="16" aria-hidden="true" />
@@ -95,32 +118,7 @@ const onDelete = async () => {
       <div class="out-layout" :class="{ 'out-layout--panel': hasRecipes }">
         <div class="out-layout__main">
           <AppCard>
-            <dl class="doc-info">
-              <div class="doc-info__item">
-                <dt>{{ $t('stockOut.form.date') }}</dt>
-                <dd>{{ formatDateTimeShort(doc.date) }}</dd>
-              </div>
-              <div v-if="doc.supplier" class="doc-info__item">
-                <dt>{{ $t('stockOut.form.supplier') }}</dt>
-                <dd>{{ doc.supplier.name }}</dd>
-              </div>
-              <div v-if="doc.department" class="doc-info__item">
-                <dt>{{ $t('stockOut.form.department') }}</dt>
-                <dd>{{ $t(STOCK_OUT_DEPARTMENT_LABEL[doc.department]) }}</dd>
-              </div>
-              <div v-if="doc.receiver" class="doc-info__item">
-                <dt>{{ $t('stockOut.form.receiver') }}</dt>
-                <dd>{{ doc.receiver.name }}</dd>
-              </div>
-              <div class="doc-info__item">
-                <dt>{{ $t('stockOut.table.createdBy') }}</dt>
-                <dd>{{ doc.createdBy.name }}</dd>
-              </div>
-              <div v-if="doc.note" class="doc-info__item doc-info__item--wide">
-                <dt>{{ $t('stockOut.form.note') }}</dt>
-                <dd class="doc-info__note">{{ doc.note }}</dd>
-              </div>
-            </dl>
+            <DocFacts :facts="facts" :parties="parties" :note="doc.note" :note-label="$t('stockOut.form.note')" />
           </AppCard>
 
           <AppCard class="lines-card">
@@ -183,36 +181,6 @@ const onDelete = async () => {
     top: calc(var(--header-height) + 1rem);
     max-height: calc(100dvh - var(--header-height) - 2rem);
   }
-}
-
-.doc-info {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
-  gap: 1rem 1.5rem;
-  margin: 0;
-}
-
-.doc-info__item--wide {
-  grid-column: 1 / -1;
-}
-
-.doc-info dt {
-  margin-bottom: 0.25rem;
-  font-size: var(--text-xs);
-  font-weight: 600;
-  text-transform: uppercase;
-  letter-spacing: 0.05em;
-  color: var(--text-muted);
-}
-
-.doc-info dd {
-  margin: 0;
-  font-size: var(--text-sm);
-  color: var(--text-main);
-}
-
-.doc-info__note {
-  white-space: pre-wrap;
 }
 
 .lines-card {

@@ -23,6 +23,7 @@ const hy: typeof en = {
     connectError: 'Չհաջողվեց միացնել սկաները։ Հնարավոր է՝ այն օգտագործվում է մեկ այլ ներդիրում։',
   },
   common: {
+    fieldLabel: '{label}՝',
     logout: 'Դուրս գալ',
     cancel: 'Չեղարկել',
     retry: 'Կրկին փորձել',

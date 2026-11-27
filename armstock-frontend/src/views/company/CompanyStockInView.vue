@@ -1,18 +1,21 @@
 <script setup lang="ts">
 import { computed, onMounted, ref, watch } from 'vue';
 import { useRouter } from 'vue-router';
+import { useI18n } from 'vue-i18n';
 import { Permission, type IStockInDetails } from 'armstock-shared';
-import { Pencil, Trash2 } from 'lucide-vue-next';
+import { CalendarDays, Pencil, Receipt, Trash2 } from 'lucide-vue-next';
 import BackLink from '../../components/BackLink.vue';
 import PageHeader from '../../components/PageHeader.vue';
 import AppCard from '../../components/AppCard.vue';
+import DocFacts from '../../components/DocFacts.vue';
 import LoadError from '../../components/LoadError.vue';
 import StockInLinesTable from '../../components/company/StockInLinesTable.vue';
 import { StockInService } from '../../services/StockInService';
 import { useStockInDelete } from '../../composables/useStockInDelete';
 import { useAuthStore } from '../../stores/auth';
 import { ROUTE_NAME } from '../../constants/constants';
-import { STOCK_IN_REASON_LABEL } from '../../constants/stockInReasons';
+import { STOCK_IN_REASON_ICON, STOCK_IN_REASON_LABEL } from '../../constants/stockInReasons';
+import type { IDocFact } from '../../interfaces/IDocFact';
 import { formatDateTimeShort, formatNumber } from '../../utils/format';
 import { AppLogger } from '../../utils/AppLogger';
 
@@ -21,6 +24,7 @@ const props = defineProps<{
 }>();
 
 const router = useRouter();
+const { t } = useI18n();
 const authStore = useAuthStore();
 const { deleteStockIn } = useStockInDelete();
 
@@ -33,6 +37,26 @@ const isDeleting = ref(false);
 const isCreator = computed(() => !!doc.value && doc.value.createdBy.uuid === authStore.user?.uuid);
 const canEdit = computed(() => isCreator.value && !!authStore.user?.can(Permission.STOCK_IN_EDIT));
 const canDelete = computed(() => isCreator.value && !!authStore.user?.can(Permission.STOCK_IN_DELETE));
+
+const facts = computed((): IDocFact[] => {
+  const d = doc.value;
+  if (!d) return [];
+  return [
+    { key: 'reason', icon: STOCK_IN_REASON_ICON[d.reason], label: t('stockIn.form.reason'), text: t(STOCK_IN_REASON_LABEL[d.reason]), primary: true },
+    { key: 'date', icon: CalendarDays, label: t('stockIn.form.date'), text: formatDateTimeShort(d.date) },
+    ...(d.invoiceNumber ? [{ key: 'invoice', icon: Receipt, label: t('stockIn.form.invoiceNumber'), text: d.invoiceNumber }] : []),
+  ];
+});
+
+// Creator always first; then the supplier it came from, if any.
+const parties = computed(() => {
+  const d = doc.value;
+  if (!d) return [];
+  return [
+    { key: 'createdBy', label: t('stockIn.table.createdBy'), text: d.createdBy.name },
+    ...(d.supplier ? [{ key: 'supplier', label: t('stockIn.form.supplier'), text: d.supplier.name }] : []),
+  ];
+});
 
 const load = async () => {
   isLoading.value = true;
@@ -70,7 +94,7 @@ const onDelete = async () => {
     <el-skeleton v-else-if="isLoading || !doc" :rows="8" animated />
 
     <template v-else>
-      <PageHeader :title="doc.number" :subtitle="$t(STOCK_IN_REASON_LABEL[doc.reason])">
+      <PageHeader :title="doc.number">
         <template v-if="canEdit || canDelete" #actions>
           <el-button v-if="canEdit" @click="router.push({ name: ROUTE_NAME.COMPANY_STOCK_IN_EDIT, params: { uuid: doc.uuid } })">
             <Pencil :size="16" aria-hidden="true" />
@@ -84,28 +108,7 @@ const onDelete = async () => {
       </PageHeader>
 
       <AppCard>
-        <dl class="doc-info">
-          <div class="doc-info__item">
-            <dt>{{ $t('stockIn.form.date') }}</dt>
-            <dd>{{ formatDateTimeShort(doc.date) }}</dd>
-          </div>
-          <div v-if="doc.supplier" class="doc-info__item">
-            <dt>{{ $t('stockIn.form.supplier') }}</dt>
-            <dd>{{ doc.supplier.name }}</dd>
-          </div>
-          <div v-if="doc.invoiceNumber" class="doc-info__item">
-            <dt>{{ $t('stockIn.form.invoiceNumber') }}</dt>
-            <dd>{{ doc.invoiceNumber }}</dd>
-          </div>
-          <div class="doc-info__item">
-            <dt>{{ $t('stockIn.table.createdBy') }}</dt>
-            <dd>{{ doc.createdBy.name }}</dd>
-          </div>
-          <div v-if="doc.note" class="doc-info__item doc-info__item--wide">
-            <dt>{{ $t('stockIn.form.note') }}</dt>
-            <dd class="doc-info__note">{{ doc.note }}</dd>
-          </div>
-        </dl>
+        <DocFacts :facts="facts" :parties="parties" :note="doc.note" :note-label="$t('stockIn.form.note')" />
       </AppCard>
 
       <AppCard class="lines-card">
@@ -127,36 +130,6 @@ const onDelete = async () => {
 
 .stock-in-view > :deep(.page-header) {
   margin-bottom: 0;
-}
-
-.doc-info {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
-  gap: 1rem 1.5rem;
-  margin: 0;
-}
-
-.doc-info__item--wide {
-  grid-column: 1 / -1;
-}
-
-.doc-info dt {
-  margin-bottom: 0.25rem;
-  font-size: var(--text-xs);
-  font-weight: 600;
-  text-transform: uppercase;
-  letter-spacing: 0.05em;
-  color: var(--text-muted);
-}
-
-.doc-info dd {
-  margin: 0;
-  font-size: var(--text-sm);
-  color: var(--text-main);
-}
-
-.doc-info__note {
-  white-space: pre-wrap;
 }
 
 .lines-card {
