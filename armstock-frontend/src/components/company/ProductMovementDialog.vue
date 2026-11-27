@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed, onBeforeUnmount, ref, watch } from 'vue';
+import { computed, nextTick, onBeforeUnmount, ref, watch } from 'vue';
 import { useI18n } from 'vue-i18n';
 import { useRouter } from 'vue-router';
 import {
@@ -100,7 +100,12 @@ const loadPage = async () => {
   } finally {
     isLoading.value = false;
   }
-  if (sentinelVisible && hasMore.value && !hasError.value) loadPage();
+  // Observing again reports where the end is once the new rows are drawn, so a still-visible end loads the next page.
+  await nextTick();
+  if (sentinel.value) {
+    observer.unobserve(sentinel.value);
+    observer.observe(sentinel.value);
+  }
 };
 
 watch(open, (isOpen) => {
@@ -115,14 +120,11 @@ watch(open, (isOpen) => {
 
 // The next page loads when the end of the list scrolls into view.
 const sentinel = ref<HTMLElement | null>(null);
-let sentinelVisible = false;
 const observer = new IntersectionObserver(([entry]) => {
-  sentinelVisible = !!entry?.isIntersecting;
-  if (sentinelVisible && hasMore.value && !hasError.value) loadPage();
+  if (entry?.isIntersecting && hasMore.value && !hasError.value) loadPage();
 });
 watch(sentinel, (element) => {
   observer.disconnect();
-  sentinelVisible = false;
   if (element) observer.observe(element);
 });
 onBeforeUnmount(() => observer.disconnect());
@@ -257,10 +259,12 @@ const quantity = (value: number): string => (value ? formatQuantity(value) : '')
 </template>
 
 <style scoped>
+/* No scroll anchoring: it kept the end of the list in view as rows were added, so every page loaded at once. */
 .product-movement {
   display: flex;
   flex-direction: column;
   gap: 1rem;
+  overflow-anchor: none;
 }
 
 .product-movement__totals {
