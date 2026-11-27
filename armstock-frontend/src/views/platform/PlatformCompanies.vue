@@ -15,6 +15,7 @@ import { useApiErrorMessage } from '../../composables/useApiErrorMessage';
 import { DEFAULT_PAGE_SIZE, ROUTE_NAME, SEARCH_DEBOUNCE_MS } from '../../constants/constants';
 import { formatNumber } from '../../utils/format';
 import { AppLogger } from '../../utils/AppLogger';
+import AppPagination from '../../components/AppPagination.vue';
 
 const { t } = useI18n();
 const router = useRouter();
@@ -150,16 +151,7 @@ onMounted(() => load(1));
       />
     </AppCard>
 
-    <el-pagination
-      v-if="meta.totalPages > 1"
-      class="companies-pagination"
-      size="small"
-      layout="prev, pager, next"
-      :total="meta.total"
-      :current-page="meta.page"
-      :page-size="meta.pageSize"
-      @current-change="load"
-    />
+    <AppPagination :meta="meta" @change="load" />
 
     <CompanyDialog v-model="isDialogOpen" :company="editingCompany" @saved="onSaved" />
   </section>
@@ -187,9 +179,5 @@ onMounted(() => load(1));
 
 .skeleton {
   padding: 1rem;
-}
-
-.companies-pagination {
-  justify-content: flex-end;
 }
 </style>

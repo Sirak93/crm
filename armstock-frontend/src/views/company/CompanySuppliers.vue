@@ -19,6 +19,7 @@ import type { ISupplierFilters } from '../../interfaces/ISupplierFilters';
 import { formatNumber } from '../../utils/format';
 import { AppLogger } from '../../utils/AppLogger';
 import { useOpenAddFromQuery } from '../../composables/useOpenAddFromQuery';
+import AppPagination from '../../components/AppPagination.vue';
 
 const { t } = useI18n();
 const { parseError } = useApiErrorMessage();
@@ -207,16 +208,7 @@ const deleteSupplier = async (supplier: ISupplier) => {
       />
     </AppCard>
 
-    <el-pagination
-      v-if="meta.totalPages > 1"
-      class="suppliers-pagination"
-      size="small"
-      layout="prev, pager, next"
-      :total="meta.total"
-      :current-page="meta.page"
-      :page-size="meta.pageSize"
-      @current-change="load"
-    />
+    <AppPagination :meta="meta" @change="load" />
 
     <SupplierDialog v-if="canAdd || canEdit" v-model="isDialogOpen" :supplier="editingSupplier" @saved="onSaved" />
     <SupplierContactDialog
@@ -246,9 +238,5 @@ const deleteSupplier = async (supplier: ISupplier) => {
 
 .skeleton {
   padding: 1rem;
-}
-
-.suppliers-pagination {
-  justify-content: flex-end;
 }
 </style>

@@ -19,6 +19,7 @@ import type { ICompanyUsersApi } from '../../interfaces/ICompanyUsersApi';
 import type { IUserFilters } from '../../interfaces/IUserFilters';
 import type { IUsersAccess } from '../../interfaces/IUsersAccess';
 import { useOpenAddFromQuery } from '../../composables/useOpenAddFromQuery';
+import AppPagination from '../AppPagination.vue';
 
 /** A company's users page body - the company page and the Platform Owner's page pass their own `api` and `access`. */
 const props = defineProps<{
@@ -201,16 +202,7 @@ onMounted(loadRoles);
       />
     </AppCard>
 
-    <el-pagination
-      v-if="meta.totalPages > 1"
-      class="users-pagination"
-      size="small"
-      layout="prev, pager, next"
-      :total="meta.total"
-      :current-page="meta.page"
-      :page-size="meta.pageSize"
-      @current-change="load"
-    />
+    <AppPagination :meta="meta" @change="load" />
 
     <UserDialog
       v-model="isDialogOpen"
@@ -243,9 +235,5 @@ onMounted(loadRoles);
 
 .skeleton {
   padding: 1rem;
-}
-
-.users-pagination {
-  justify-content: flex-end;
 }
 </style>

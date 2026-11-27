@@ -18,6 +18,7 @@ import { DEFAULT_PAGE_SIZE, ROUTE_NAME } from '../../constants/constants';
 import type { IRecipeFilters } from '../../interfaces/IRecipeFilters';
 import { formatNumber } from '../../utils/format';
 import { AppLogger } from '../../utils/AppLogger';
+import AppPagination from '../../components/AppPagination.vue';
 
 const router = useRouter();
 const { t } = useI18n();
@@ -146,16 +147,7 @@ const deleteRecipe = async (recipe: IRecipe) => {
       />
     </AppCard>
 
-    <el-pagination
-      v-if="meta.totalPages > 1"
-      class="recipes-pagination"
-      size="small"
-      layout="prev, pager, next"
-      :total="meta.total"
-      :current-page="meta.page"
-      :page-size="meta.pageSize"
-      @current-change="load"
-    />
+    <AppPagination :meta="meta" @change="load" />
 
     <RecipeDetailsDialog v-model="isDetailsOpen" :uuid="detailsUuid" :can-edit="canEdit" @edit="openEdit" />
   </section>
@@ -179,9 +171,5 @@ const deleteRecipe = async (recipe: IRecipe) => {
 
 .skeleton {
   padding: 1rem;
-}
-
-.recipes-pagination {
-  justify-content: flex-end;
 }
 </style>

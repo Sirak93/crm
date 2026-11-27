@@ -36,6 +36,8 @@ const hy: typeof en = {
     yes: 'Այո',
     no: 'Ոչ',
     unit: 'Միավոր',
+    pagination: 'Էջեր',
+    paginationRange: '{from}–{to}, ընդամենը՝ {total}',
   },
   status: {
     active: 'Ակտիվ',

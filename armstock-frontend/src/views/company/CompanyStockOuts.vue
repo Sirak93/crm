@@ -18,6 +18,7 @@ import type { IStockOutFilters } from '../../interfaces/IStockOutFilters';
 import { formatNumber } from '../../utils/format';
 import { AppLogger } from '../../utils/AppLogger';
 import { useExcelExport } from '../../composables/useExcelExport';
+import AppPagination from '../../components/AppPagination.vue';
 
 const router = useRouter();
 const authStore = useAuthStore();
@@ -146,16 +147,7 @@ const onDelete = async (stockOut: IStockOut) => {
       />
     </AppCard>
 
-    <el-pagination
-      v-if="meta.totalPages > 1"
-      class="stock-outs-pagination"
-      size="small"
-      layout="prev, pager, next"
-      :total="meta.total"
-      :current-page="meta.page"
-      :page-size="meta.pageSize"
-      @current-change="load"
-    />
+    <AppPagination :meta="meta" @change="load" />
   </section>
 </template>
 
@@ -177,9 +169,5 @@ const onDelete = async (stockOut: IStockOut) => {
 
 .skeleton {
   padding: 1rem;
-}
-
-.stock-outs-pagination {
-  justify-content: flex-end;
 }
 </style>

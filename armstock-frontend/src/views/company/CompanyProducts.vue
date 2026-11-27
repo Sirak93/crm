@@ -20,6 +20,7 @@ import { formatNumber } from '../../utils/format';
 import { AppLogger } from '../../utils/AppLogger';
 import { useOpenAddFromQuery } from '../../composables/useOpenAddFromQuery';
 import { useBarcodeScanner } from '../../composables/useBarcodeScanner';
+import AppPagination from '../../components/AppPagination.vue';
 
 const { t } = useI18n();
 const { parseError } = useApiErrorMessage();
@@ -191,16 +192,7 @@ onMounted(loadLookups);
       />
     </AppCard>
 
-    <el-pagination
-      v-if="meta.totalPages > 1"
-      class="products-pagination"
-      size="small"
-      layout="prev, pager, next"
-      :total="meta.total"
-      :current-page="meta.page"
-      :page-size="meta.pageSize"
-      @current-change="load"
-    />
+    <AppPagination :meta="meta" @change="load" />
 
     <ProductDialog
       v-if="canAdd || canEdit"
@@ -231,9 +223,5 @@ onMounted(loadLookups);
 
 .skeleton {
   padding: 1rem;
-}
-
-.products-pagination {
-  justify-content: flex-end;
 }
 </style>

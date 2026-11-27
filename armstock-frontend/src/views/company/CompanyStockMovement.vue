@@ -16,6 +16,7 @@ import type { IStockMovementFilters } from '../../interfaces/IStockMovementFilte
 import { formatNumber } from '../../utils/format';
 import { useExcelExport } from '../../composables/useExcelExport';
 import { AppLogger } from '../../utils/AppLogger';
+import AppPagination from '../../components/AppPagination.vue';
 
 const rows = ref<IStockMovement[]>([]);
 const categories = ref<IProductCategory[]>([]);
@@ -100,16 +101,7 @@ loadCategories();
       <StockMovementTable v-else v-loading="isLoading" :rows="rows" @view="view" @export="exportRow" />
     </AppCard>
 
-    <el-pagination
-      v-if="meta.totalPages > 1"
-      class="stock-movement-pagination"
-      size="small"
-      layout="prev, pager, next"
-      :total="meta.total"
-      :current-page="meta.page"
-      :page-size="meta.pageSize"
-      @current-change="load"
-    />
+    <AppPagination :meta="meta" @change="load" />
 
     <ProductMovementDialog v-model="isPopupOpen" :product="viewed" :range="filters" />
   </section>
@@ -133,9 +125,5 @@ loadCategories();
 
 .skeleton {
   padding: 1rem;
-}
-
-.stock-movement-pagination {
-  justify-content: flex-end;
 }
 </style>

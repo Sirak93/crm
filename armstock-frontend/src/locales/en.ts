@@ -36,6 +36,8 @@ export default {
     yes: 'Yes',
     no: 'No',
     unit: 'Unit',
+    pagination: 'Pages',
+    paginationRange: '{from}–{to} of {total}',
   },
   status: {
     active: 'Active',

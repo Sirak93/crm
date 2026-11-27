@@ -15,6 +15,7 @@ import type { IStockBalanceFilters } from '../../interfaces/IStockBalanceFilters
 import { formatNumber } from '../../utils/format';
 import { AppLogger } from '../../utils/AppLogger';
 import { useExcelExport } from '../../composables/useExcelExport';
+import AppPagination from '../../components/AppPagination.vue';
 
 /** What the kitchen got but did not need yet - read only, worked out from the stock-outs. */
 const balances = ref<IStockBalance[]>([]);
@@ -92,16 +93,7 @@ loadCategories();
       <StockBalanceTable v-else v-loading="isLoading" :balances="balances" :decimals="RECIPE_QUANTITY_DECIMALS" />
     </AppCard>
 
-    <el-pagination
-      v-if="meta.totalPages > 1"
-      class="kitchen-balance-pagination"
-      size="small"
-      layout="prev, pager, next"
-      :total="meta.total"
-      :current-page="meta.page"
-      :page-size="meta.pageSize"
-      @current-change="load"
-    />
+    <AppPagination :meta="meta" @change="load" />
   </section>
 </template>
 
@@ -123,9 +115,5 @@ loadCategories();
 
 .skeleton {
   padding: 1rem;
-}
-
-.kitchen-balance-pagination {
-  justify-content: flex-end;
 }
 </style>

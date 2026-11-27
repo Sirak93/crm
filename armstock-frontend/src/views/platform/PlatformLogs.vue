@@ -15,6 +15,7 @@ import { DEFAULT_PAGE_SIZE } from '../../constants/constants';
 import type { IApiLogFilters } from '../../interfaces/IApiLogFilters';
 import { formatNumber } from '../../utils/format';
 import { AppLogger } from '../../utils/AppLogger';
+import AppPagination from '../../components/AppPagination.vue';
 
 const { t } = useI18n();
 const { parseError } = useApiErrorMessage();
@@ -96,16 +97,7 @@ onMounted(() => load(1));
       <ApiLogsTable v-else v-loading="isLoading" :logs="logs" />
     </AppCard>
 
-    <el-pagination
-      v-if="meta.totalPages > 1"
-      class="logs-pagination"
-      size="small"
-      layout="prev, pager, next"
-      :total="meta.total"
-      :current-page="meta.page"
-      :page-size="meta.pageSize"
-      @current-change="load"
-    />
+    <AppPagination :meta="meta" @change="load" />
   </section>
 </template>
 
@@ -136,9 +128,5 @@ onMounted(() => load(1));
 
 .clear-btn:hover:not(.is-disabled) {
   background-color: var(--danger-light) !important;
-}
-
-.logs-pagination {
-  justify-content: flex-end;
 }
 </style>
