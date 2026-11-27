@@ -699,6 +699,7 @@ const hy: typeof en = {
       extra: 'Լրացուցիչ',
       total: 'Տրված ընդհանուր',
       totalFor: '{product}՝ տրված ընդհանուր քանակ',
+      editFor: 'Փոխել քանակը՝ {product}',
       changedBy: 'Ձեռքով փոխված՝ {amount}',
       neededPart: 'Բաղադրատոմսեր՝ {amount}',
       extraPart: 'Լրացուցիչ՝ {amount}',

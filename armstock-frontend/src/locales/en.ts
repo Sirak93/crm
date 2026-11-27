@@ -699,6 +699,7 @@ export default {
       extra: 'Extra',
       total: 'Total given',
       totalFor: 'Total given of {product}',
+      editFor: 'Change the total of {product}',
       changedBy: 'Changed by hand: {amount}',
       neededPart: 'Recipes: {amount}',
       extraPart: 'Extra: {amount}',
