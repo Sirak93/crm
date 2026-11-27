@@ -60,6 +60,8 @@ export default (context: ICompanySideContext) => defineSuite("Excel exports of t
     let issue: IStockOutDetails;
     let ret: IStockOutDetails;
     const unit = (product: IProduct) => MEASURE_UNITS[product.measureUnit].shortName.en;
+    /** A document's product line: empty document columns, then product, unit, quantity. */
+    const lineRow = (product: IProduct, quantity: number) => [null, null, null, null, null, product.name, unit(product), quantity];
 
     test("prepares products and documents in January 2019", async () => {
         category = await findCategory(storekeeper);
@@ -78,20 +80,28 @@ export default (context: ICompanySideContext) => defineSuite("Excel exports of t
         await createStockIn(companyB.owner, [lineOf(theirs, 1)], { date: day(5) });
     });
 
-    test("stock-in file: every document of the range, newest first, with period on the right", async () => {
+    test("stock-in file: every document of the range, newest first, its products nested under it", async () => {
         const { fileName, sheet } = await download(PATHS.STOCK_INS, { ...range, lang: LOCALE.EN });
         equals(fileName, "stock-in_2019-01-01_2019-01-31.xlsx", "file name");
-        matches(rowsOf(sheet).slice(0, 2).map((row) => [row[0], row[5]]), [
+        matches(rowsOf(sheet).slice(0, 2).map((row) => [row[0], row[7]]), [
             [companyA.name, "Period: 01/01/2019 – 31/01/2019"],
             ["Stock in", anyString],
         ]);
         equals(tableRow(sheet), 4, "table header row");
         matches(rowsOf(sheet, tableRow(sheet)), [
-            ["Number", "Date", "Reason", "Supplier", "Products", "Created by"],
-            [initial.number, armenianTime(6), "Initial stock", null, 1, initial.createdBy.name],
-            [purchase.number, armenianTime(5), "Purchase", supplier.name, 2, purchase.createdBy.name],
+            ["Number", "Date", "Reason", "Supplier", "Created by", "Product", "Unit", "Quantity"],
+            [initial.number, armenianTime(6), "Initial stock", null, initial.createdBy.name, null, null, null],
+            lineRow(apple, 3),
+            [purchase.number, armenianTime(5), "Purchase", supplier.name, purchase.createdBy.name, null, null, null],
+            lineRow(apple, 10),
+            lineRow(bean, 5),
         ]);
-        equals(sheet.getCell(tableRow(sheet) + 1, 2).numFmt, "dd/mm/yyyy hh:mm", "date format");
+        const documentRow = sheet.getRow(tableRow(sheet) + 1);
+        const productRow = sheet.getRow(tableRow(sheet) + 2);
+        matches([documentRow.font?.bold, documentRow.outlineLevel, productRow.outlineLevel], [true, 0, 1], "bold document, nested product");
+        isTrue(!productRow.hidden, "groups open");
+        equals(documentRow.getCell(2).numFmt, "dd/mm/yyyy hh:mm", "date format");
+        equals(productRow.getCell(8).numFmt, "#,##0.000", "quantity format");
     });
 
     test("stock-in file: reason and supplier filters, written in the filters line", async () => {
@@ -99,16 +109,18 @@ export default (context: ICompanySideContext) => defineSuite("Excel exports of t
             ...range, reason: String(StockInReason.PURCHASE), supplierUuid: supplier.uuid, lang: LOCALE.EN,
         });
         equals(rowsOf(sheet)[2][0], `Filters: Reason: Purchase · Supplier: ${supplier.name}`, "filters line");
-        matches(rowsOf(sheet, tableRow(sheet) + 1).map((row) => row[0]), [purchase.number]);
+        matches(rowsOf(sheet, tableRow(sheet) + 1).map((row) => row[0]), [purchase.number, null, null]);
     });
 
     test("stock-out file: destination is the supplier for a return, the department for an issue", async () => {
         const { fileName, sheet } = await download(PATHS.STOCK_OUTS, { ...range, lang: LOCALE.EN });
         equals(fileName, "stock-out_2019-01-01_2019-01-31.xlsx", "file name");
         matches(rowsOf(sheet, tableRow(sheet)), [
-            ["Number", "Date", "Reason", "Where to", "Products", "Created by"],
-            [ret.number, armenianTime(8), "Returned", supplier.name, 1, ret.createdBy.name],
-            [issue.number, armenianTime(7), "Issued", "Kitchen", 1, issue.createdBy.name],
+            ["Number", "Date", "Reason", "Where to", "Created by", "Product", "Unit", "Quantity"],
+            [ret.number, armenianTime(8), "Returned", supplier.name, ret.createdBy.name, null, null, null],
+            lineRow(bean, 1),
+            [issue.number, armenianTime(7), "Issued", "Kitchen", issue.createdBy.name, null, null, null],
+            lineRow(apple, 4),
         ]);
     });
 
@@ -116,8 +128,9 @@ export default (context: ICompanySideContext) => defineSuite("Excel exports of t
         const { sheet } = await download(PATHS.STOCK_OUTS, { ...range, reason: String(StockOutReason.ISSUED), lang: LOCALE.HY });
         matches(rowsOf(sheet).slice(1, 3).map((row) => row[0]), ["Ելք", "Ֆիլտրեր: Պատճառ: Տրամադրում"]);
         matches(rowsOf(sheet, tableRow(sheet)), [
-            ["Համար", "Ամսաթիվ", "Պատճառ", "Ուր", "Ապրանքներ", "Ստեղծող"],
-            [issue.number, armenianTime(7), "Տրամադրում", "Խոհանոց", 1, issue.createdBy.name],
+            ["Համար", "Ամսաթիվ", "Պատճառ", "Ուր", "Ստեղծող", "Ապրանք", "Միավոր", "Քանակ"],
+            [issue.number, armenianTime(7), "Տրամադրում", "Խոհանոց", issue.createdBy.name, null, null, null],
+            [null, null, null, null, null, apple.name, "հատ", 4],
         ]);
     });
 

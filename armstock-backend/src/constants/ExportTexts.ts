@@ -12,7 +12,6 @@ export const EXPORT_TEXTS = {
     supplier: { hy: "Մատակարար", en: "Supplier" },
     receiver: { hy: "Ստացող", en: "Receiver" },
     destination: { hy: "Ուր", en: "Where to" },
-    products: { hy: "Ապրանքներ", en: "Products" },
     createdBy: { hy: "Ստեղծող", en: "Created by" },
     code: { hy: "Կոդ", en: "Code" },
     quantity: { hy: "Քանակ", en: "Quantity" },

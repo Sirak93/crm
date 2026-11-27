@@ -592,11 +592,24 @@ Not part of recipes - works for every company.
 ### Excel export for the lists (Step 9b)
 
 - "Export to Excel" on the stock-in list, stock-out list, stock balance and kitchen balance
-  pages. Same look as the movement files; the page's current filters; all rows.
+  pages. Same header block as the movement files (used by every file); the page's current
+  filters; all rows.
 - Columns:
-  - Stock-in: number, date, reason, supplier, products count, created by.
-  - Stock-out: number, date, reason ("(by recipe)" added when made with recipes),
-    destination (supplier, or department · receiver), products count, created by.
+  - Stock-in and stock-out are **nested**: a bold document row, then its product lines
+    under it as an Excel group (+/- on the document row). Groups are **open** when the file
+    opens (closing them by default is a small change later).
+
+    ```
+    Number        Date              Reason    Supplier    Created by  Product  Unit  Quantity
+    IN-2026-0012  05/11/2026 10:30  Purchase  Supplier A  Anna                          ← bold
+                                                                      Apple    kg    10.000
+                                                                      Bean     kg     5.000
+    ```
+
+  - Stock-in document row: number, date, reason, supplier, created by.
+  - Stock-out document row: number, date, reason ("(by recipe)" added when made with
+    recipes), where to (supplier, or department · receiver), created by. Line quantity is
+    the line's total.
   - Stock balance: product, code, category, unit, quantity.
   - Kitchen balance: product, category, unit, quantity (up to 6 decimals, like the page).
 - Header: stock-in / stock-out have period and generated time on the right; the balances

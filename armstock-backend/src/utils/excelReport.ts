@@ -5,6 +5,14 @@ import { appIsoDay, formatAppDate, formatAppDateTime } from "./appDate";
 
 export type ExcelValue = string | number | Date | null;
 
+/** A row with extras; a plain array is a normal row. */
+export interface IExcelRow {
+    values: ExcelValue[];
+    bold?: boolean;
+    /** 1 = nested under the row above it (a document's product line), with Excel's +/- to close the group. */
+    level?: 1;
+}
+
 export interface IExcelColumn {
     title: string;
     /** Excel number format for this column's numbers or dates. */
@@ -19,13 +27,12 @@ export interface IExcelReport {
     /** Right-aligned in the last column: period, generated time. */
     right: string[];
     columns: IExcelColumn[];
-    rows: ExcelValue[][];
+    rows: (ExcelValue[] | IExcelRow)[];
     /** A totals row at the end. */
     boldLastRow?: boolean;
 }
 
 export const quantityFormat = (decimals = QUANTITY_DECIMALS): string => `#,##0.${"0".repeat(decimals)}`;
-export const COUNT_FORMAT = "#,##0";
 export const DATE_TIME_FORMAT = "dd/mm/yyyy hh:mm";
 
 const HEADER_FILL = "FFF1F3F5";
@@ -57,7 +64,9 @@ export const exportFileName = (parts: string[], dates: (string | undefined)[]): 
 /** The .xlsx bytes: bold header row that stays in view on scroll, column formats, widths fitting the content. */
 export const buildExcel = async (report: IExcelReport): Promise<Buffer> => {
     const workbook = new Workbook();
-    const sheet = workbook.addWorksheet(report.sheetName);
+    // The +/- of a group sits on its document row, above the nested rows.
+    const sheet = workbook.addWorksheet(report.sheetName, { properties: { outlineProperties: { summaryBelow: false, summaryRight: false } } });
+    const rows: IExcelRow[] = report.rows.map((row) => (Array.isArray(row) ? { values: row } : row));
     const headerRow = writeHeader(sheet, report.left, report.right, report.columns.length);
 
     const header = sheet.getRow(headerRow);
@@ -69,18 +78,20 @@ export const buildExcel = async (report: IExcelReport): Promise<Buffer> => {
     });
     sheet.views = [{ state: "frozen", ySplit: headerRow }];
 
-    report.rows.forEach((values, index) => {
+    rows.forEach(({ values, bold, level }, index) => {
         const row = sheet.getRow(headerRow + 1 + index);
         row.values = values;
+        if (bold) row.font = { bold: true };
+        if (level) row.outlineLevel = level;
         row.eachCell((cell, column) => {
             const { format } = report.columns[column - 1];
             if (format && (typeof cell.value === "number" || cell.value instanceof Date)) cell.numFmt = format;
         });
     });
-    if (report.boldLastRow && report.rows.length) sheet.lastRow!.font = { bold: true };
+    if (report.boldLastRow && rows.length) sheet.lastRow!.font = { bold: true };
 
     report.columns.forEach((column, index) => {
-        const lengths = [column.title, ...report.rows.map((values) => displayText(values[index], column.format))].map((text) => text.length);
+        const lengths = [column.title, ...rows.map(({ values }) => displayText(values[index] ?? null, column.format))].map((text) => text.length);
         sheet.getColumn(index + 1).width = Math.min(COLUMN_WIDTH.MAX, Math.max(COLUMN_WIDTH.MIN, ...lengths) + COLUMN_WIDTH.PADDING);
     });
 

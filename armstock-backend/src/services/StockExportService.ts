@@ -1,5 +1,7 @@
+import { In } from "typeorm";
 import {
     MEASURE_UNITS,
+    type MeasureUnit,
     ProductStatus,
     RECIPE_QUANTITY_DECIMALS,
     STOCK_IN_REASON_NAMES,
@@ -15,6 +17,9 @@ import {
 import { AppDataSource } from "../config/database";
 import { Company } from "../models/Company";
 import { ProductCategory } from "../models/ProductCategory";
+import { Product } from "../models/Product";
+import { StockInLine } from "../models/StockInLine";
+import { StockOutLine } from "../models/StockOutLine";
 import { Supplier } from "../models/Supplier";
 import { User } from "../models/User";
 import { EXPORT_FILE_NAME, exportTexts, type ExportTexts } from "../constants/ExportTexts";
@@ -33,15 +38,22 @@ import { toAppWallClock } from "../utils/appDate";
 import { userName } from "../utils/userName";
 import {
     buildExcel,
-    COUNT_FORMAT,
     DATE_TIME_FORMAT,
     exportFileName,
     filtersLines,
     generatedLine,
     periodLine,
     quantityFormat,
+    type ExcelValue,
     type IExcelColumn,
+    type IExcelRow,
 } from "../utils/excelReport";
+
+interface IDocumentLine {
+    name: string;
+    measureUnit: MeasureUnit;
+    quantity: number;
+}
 
 export interface IExportFile {
     fileName: string;
@@ -141,6 +153,7 @@ export class StockExportService {
             this.supplierName(companyUuid, supplierUuid),
             this.stockInService.listAll(companyUuid, query),
         ]);
+        const lines = await this.documentLines(StockInLine, "stockInUuid", companyUuid, docs.map((doc) => doc.uuid));
 
         return {
             fileName: exportFileName([EXPORT_FILE_NAME.STOCK_INS], [query.dateFrom, query.dateTo]),
@@ -152,14 +165,13 @@ export class StockExportService {
                 ])],
                 right: [periodLine(text, query), generatedLine(text)],
                 columns: StockExportService.documentColumns(text, text.supplier),
-                rows: docs.map((doc) => [
+                rows: docs.flatMap((doc) => StockExportService.documentRows([
                     doc.number,
                     toAppWallClock(new Date(doc.date)),
                     STOCK_IN_REASON_NAMES[doc.reason][lang],
                     doc.supplier?.name ?? null,
-                    doc.productCount,
                     doc.createdBy.name,
-                ]),
+                ], lines.get(doc.uuid) ?? [], lang)),
             }),
         };
     }
@@ -174,6 +186,7 @@ export class StockExportService {
             this.receiverName(companyUuid, receiverUuid),
             this.stockOutService.listAll(companyUuid, query),
         ]);
+        const lines = await this.documentLines(StockOutLine, "stockOutUuid", companyUuid, docs.map((doc) => doc.uuid));
 
         return {
             fileName: exportFileName([EXPORT_FILE_NAME.STOCK_OUTS], [query.dateFrom, query.dateTo]),
@@ -186,16 +199,15 @@ export class StockExportService {
                 ])],
                 right: [periodLine(text, query), generatedLine(text)],
                 columns: StockExportService.documentColumns(text, text.destination),
-                rows: docs.map((doc) => {
+                rows: docs.flatMap((doc) => {
                     const reasonName = STOCK_OUT_REASON_NAMES[doc.reason][lang];
-                    return [
+                    return StockExportService.documentRows([
                         doc.number,
                         toAppWallClock(new Date(doc.date)),
                         doc.hasRecipes ? `${reasonName} (${text.byRecipe})` : reasonName,
                         StockExportService.destination(doc, lang),
-                        doc.productCount,
                         doc.createdBy.name,
-                    ];
+                    ], lines.get(doc.uuid) ?? [], lang);
                 }),
             }),
         };
@@ -275,9 +287,57 @@ export class StockExportService {
             { title: text.date, format: DATE_TIME_FORMAT },
             { title: text.reason },
             { title: partyTitle },
-            { title: text.products, format: COUNT_FORMAT },
             { title: text.createdBy },
+            { title: text.product },
+            { title: text.unit },
+            { title: text.quantity, format: quantityFormat() },
         ];
+    }
+
+    /** A bold document row, then its product lines nested under it (Excel's +/- closes them). */
+    private static documentRows(header: ExcelValue[], lines: IDocumentLine[], lang: Locale): IExcelRow[] {
+        const empty = header.map(() => null);
+        return [
+            { values: header, bold: true },
+            ...lines.map((line): IExcelRow => ({
+                values: [...empty, line.name, MEASURE_UNITS[line.measureUnit].shortName[lang], line.quantity],
+                level: 1,
+            })),
+        ];
+    }
+
+    /** The product lines of these documents, in the order typed, by bounded lookups instead of joins. */
+    private async documentLines(
+        entity: typeof StockInLine | typeof StockOutLine,
+        documentColumn: "stockInUuid" | "stockOutUuid",
+        companyUuid: string,
+        documentUuids: string[],
+    ): Promise<Map<string, IDocumentLine[]>> {
+        const map = new Map<string, IDocumentLine[]>();
+        if (!documentUuids.length) return map;
+
+        const rows = await AppDataSource.getRepository(entity)
+            .createQueryBuilder("line")
+            .select(`line.${documentColumn}`, "documentUuid")
+            .addSelect("line.productUuid", "productUuid")
+            .addSelect("line.quantity", "quantity")
+            .where("line.companyUuid = :companyUuid", { companyUuid })
+            .andWhere(`line.${documentColumn} IN (:...documentUuids)`, { documentUuids })
+            .orderBy("line.position", "ASC")
+            .getRawMany<{ documentUuid: string; productUuid: string; quantity: string }>();
+        const productUuids = [...new Set(rows.map((row) => row.productUuid))];
+        const products = productUuids.length
+            ? await AppDataSource.getRepository(Product).find({ where: { uuid: In(productUuids), companyUuid } })
+            : [];
+        const productMap = new Map(products.map((product) => [product.uuid, product]));
+
+        for (const row of rows) {
+            const product = productMap.get(row.productUuid)!;
+            const list = map.get(row.documentUuid) ?? [];
+            list.push({ name: product.name, measureUnit: product.measureUnit, quantity: Number(row.quantity) });
+            map.set(row.documentUuid, list);
+        }
+        return map;
     }
 
     /** The supplier for a return, the department (and receiver) for an issue; empty for a loss. */
