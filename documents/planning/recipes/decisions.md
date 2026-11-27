@@ -249,6 +249,11 @@ without recipes is a normal stock-out, like today.
 - **Changed totals are marked (decided 2026-11-27):** when a total is not the prefill (recipes +
   extras, rounded up), a small `(+2)` / `(−1)` shows next to it - in the form and in the doc view.
   Rows that match show nothing.
+- **Summary panel (decided 2026-11-27):** stock-out form and the view of a doc with recipes show a
+  panel on the right (sticky on wide screens, below the page on small ones): each recipe with its
+  people and amounts, then the extra products, with recipe and product counts. Read only - the
+  editable totals stay in the main column. In the form, Save and Cancel live in the panel. Recipe
+  rows in the form are one line (recipe, people, remove); their amounts show only in the panel.
 - Same totals list for every stock-out reason (e.g. Returned - then it is just the extras).
 - Total can be **0 or more** (0 = listed but nothing given, e.g. the kitchen still has salt).
   Recipe products stay in the doc as they are. The doc's existing **Note** field is for any

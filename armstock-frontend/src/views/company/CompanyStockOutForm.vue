@@ -20,6 +20,7 @@ import ReceiverSelect from '../../components/company/ReceiverSelect.vue';
 import StockOutLinesEditor from '../../components/company/StockOutLinesEditor.vue';
 import StockOutRecipesEditor from '../../components/company/StockOutRecipesEditor.vue';
 import StockOutTotalsTable from '../../components/company/StockOutTotalsTable.vue';
+import StockOutPanel from '../../components/company/StockOutPanel.vue';
 import { StockOutService } from '../../services/StockOutService';
 import { OptionsService } from '../../services/OptionsService';
 import { NotificationService } from '../../services/NotificationService';
@@ -35,9 +36,10 @@ import {
 } from '../../constants/stockOutReasons';
 import type { IStockOutLineForm } from '../../interfaces/IStockOutLineForm';
 import type { IStockOutRecipeForm } from '../../interfaces/IStockOutRecipeForm';
-import { formatNumber, isFutureDay } from '../../utils/format';
+import { isFutureDay } from '../../utils/format';
 import { emptyOutLine, isOutLineValid, toOutLineForm } from '../../utils/stockOutLines';
 import { buildTotals, emptyRecipeRow, isBlankOutLine, toSavedRecipeOption } from '../../utils/stockOutTotals';
+import { formPanelGroups } from '../../utils/stockOutPanel';
 import { AppLogger } from '../../utils/AppLogger';
 
 const props = defineProps<{
@@ -84,6 +86,7 @@ const isOther = computed(() => form.value.reason === StockOutReason.OTHER);
 const recipeMap = computed(() => new Map(recipeOptions.value.map((recipe) => [recipe.uuid, recipe])));
 const filledLines = computed(() => lines.value.filter((line) => !isBlankOutLine(line)));
 const totalRows = computed(() => buildTotals(recipeRows.value, recipeMap.value, filledLines.value));
+const panelGroups = computed(() => formPanelGroups(recipeRows.value, recipeMap.value, filledLines.value, t('stockOut.lines.title')));
 const totals = computed(() => Object.fromEntries(totalRows.value.map((row) => [
   row.product.uuid,
   row.product.uuid in totalOverrides.value ? totalOverrides.value[row.product.uuid] : row.prefill,
@@ -255,103 +258,108 @@ const save = async () => {
 
     <el-skeleton v-else-if="isLoading" :rows="8" animated />
 
-    <template v-else>
-      <AppCard>
-        <el-form ref="formRef" :model="form" :rules="rules" label-position="top" :disabled="isSaving" @submit.prevent="save">
-          <div class="form-row">
-            <el-form-item :label="$t('stockOut.form.reason')" prop="reason">
-              <!-- Recipes are for Issued only, so the reason stays while any recipe row is there. -->
-              <el-select v-model="form.reason" :disabled="recipeRows.length > 0" :aria-label="$t('stockOut.form.reason')">
-                <el-option v-for="reason in STOCK_OUT_REASONS" :key="reason" :label="$t(STOCK_OUT_REASON_LABEL[reason])" :value="reason" />
-              </el-select>
-            </el-form-item>
-            <el-form-item :label="$t('stockOut.form.date')" prop="date">
-              <el-date-picker
-                v-model="form.date"
-                type="datetime"
-                :format="DATE_TIME_PICKER_FORMAT"
-                :disabled-date="isFutureDay"
-                :clearable="false"
-                class="stock-out-form__date"
-              />
-            </el-form-item>
-          </div>
-
-          <div v-if="isReturned" class="form-row">
-            <el-form-item :label="$t('stockOut.form.supplier')" prop="supplierUuid">
-              <SupplierSelect
-                v-model="form.supplierUuid"
-                :selected="selectedSupplier"
-                active-only
-                :placeholder="$t('stockOut.form.supplierPlaceholder')"
-              />
-            </el-form-item>
-          </div>
-
-          <div v-if="isIssued" class="form-row">
-            <el-form-item :label="$t('stockOut.form.department')" prop="department">
-              <!-- An issue always goes to the kitchen. -->
-              <el-select v-model="form.department" disabled :aria-label="$t('stockOut.form.department')">
-                <el-option
-                  v-for="department in STOCK_OUT_DEPARTMENTS"
-                  :key="department"
-                  :label="$t(STOCK_OUT_DEPARTMENT_LABEL[department])"
-                  :value="department"
+    <div v-else class="out-layout">
+      <div class="out-layout__main">
+        <AppCard>
+          <el-form ref="formRef" :model="form" :rules="rules" label-position="top" :disabled="isSaving" @submit.prevent="save">
+            <div class="form-row">
+              <el-form-item :label="$t('stockOut.form.reason')" prop="reason">
+                <!-- Recipes are for Issued only, so the reason stays while any recipe row is there. -->
+                <el-select v-model="form.reason" :disabled="recipeRows.length > 0" :aria-label="$t('stockOut.form.reason')">
+                  <el-option v-for="reason in STOCK_OUT_REASONS" :key="reason" :label="$t(STOCK_OUT_REASON_LABEL[reason])" :value="reason" />
+                </el-select>
+              </el-form-item>
+              <el-form-item :label="$t('stockOut.form.date')" prop="date">
+                <el-date-picker
+                  v-model="form.date"
+                  type="datetime"
+                  :format="DATE_TIME_PICKER_FORMAT"
+                  :disabled-date="isFutureDay"
+                  :clearable="false"
+                  class="stock-out-form__date"
                 />
-              </el-select>
+              </el-form-item>
+            </div>
+
+            <div v-if="isReturned" class="form-row">
+              <el-form-item :label="$t('stockOut.form.supplier')" prop="supplierUuid">
+                <SupplierSelect
+                  v-model="form.supplierUuid"
+                  :selected="selectedSupplier"
+                  active-only
+                  :placeholder="$t('stockOut.form.supplierPlaceholder')"
+                />
+              </el-form-item>
+            </div>
+
+            <div v-if="isIssued" class="form-row">
+              <el-form-item :label="$t('stockOut.form.department')" prop="department">
+                <!-- An issue always goes to the kitchen. -->
+                <el-select v-model="form.department" disabled :aria-label="$t('stockOut.form.department')">
+                  <el-option
+                    v-for="department in STOCK_OUT_DEPARTMENTS"
+                    :key="department"
+                    :label="$t(STOCK_OUT_DEPARTMENT_LABEL[department])"
+                    :value="department"
+                  />
+                </el-select>
+              </el-form-item>
+              <el-form-item :label="$t('stockOut.form.receiver')" prop="receiverUuid">
+                <ReceiverSelect v-model="form.receiverUuid" :selected="selectedReceiver" :placeholder="$t('stockOut.form.optional')" />
+              </el-form-item>
+            </div>
+
+            <el-form-item :label="$t('stockOut.form.note')" prop="note">
+              <el-input
+                v-model="form.note"
+                type="textarea"
+                :rows="2"
+                maxlength="1000"
+                :placeholder="isOther ? $t('stockOut.form.notePlaceholderOther') : $t('stockOut.form.optional')"
+              />
             </el-form-item>
-            <el-form-item :label="$t('stockOut.form.receiver')" prop="receiverUuid">
-              <ReceiverSelect v-model="form.receiverUuid" :selected="selectedReceiver" :placeholder="$t('stockOut.form.optional')" />
-            </el-form-item>
-          </div>
 
-          <el-form-item :label="$t('stockOut.form.note')" prop="note">
-            <el-input
-              v-model="form.note"
-              type="textarea"
-              :rows="2"
-              maxlength="1000"
-              :placeholder="isOther ? $t('stockOut.form.notePlaceholderOther') : $t('stockOut.form.optional')"
-            />
-          </el-form-item>
+            <!-- Lets Enter submit the form. -->
+            <button type="submit" hidden />
+          </el-form>
+        </AppCard>
 
-          <!-- Lets Enter submit the form. -->
-          <button type="submit" hidden />
-        </el-form>
-      </AppCard>
+        <AppCard class="lines-card">
+          <StockOutRecipesEditor
+            v-model="recipeRows"
+            :recipes="recipeOptions"
+            :disabled="!isIssued || isSaving"
+            :show-errors="showLineErrors"
+          />
+        </AppCard>
 
-      <AppCard class="lines-card">
-        <StockOutRecipesEditor
-          v-model="recipeRows"
-          :recipes="recipeOptions"
-          :recipe-map="recipeMap"
-          :disabled="!isIssued || isSaving"
-          :show-errors="showLineErrors"
-        />
-      </AppCard>
+        <AppCard class="lines-card">
+          <StockOutLinesEditor
+            v-model="lines"
+            :show-errors="showLineErrors"
+            :supplied-by="isReturned ? form.supplierUuid || null : undefined"
+          />
+        </AppCard>
 
-      <AppCard class="lines-card">
-        <StockOutLinesEditor
-          v-model="lines"
-          :show-errors="showLineErrors"
-          :supplied-by="isReturned ? form.supplierUuid || null : undefined"
-        />
-      </AppCard>
-
-      <AppCard class="lines-card">
-        <StockOutTotalsTable :rows="totalRows" :totals="totals" :show-errors="showLineErrors" @update="setTotal" />
-      </AppCard>
-
-      <div class="form-bar" role="region" :aria-label="$t('stockOut.form.summary')">
-        <div class="form-bar__summary">
-          <span>{{ $t('stockOut.form.rowCount', { count: formatNumber(totalRows.length) }) }}</span>
-        </div>
-        <div class="form-bar__actions">
-          <el-button :disabled="isSaving" @click="router.push(backRoute)">{{ $t('common.cancel') }}</el-button>
-          <el-button type="primary" :loading="isSaving" @click="save">{{ $t('common.save') }}</el-button>
-        </div>
+        <AppCard class="lines-card">
+          <StockOutTotalsTable :rows="totalRows" :totals="totals" :show-errors="showLineErrors" @update="setTotal" />
+        </AppCard>
       </div>
-    </template>
+
+      <StockOutPanel
+        class="out-layout__side"
+        :groups="panelGroups"
+        :recipe-count="panelGroups.filter((group) => group.persons).length"
+        :product-count="totalRows.length"
+      >
+        <template #actions>
+          <div class="out-actions">
+            <el-button :disabled="isSaving" @click="router.push(backRoute)">{{ $t('common.cancel') }}</el-button>
+            <el-button type="primary" :loading="isSaving" @click="save">{{ $t('common.save') }}</el-button>
+          </div>
+        </template>
+      </StockOutPanel>
+    </div>
   </section>
 </template>
 
@@ -375,40 +383,41 @@ const save = async () => {
   overflow: hidden;
 }
 
-/* Stays at the bottom of the screen while the rows scroll. */
-.form-bar {
-  position: sticky;
-  bottom: 0;
-  z-index: 10;
+/* Wide screens: the summary stays on the right while the rows scroll. */
+.out-layout {
   display: flex;
-  flex-wrap: wrap;
-  align-items: center;
-  justify-content: space-between;
-  gap: 0.75rem 1rem;
-  padding: 0.75rem clamp(0.75rem, 2vw, 1.25rem);
-  background-color: var(--bg-card);
-  border: 1px solid var(--border-dark);
-  border-radius: var(--radius);
-  box-shadow: var(--shadow-md);
+  flex-direction: column;
+  gap: 1rem;
 }
 
-.form-bar__summary {
-  font-size: var(--text-sm);
-  color: var(--text-muted);
+.out-layout__main {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  min-width: 0;
 }
 
-.form-bar__actions {
+.out-actions {
   display: flex;
   gap: 0.5rem;
 }
 
-@media (max-width: 576px) {
-  .form-bar__actions {
-    width: 100%;
+.out-actions .el-button {
+  flex: 1;
+  margin: 0;
+}
+
+@media (min-width: 1200px) {
+  .out-layout {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) clamp(18rem, 24vw, 24rem);
+    align-items: start;
   }
 
-  .form-bar__actions .el-button {
-    flex: 1;
+  .out-layout__side {
+    position: sticky;
+    top: calc(var(--header-height) + 1rem);
+    max-height: calc(100dvh - var(--header-height) - 2rem);
   }
 }
 </style>

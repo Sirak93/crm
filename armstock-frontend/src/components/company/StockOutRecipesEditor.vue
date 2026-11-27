@@ -2,14 +2,12 @@
 import { nextTick } from 'vue';
 import { RECIPE_PERSONS_MAX, type IRecipeOption } from 'armstock-shared';
 import { Plus, Trash2 } from 'lucide-vue-next';
-import RecipeAmounts from './RecipeAmounts.vue';
 import type { IStockOutRecipeForm } from '../../interfaces/IStockOutRecipeForm';
-import { emptyRecipeRow, neededQuantity } from '../../utils/stockOutTotals';
+import { emptyRecipeRow } from '../../utils/stockOutTotals';
 
 const props = defineProps<{
   /** Active recipes to pick from, plus those the document already has. */
   recipes: IRecipeOption[];
-  recipeMap: ReadonlyMap<string, IRecipeOption>;
   /** Recipes are for reason Issued only. */
   disabled: boolean;
   /** Highlight rows that are not filled in correctly - set after a failed save. */
@@ -37,12 +35,6 @@ const removeRow = (key: number) => {
 const offeredFor = (row: IStockOutRecipeForm) => {
   const used = new Set(rows.value.filter((other) => other.key !== row.key).map((other) => other.recipeUuid));
   return props.recipes.filter((recipe) => !used.has(recipe.uuid));
-};
-
-const amountsOf = (row: IStockOutRecipeForm) => {
-  const recipe = props.recipeMap.get(row.recipeUuid);
-  if (!recipe || !row.persons) return [];
-  return recipe.lines.map((line) => ({ ...line, neededQuantity: neededQuantity(line.quantity, row.persons!) }));
 };
 
 const isPersonsValid = (persons: number | undefined) => !!persons && persons >= 1;
@@ -91,11 +83,6 @@ const setRecipeRef = (key: number, el: unknown) => {
             :class="{ 'is-invalid': showErrors && !isPersonsValid(row.persons) }"
             class="recipes-editor__field recipes-editor__number"
           />
-        </template>
-      </el-table-column>
-      <el-table-column :label="$t('stockOut.recipes.amounts')" min-width="280">
-        <template #default="{ row }">
-          <RecipeAmounts :lines="amountsOf(row as IStockOutRecipeForm)" />
         </template>
       </el-table-column>
       <el-table-column width="56" align="center">

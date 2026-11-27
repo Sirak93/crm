@@ -665,7 +665,6 @@ export default {
       linesInvalid: 'Fill in every extra product row: product and quantity above 0.',
       recipesInvalid: 'Fill in every recipe row: recipe and persons (1 or more).',
       totalsInvalid: 'Fill in every total (0 or more).',
-      summary: 'Document summary',
       rowCount: 'Rows: {count}',
     },
     lines: {
@@ -688,7 +687,6 @@ export default {
       recipePlaceholder: 'Choose a recipe',
       noRecipes: 'No active recipes',
       persons: 'Persons',
-      amounts: 'Amounts',
       add: 'Add recipe',
       remove: 'Remove recipe row {row}',
       personCount: '{count} persons',
@@ -703,6 +701,12 @@ export default {
       total: 'Total given',
       totalFor: 'Total given of {product}',
       changedBy: 'Changed by hand: {amount}',
+    },
+    panel: {
+      title: 'Summary',
+      hint: 'What goes out, by recipe and extra products.',
+      empty: 'Pick a recipe or add a product - it will show up here.',
+      products: 'Products',
     },
   },
   stockBalance: {

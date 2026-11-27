@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { computed, onMounted, ref, watch } from 'vue';
 import { useRouter } from 'vue-router';
+import { useI18n } from 'vue-i18n';
 import { Permission, type IStockOutDetails } from 'armstock-shared';
 import { Pencil, Trash2 } from 'lucide-vue-next';
 import BackLink from '../../components/BackLink.vue';
@@ -8,13 +9,14 @@ import PageHeader from '../../components/PageHeader.vue';
 import AppCard from '../../components/AppCard.vue';
 import LoadError from '../../components/LoadError.vue';
 import StockOutLinesTable from '../../components/company/StockOutLinesTable.vue';
-import StockOutRecipesTable from '../../components/company/StockOutRecipesTable.vue';
+import StockOutPanel from '../../components/company/StockOutPanel.vue';
 import { StockOutService } from '../../services/StockOutService';
 import { useStockOutDelete } from '../../composables/useStockOutDelete';
 import { useAuthStore } from '../../stores/auth';
 import { ROUTE_NAME } from '../../constants/constants';
 import { STOCK_OUT_DEPARTMENT_LABEL, STOCK_OUT_REASON_LABEL } from '../../constants/stockOutReasons';
 import { formatDateTimeShort, formatNumber } from '../../utils/format';
+import { docPanelGroups } from '../../utils/stockOutPanel';
 import { AppLogger } from '../../utils/AppLogger';
 
 const props = defineProps<{
@@ -22,6 +24,7 @@ const props = defineProps<{
 }>();
 
 const router = useRouter();
+const { t } = useI18n();
 const authStore = useAuthStore();
 const { deleteStockOut } = useStockOutDelete();
 
@@ -34,6 +37,9 @@ const isDeleting = ref(false);
 const isCreator = computed(() => !!doc.value && doc.value.createdBy.uuid === authStore.user?.uuid);
 const canEdit = computed(() => isCreator.value && !!authStore.user?.can(Permission.STOCK_OUT_EDIT));
 const canDelete = computed(() => isCreator.value && !!authStore.user?.can(Permission.STOCK_OUT_DELETE));
+
+const hasRecipes = computed(() => !!doc.value?.recipes.length);
+const panelGroups = computed(() => (doc.value ? docPanelGroups(doc.value, t('stockOut.lines.title')) : []));
 
 const load = async () => {
   isLoading.value = true;
@@ -84,47 +90,54 @@ const onDelete = async () => {
         </template>
       </PageHeader>
 
-      <AppCard>
-        <dl class="doc-info">
-          <div class="doc-info__item">
-            <dt>{{ $t('stockOut.form.date') }}</dt>
-            <dd>{{ formatDateTimeShort(doc.date) }}</dd>
-          </div>
-          <div v-if="doc.supplier" class="doc-info__item">
-            <dt>{{ $t('stockOut.form.supplier') }}</dt>
-            <dd>{{ doc.supplier.name }}</dd>
-          </div>
-          <div v-if="doc.department" class="doc-info__item">
-            <dt>{{ $t('stockOut.form.department') }}</dt>
-            <dd>{{ $t(STOCK_OUT_DEPARTMENT_LABEL[doc.department]) }}</dd>
-          </div>
-          <div v-if="doc.receiver" class="doc-info__item">
-            <dt>{{ $t('stockOut.form.receiver') }}</dt>
-            <dd>{{ doc.receiver.name }}</dd>
-          </div>
-          <div class="doc-info__item">
-            <dt>{{ $t('stockOut.table.createdBy') }}</dt>
-            <dd>{{ doc.createdBy.name }}</dd>
-          </div>
-          <div v-if="doc.note" class="doc-info__item doc-info__item--wide">
-            <dt>{{ $t('stockOut.form.note') }}</dt>
-            <dd class="doc-info__note">{{ doc.note }}</dd>
-          </div>
-        </dl>
-      </AppCard>
+      <div class="out-layout" :class="{ 'out-layout--panel': hasRecipes }">
+        <div class="out-layout__main">
+          <AppCard>
+            <dl class="doc-info">
+              <div class="doc-info__item">
+                <dt>{{ $t('stockOut.form.date') }}</dt>
+                <dd>{{ formatDateTimeShort(doc.date) }}</dd>
+              </div>
+              <div v-if="doc.supplier" class="doc-info__item">
+                <dt>{{ $t('stockOut.form.supplier') }}</dt>
+                <dd>{{ doc.supplier.name }}</dd>
+              </div>
+              <div v-if="doc.department" class="doc-info__item">
+                <dt>{{ $t('stockOut.form.department') }}</dt>
+                <dd>{{ $t(STOCK_OUT_DEPARTMENT_LABEL[doc.department]) }}</dd>
+              </div>
+              <div v-if="doc.receiver" class="doc-info__item">
+                <dt>{{ $t('stockOut.form.receiver') }}</dt>
+                <dd>{{ doc.receiver.name }}</dd>
+              </div>
+              <div class="doc-info__item">
+                <dt>{{ $t('stockOut.table.createdBy') }}</dt>
+                <dd>{{ doc.createdBy.name }}</dd>
+              </div>
+              <div v-if="doc.note" class="doc-info__item doc-info__item--wide">
+                <dt>{{ $t('stockOut.form.note') }}</dt>
+                <dd class="doc-info__note">{{ doc.note }}</dd>
+              </div>
+            </dl>
+          </AppCard>
 
-      <AppCard v-if="doc.recipes.length" class="lines-card">
-        <h2 class="lines-card__title">{{ $t('stockOut.recipes.title') }}</h2>
-        <StockOutRecipesTable :recipes="doc.recipes" />
-      </AppCard>
-
-      <AppCard class="lines-card">
-        <h2 v-if="doc.recipes.length" class="lines-card__title">{{ $t('stockOut.totals.title') }}</h2>
-        <StockOutLinesTable :lines="doc.lines" :with-recipes="doc.recipes.length > 0" />
-        <div class="lines-card__footer">
-          <span>{{ $t('stockOut.form.rowCount', { count: formatNumber(doc.lines.length) }) }}</span>
+          <AppCard class="lines-card">
+            <h2 v-if="hasRecipes" class="lines-card__title">{{ $t('stockOut.totals.title') }}</h2>
+            <StockOutLinesTable :lines="doc.lines" :with-recipes="hasRecipes" />
+            <div v-if="!hasRecipes" class="lines-card__footer">
+              <span>{{ $t('stockOut.form.rowCount', { count: formatNumber(doc.lines.length) }) }}</span>
+            </div>
+          </AppCard>
         </div>
-      </AppCard>
+
+        <StockOutPanel
+          v-if="hasRecipes"
+          class="out-layout__side"
+          :groups="panelGroups"
+          :recipe-count="doc.recipes.length"
+          :product-count="doc.lines.length"
+        />
+      </div>
     </template>
   </section>
 </template>
@@ -138,6 +151,29 @@ const onDelete = async () => {
 
 .stock-out-view > :deep(.page-header) {
   margin-bottom: 0;
+}
+
+/* A doc with recipes: the summary stays on the right while the rows scroll. */
+.out-layout,
+.out-layout__main {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  min-width: 0;
+}
+
+@media (min-width: 1200px) {
+  .out-layout--panel {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) clamp(18rem, 24vw, 24rem);
+    align-items: start;
+  }
+
+  .out-layout--panel .out-layout__side {
+    position: sticky;
+    top: calc(var(--header-height) + 1rem);
+    max-height: calc(100dvh - var(--header-height) - 2rem);
+  }
 }
 
 .doc-info {
