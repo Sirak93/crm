@@ -693,7 +693,7 @@ export default {
     },
     totals: {
       title: 'Totals',
-      hint: 'Each product once: recipes + extras, rounded up. Change a total to what is really given out.',
+      hint: 'Actual amounts given out',
       empty: 'Add a recipe or a product to see the totals.',
       needed: 'Recipes',
       extra: 'Extra',
@@ -705,7 +705,7 @@ export default {
     },
     panel: {
       title: 'Summary',
-      hint: 'By recipe and extra products.',
+      hint: 'Calculated amounts',
       empty: 'Pick a recipe or add a product - it will show up here.',
       products: 'Products',
     },
