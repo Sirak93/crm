@@ -50,6 +50,10 @@ export class StockOutRecipeLine {
     @Column({ name: "needed_quantity", type: "numeric", precision: 14, scale: 6, transformer: numericTransformer })
     neededQuantity!: number;
 
+    /** Copied from the document for a later kitchen report. */
+    @Column({ type: "timestamp" })
+    date!: Date;
+
     @CreateDateColumn({ name: "created_at" })
     createdAt!: Date;
 

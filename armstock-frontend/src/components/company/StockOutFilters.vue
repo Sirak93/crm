@@ -7,6 +7,7 @@ import { DATE_PICKER_FORMAT } from '../../constants/constants';
 import { STOCK_OUT_REASON_LABEL, STOCK_OUT_REASONS } from '../../constants/stockOutReasons';
 import type { IStockOutFilters } from '../../interfaces/IStockOutFilters';
 import { isFutureDay } from '../../utils/format';
+import { thisMonthRange } from '../../utils/monthStart';
 import { useDateRangeShortcuts } from '../../composables/useDateRangeShortcuts';
 
 const emit = defineEmits<{ change: [filters: IStockOutFilters] }>();
@@ -14,7 +15,7 @@ const emit = defineEmits<{ change: [filters: IStockOutFilters] }>();
 const dateShortcuts = useDateRangeShortcuts();
 
 const form = reactive({
-  dateRange: null as [string, string] | null,
+  dateRange: thisMonthRange() as [string, string] | null,
   reason: '' as StockOutReason | '',
   supplierUuid: '',
   receiverUuid: '',

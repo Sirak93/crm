@@ -16,6 +16,7 @@ import { numericTransformer } from "../utils/numericTransformer";
 @Entity("stock_in_lines")
 @Index("IDX_stock_in_lines_stock_in_uuid", ["stockInUuid"])
 @Index("IDX_stock_in_lines_company_product", ["companyUuid", "productUuid"])
+@Index("IDX_stock_in_lines_company_product_date", ["companyUuid", "productUuid", "date"])
 export class StockInLine {
     @PrimaryGeneratedColumn("uuid")
     uuid!: string;
@@ -48,6 +49,10 @@ export class StockInLine {
     /** pack.quantity × pack.count - what stock counts. */
     @Column({ type: "numeric", precision: 14, scale: 3, transformer: numericTransformer })
     quantity!: number;
+
+    /** Copied from the document so the movement report filters by date without a join. */
+    @Column({ type: "timestamp" })
+    date!: Date;
 
     @CreateDateColumn({ name: "created_at" })
     createdAt!: Date;

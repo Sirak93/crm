@@ -313,14 +313,14 @@ Decisions: decisions.md → "Kitchen balance".
 
 ## Step 6 — Date on stock lines + "this month" default on stock lists
 
-- [ ] DB: `date` on `stock_in_lines` and `stock_out_lines`, index
+- [x] DB: `date` on `stock_in_lines` and `stock_out_lines`, index
       (`company_uuid`, `product_uuid`, `date`). No backfill (no real data) - local DB
       recreated
-- [ ] DB: `date` on `stock_out_recipe_lines` too (for a later kitchen report)
-- [ ] Backend: lines get the document date on create and edit (stock-in, stock-out lines,
+- [x] DB: `date` on `stock_out_recipe_lines` too (for a later kitchen report)
+- [x] Backend: lines get the document date on create and edit (stock-in, stock-out lines,
       stock-out recipe lines)
-- [ ] Frontend: stock-in and stock-out lists default to this month (still clearable)
-- [ ] Tests: lines carry the doc date; changing a doc's date moves its lines' date
+- [x] Frontend: stock-in and stock-out lists default to this month (still clearable)
+- [x] Tests: lines carry the doc date; changing a doc's date moves its lines' date
 - [ ] Checked in browser: both lists open on this month
 
 ## Step 7 — Stock movement page

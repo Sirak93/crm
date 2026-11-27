@@ -96,6 +96,7 @@ export class StockInService {
             ...line,
             stockInUuid: doc.uuid,
             companyUuid: doc.companyUuid,
+            date: doc.date,
             position: index + 1,
         })));
     }

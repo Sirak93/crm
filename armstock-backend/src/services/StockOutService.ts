@@ -155,6 +155,7 @@ export class StockOutService {
             position: line.position,
             quantity: line.quantity,
             neededQuantity: Number((line.quantity * row.persons).toFixed(RECIPE_QUANTITY_DECIMALS)),
+            date: doc.date,
         }))));
     }
 
@@ -192,6 +193,7 @@ export class StockOutService {
             stockOutUuid: doc.uuid,
             companyUuid: doc.companyUuid,
             department: doc.department,
+            date: doc.date,
             position: index + 1,
         })));
         const recipeLines = await StockOutService.saveRecipes(manager, doc, body, linesByRecipe);

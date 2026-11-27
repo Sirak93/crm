@@ -604,6 +604,28 @@ export default (context: ICompanySideContext) => defineSuite("Stock-out", (test)
         await expectStock(db, oil.uuid, 8.7);
     });
 
+    test("lines and recipe lines carry the document date; changing the date moves them too", async () => {
+        const onDocDate = async (uuid: string) => {
+            const docDate = "date = (SELECT date FROM stock_outs WHERE uuid = $1)";
+            return [
+                await db.count("stock_out_lines", `stock_out_uuid = $1 AND ${docDate}`, [uuid]),
+                await db.count("stock_out_recipe_lines", `stock_out_recipe_uuid IN (SELECT uuid FROM stock_out_recipes WHERE stock_out_uuid = $1) AND ${docDate}`, [uuid]),
+            ];
+        };
+        const fry = await createRecipe(chef, [lineOf(oil, 0.1), lineOf(egg, 1)]);
+        const body = (date: string) => recipeBody([recipeRow(fry, 1)], [total(oil, 0.1), total(egg, 1)], { date });
+
+        const dayAgo = new Date(Date.now() - 24 * ONE_HOUR_MS).toISOString();
+        const { data: doc } = await storekeeper.api.ok<IStockOutDetails>("POST", PATHS.STOCK_OUTS, body(dayAgo));
+        matches(await onDocDate(doc.uuid), [2, 2]);
+
+        const hourAgo = new Date(Date.now() - ONE_HOUR_MS).toISOString();
+        const { data } = await storekeeper.api.ok<IStockOutDetails>("PUT", path(doc.uuid), body(hourAgo));
+        equals(data.date, hourAgo, "doc date");
+        matches(await onDocDate(doc.uuid), [2, 2]);
+        await storekeeper.api.ok("DELETE", path(doc.uuid));
+    });
+
     test("a member without stock-out permissions can't save a doc with recipes", async () => {
         await chef.api.rejects("POST", PATHS.STOCK_OUTS, ErrorCodes.AUTH.FORBIDDEN, recipeBody([recipeRow(soup, 1)], [total(oil, 1), total(egg, 1)]));
     });

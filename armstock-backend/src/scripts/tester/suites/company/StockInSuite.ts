@@ -274,6 +274,21 @@ export default (context: ICompanySideContext) => defineSuite("Stock-in", (test) 
         await expectStock(db, kilos.uuid, 3.375);
     });
 
+    test("lines carry the document date; changing the date moves them too", async () => {
+        const linesOnDocDate = (uuid: string) =>
+            db.count("stock_in_lines", "stock_in_uuid = $1 AND date = (SELECT date FROM stock_ins WHERE uuid = $1)", [uuid]);
+        const dayAgo = new Date(Date.now() - 24 * ONE_HOUR_MS).toISOString();
+        const doc = await createStockIn(storekeeper, [line(pieces, 1), line(kilos, 1)], { supplierUuid: supplier.uuid, date: dayAgo });
+        equals(await linesOnDocDate(doc.uuid), 2, "lines on the doc date");
+
+        const hourAgo = new Date(Date.now() - ONE_HOUR_MS).toISOString();
+        const { data } = await storekeeper.api.ok<IStockInDetails>("PUT", path(doc.uuid),
+            stockInBody([line(pieces, 1), line(kilos, 1)], { supplierUuid: supplier.uuid, date: hourAgo }));
+        equals(data.date, hourAgo, "doc date");
+        equals(await linesOnDocDate(doc.uuid), 2, "lines on the new doc date");
+        await storekeeper.api.ok("DELETE", path(doc.uuid));
+    });
+
     test("only the creator can edit or delete - not the Owner, not another storekeeper", async () => {
         const otherStorekeeper = await createMember(companyA, {
             role: DefaultRole.STOREKEEPER,

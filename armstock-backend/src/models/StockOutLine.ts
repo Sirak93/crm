@@ -18,6 +18,7 @@ import { numericTransformer } from "../utils/numericTransformer";
 @Entity("stock_out_lines")
 @Unique("UQ_stock_out_lines_stock_out_product", ["stockOutUuid", "productUuid"])
 @Index("IDX_stock_out_lines_company_product", ["companyUuid", "productUuid"])
+@Index("IDX_stock_out_lines_company_product_date", ["companyUuid", "productUuid", "date"])
 export class StockOutLine {
     @PrimaryGeneratedColumn("uuid")
     uuid!: string;
@@ -55,6 +56,10 @@ export class StockOutLine {
     /** Copied from the document so the kitchen balance sums without a join. */
     @Column({ type: "int", nullable: true })
     department!: StockOutDepartment | null;
+
+    /** Copied from the document so the movement report filters by date without a join. */
+    @Column({ type: "timestamp" })
+    date!: Date;
 
     @CreateDateColumn({ name: "created_at" })
     createdAt!: Date;
