@@ -20,4 +20,5 @@ export const PATHS = {
     STOCK_INS: `${API_PATH}/stock-ins`,
     STOCK_OUTS: `${API_PATH}/stock-outs`,
     STOCK_BALANCE: `${API_PATH}/stock/balance`,
+    KITCHEN_BALANCE: `${API_PATH}/stock/kitchen-balance`,
 } as const;

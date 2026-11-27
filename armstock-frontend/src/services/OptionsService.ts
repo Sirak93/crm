@@ -1,4 +1,4 @@
-import type { IAppResponse, INamedRef, IRecipeOption, IStockLineProduct, IStockOutReceiver, ISupplierOption } from 'armstock-shared';
+import type { IAppResponse, IKitchenQuantity, INamedRef, IRecipeOption, IStockLineProduct, IStockOutReceiver, ISupplierOption } from 'armstock-shared';
 import ApiService from './ApiService';
 import type { IProductOptionsFilters } from '../interfaces/IProductOptionsFilters';
 
@@ -24,6 +24,12 @@ export const OptionsService = {
   /** Active recipes with their lines, for the stock-out form. */
   async recipes(): Promise<IRecipeOption[]> {
     const response = await ApiService.get<IAppResponse<IRecipeOption[]>>('/options/recipes');
+    return response.data.data!;
+  },
+
+  /** Every product's kitchen balance above 0, for the stock-out form. */
+  async kitchenBalance(): Promise<IKitchenQuantity[]> {
+    const response = await ApiService.get<IAppResponse<IKitchenQuantity[]>>('/options/kitchen-balance');
     return response.data.data!;
   },
 

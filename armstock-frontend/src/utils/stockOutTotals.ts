@@ -46,12 +46,14 @@ export const toSavedRecipeOption = (row: IStockOutRecipe): IRecipeOption => ({
 
 /**
  * Each product of the recipes and extras once, in the order it first shows up. Extras rows only add a
- * product: its total is typed, so it has no prefill.
+ * product: its total is typed, so it has no prefill. With `kitchen` (the "Use kitchen balance" switch) the
+ * prefill is what the recipes need beyond the kitchen balance, never below 0.
  */
 export const buildTotals = (
   rows: IStockOutRecipeForm[],
   recipes: ReadonlyMap<string, IRecipeOption>,
   extras: IStockOutLineForm[],
+  kitchen?: ReadonlyMap<string, number>,
 ): IStockOutTotalRow[] => {
   const totals = new Map<string, IStockOutTotalRow>();
   const rowOf = (product: IStockLineProduct) => {
@@ -75,5 +77,7 @@ export const buildTotals = (
     if (line.product) rowOf(line.product);
   }
 
-  return [...totals.values()].map((row) => ({ ...row, prefill: row.needed ? roundUpTotal(row.needed, row.product) : undefined }));
+  const toGive = (row: IStockOutTotalRow) =>
+    Math.max(0, round(row.needed - (kitchen?.get(row.product.uuid) ?? 0), RECIPE_QUANTITY_DECIMALS));
+  return [...totals.values()].map((row) => ({ ...row, prefill: row.needed ? roundUpTotal(toGive(row), row.product) : undefined }));
 };

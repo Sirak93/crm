@@ -1,8 +1,10 @@
 import { In, type EntityManager, type SelectQueryBuilder } from "typeorm";
 import {
     ErrorCodes,
+    KITCHEN_BALANCE_ENABLED,
     RECIPE_QUANTITY_DECIMALS,
     RecipeStatus,
+    StockOutDepartment,
     StockOutReason,
     SupplierStatus,
     type IPaginationMeta,
@@ -132,16 +134,21 @@ export class StockOutService {
         };
     }
 
-    /** The recipe rows, each with a copy of its lines (needed = per person × persons). */
-    private static async saveRecipes(manager: EntityManager, doc: StockOut, body: StockOutBody, linesByRecipe: RecipeLinesMap): Promise<void> {
-        if (!body.recipes.length) return;
+    /** The recipe rows, each with a copy of its lines (needed = per person × persons). Returns the saved copies. */
+    private static async saveRecipes(
+        manager: EntityManager,
+        doc: StockOut,
+        body: StockOutBody,
+        linesByRecipe: RecipeLinesMap,
+    ): Promise<StockOutRecipeLine[]> {
+        if (!body.recipes.length) return [];
         const rows = await manager.save(body.recipes.map((row, index) => manager.create(StockOutRecipe, {
             ...row,
             stockOutUuid: doc.uuid,
             companyUuid: doc.companyUuid,
             position: index + 1,
         })));
-        await manager.save(rows.flatMap((row) => linesByRecipe.get(row.recipeUuid)!.map((line) => manager.create(StockOutRecipeLine, {
+        return manager.save(rows.flatMap((row) => linesByRecipe.get(row.recipeUuid)!.map((line) => manager.create(StockOutRecipeLine, {
             stockOutRecipeUuid: row.uuid,
             companyUuid: doc.companyUuid,
             productUuid: line.productUuid,
@@ -151,13 +158,35 @@ export class StockOutService {
         }))));
     }
 
+    /** Recipe needs summed per product, as K sums them. */
+    private static neededByProduct(recipeLines: Pick<StockOutRecipeLine, "productUuid" | "neededQuantity">[]): Map<string, number> {
+        const needed = new Map<string, number>();
+        for (const line of recipeLines) {
+            needed.set(line.productUuid, Number(((needed.get(line.productUuid) ?? 0) + line.neededQuantity).toFixed(RECIPE_QUANTITY_DECIMALS)));
+        }
+        return needed;
+    }
+
+    /** The doc's lines that count in K - none unless it went to the kitchen. */
+    private static async kitchenLines(manager: EntityManager, doc: Pick<StockOut, "uuid" | "department">): Promise<StockOutLine[]> {
+        if (!KITCHEN_BALANCE_ENABLED || doc.department !== StockOutDepartment.KITCHEN) return [];
+        return manager.find(StockOutLine, { where: { stockOutUuid: doc.uuid } });
+    }
+
     /**
-     * Locks the products, saves the lines and recipe rows, then checks a return against its supplier and the stock.
-     * The document's own quantities turn the new total back into what was available to it.
+     * Locks the products, saves the lines and recipe rows, then checks a return against its supplier, the stock (S)
+     * and the kitchen balance (K). The document's own quantities turn the new sums back into what was available to it.
+     * `previousKitchenProducts` (edit) are the products the old version gave the kitchen - removing them may take K below 0.
      */
-    private static async saveLinesChecked(manager: EntityManager, doc: StockOut, body: StockOutBody, linesByRecipe: RecipeLinesMap): Promise<void> {
+    private static async saveLinesChecked(
+        manager: EntityManager,
+        doc: StockOut,
+        body: StockOutBody,
+        linesByRecipe: RecipeLinesMap,
+        previousKitchenProducts: string[] = [],
+    ): Promise<void> {
         const quantities = StockService.addQuantities(new Map(), body.lines, 1);
-        await StockService.lockProducts(manager, doc.companyUuid, [...quantities.keys()]);
+        await StockService.lockProducts(manager, doc.companyUuid, [...new Set([...quantities.keys(), ...previousKitchenProducts])]);
         await manager.save(body.lines.map((line, index) => manager.create(StockOutLine, {
             ...line,
             stockOutUuid: doc.uuid,
@@ -165,11 +194,20 @@ export class StockOutService {
             department: doc.department,
             position: index + 1,
         })));
-        await StockOutService.saveRecipes(manager, doc, body, linesByRecipe);
+        const recipeLines = await StockOutService.saveRecipes(manager, doc, body, linesByRecipe);
         if (doc.reason === StockOutReason.RETURNED && doc.supplierUuid) {
             await SupplierReturnService.assertReturnFits(manager, doc.companyUuid, doc.supplierUuid, doc.uuid, quantities);
         }
         await StockService.assertNotNegative(manager, doc.companyUuid, quantities);
+
+        if (!KITCHEN_BALANCE_ENABLED) return;
+        // K + this doc's total ≥ its recipe needs, i.e. K after the save is not below 0.
+        const kitchenAddBack = new Map(previousKitchenProducts.map((uuid) => [uuid, 0]));
+        if (doc.department === StockOutDepartment.KITCHEN) {
+            const needed = StockOutService.neededByProduct(recipeLines);
+            for (const line of body.lines) kitchenAddBack.set(line.productUuid, needed.get(line.productUuid) ?? 0);
+        }
+        await StockService.assertKitchenNotNegative(manager, doc.companyUuid, kitchenAddBack);
     }
 
     /** Product counts, supplier, receiver and creator names for a page of headers, by bounded lookups instead of joins. */
@@ -281,10 +319,7 @@ export class StockOutService {
         const recipeNames = new Map(recipes.map((r) => [r.uuid, r.name]));
         const productOf = (productUuid: string) => StockService.toLineProduct(productMap.get(productUuid)!);
 
-        const needed = new Map<string, number>();
-        for (const line of recipeLines) {
-            needed.set(line.productUuid, Number(((needed.get(line.productUuid) ?? 0) + line.neededQuantity).toFixed(RECIPE_QUANTITY_DECIMALS)));
-        }
+        const needed = StockOutService.neededByProduct(recipeLines);
 
         return {
             ...header!,
@@ -352,19 +387,38 @@ export class StockOutService {
         const linesByRecipe = await this.assertReferences(companyUuid, body, doc.supplierUuid, await this.savedRecipeLines(doc.uuid));
 
         await AppDataSource.transaction(async (manager) => {
+            const previousKitchenProducts = (await StockOutService.kitchenLines(manager, doc)).map((line) => line.productUuid);
             Object.assign(doc, StockOutService.headerFields(body));
             await manager.save(doc);
             await manager.delete(StockOutLine, { stockOutUuid: doc.uuid });
             await manager.delete(StockOutRecipe, { stockOutUuid: doc.uuid });
-            await StockOutService.saveLinesChecked(manager, doc, body, linesByRecipe);
+            await StockOutService.saveLinesChecked(manager, doc, body, linesByRecipe, previousKitchenProducts);
         });
 
         return this.get(companyUuid, uuid);
     }
 
-    /** No stock check - deleting a stock-out only gives stock back. */
+    /**
+     * No stock check - deleting a stock-out only gives stock back. A kitchen doc takes its part out of K, which a
+     * later doc may already have used, so K is checked.
+     */
     async delete(companyUuid: string, userUuid: string, uuid: string): Promise<void> {
         const doc = await this.findOwnOrFail(companyUuid, uuid, userUuid);
-        await this.repo.remove(doc);
+        await AppDataSource.transaction(async (manager) => {
+            const lines = await StockOutService.kitchenLines(manager, doc);
+            if (lines.length) await StockService.lockProducts(manager, companyUuid, lines.map((line) => line.productUuid));
+            const recipeLines = lines.length
+                ? await manager.createQueryBuilder(StockOutRecipeLine, "line")
+                    .innerJoin(StockOutRecipe, "row", "row.uuid = line.stockOutRecipeUuid")
+                    .where("row.stockOutUuid = :uuid", { uuid: doc.uuid })
+                    .getMany()
+                : [];
+            await manager.remove(doc);
+
+            // What the doc added to K, so the error shows K as it was before the delete.
+            const needed = StockOutService.neededByProduct(recipeLines);
+            const kitchenAddBack = new Map(lines.map((line) => [line.productUuid, line.quantity - (needed.get(line.productUuid) ?? 0)]));
+            await StockService.assertKitchenNotNegative(manager, companyUuid, kitchenAddBack);
+        });
     }
 }

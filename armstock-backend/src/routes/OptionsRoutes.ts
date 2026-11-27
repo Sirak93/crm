@@ -16,5 +16,6 @@ router.get("/suppliers", validate(SupplierOptionsQuerySchema, "query"), asyncHan
 router.get("/receivers", asyncHandler(optionsController.receivers));
 router.get("/roles", asyncHandler(optionsController.roles));
 router.get("/recipes", asyncHandler(optionsController.recipes));
+router.get("/kitchen-balance", asyncHandler(optionsController.kitchenBalance));
 
 export default router;

@@ -4,6 +4,7 @@ import {
   Boxes,
   Building2,
   ChefHat,
+  CookingPot,
   Database,
   LayoutDashboard,
   Package,
@@ -14,6 +15,7 @@ import {
   Truck,
   Users,
 } from 'lucide-vue-next';
+import { KITCHEN_BALANCE_ENABLED } from 'armstock-shared';
 import { ROUTE_NAME } from '../constants/constants';
 import type { INavGroup } from '../interfaces/INavGroup';
 import type { INavItem } from '../interfaces/INavItem';
@@ -73,6 +75,12 @@ export const NAV_ITEMS: (INavItem | INavGroup)[] = [
         icon: Scale,
         routeName: ROUTE_NAME.COMPANY_STOCK_BALANCE,
       },
+      ...(KITCHEN_BALANCE_ENABLED ? [{
+        id: 'company-kitchen-balance',
+        labelKey: 'nav.kitchenBalance',
+        icon: CookingPot,
+        routeName: ROUTE_NAME.COMPANY_KITCHEN_BALANCE,
+      }] : []),
     ],
   },
   {

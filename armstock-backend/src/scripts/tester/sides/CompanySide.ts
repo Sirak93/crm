@@ -5,6 +5,7 @@ import stockConcurrencySuite from "../suites/company/StockConcurrencySuite";
 import supplierReturnSuite from "../suites/company/SupplierReturnSuite";
 import stockInAfterReturnsSuite from "../suites/company/StockInAfterReturnsSuite";
 import stockBalanceSuite from "../suites/company/StockBalanceSuite";
+import kitchenBalanceSuite from "../suites/company/KitchenBalanceSuite";
 import companyIsolationSuite from "../suites/company/CompanyIsolationSuite";
 import permissionsSuite from "../suites/company/PermissionsSuite";
 import authSuite from "../suites/company/AuthSuite";
@@ -34,6 +35,7 @@ export const companySide: ITestSide<ICompanySideContext> = {
         supplierReturnSuite,
         stockInAfterReturnsSuite,
         stockBalanceSuite,
+        kitchenBalanceSuite,
         companyIsolationSuite,
         permissionsSuite,
         authSuite,

@@ -5,7 +5,11 @@ import { Search } from 'lucide-vue-next';
 import { SEARCH_DEBOUNCE_MS } from '../../constants/constants';
 import type { IStockBalanceFilters } from '../../interfaces/IStockBalanceFilters';
 
-defineProps<{ categories: IProductCategory[] }>();
+withDefaults(defineProps<{
+  categories: IProductCategory[];
+  /** The kitchen balance lists only what the kitchen has, so it hides the "only in stock" switch. */
+  showInStockOnly?: boolean;
+}>(), { showInStockOnly: true });
 
 const emit = defineEmits<{ change: [filters: IStockBalanceFilters] }>();
 
@@ -58,7 +62,7 @@ onMounted(emitChange);
       <el-option v-for="category in categories" :key="category.uuid" :label="category.name" :value="category.uuid" />
     </el-select>
 
-    <el-switch v-model="form.inStockOnly" :active-text="$t('stockBalance.filters.inStockOnly')" />
+    <el-switch v-if="showInStockOnly" v-model="form.inStockOnly" :active-text="$t('stockBalance.filters.inStockOnly')" />
   </div>
 </template>
 

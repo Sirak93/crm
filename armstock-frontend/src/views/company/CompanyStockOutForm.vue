@@ -5,6 +5,8 @@ import { useI18n } from 'vue-i18n';
 import { FileText } from 'lucide-vue-next';
 import type { FormInstance, FormItemRule, FormRules } from 'element-plus';
 import {
+  KITCHEN_BALANCE_ENABLED,
+  RECIPE_QUANTITY_DECIMALS,
   StockOutDepartment,
   StockOutReason,
   type INamedRef,
@@ -75,6 +77,9 @@ const recipeOptions = ref<IRecipeOption[]>([]);
 // Totals the storekeeper typed, by product uuid; every other product shows its prefill.
 const totalOverrides = ref<Record<string, number | undefined>>({});
 const original = ref<IStockOutDetails | null>(null);
+// The kitchen balance this doc can count on, by product uuid - on edit without the doc's own part.
+const kitchen = ref<Map<string, number>>(new Map());
+const useKitchen = ref(false);
 const selectedSupplier = ref<INamedRef | null>(null);
 const selectedReceiver = ref<INamedRef | null>(null);
 
@@ -97,7 +102,14 @@ const isOther = computed(() => form.value.reason === StockOutReason.OTHER);
 
 const recipeMap = computed(() => new Map(recipeOptions.value.map((recipe) => [recipe.uuid, recipe])));
 const filledLines = computed(() => lines.value.filter((line) => line.productUuid));
-const totalRows = computed(() => buildTotals(recipeRows.value, recipeMap.value, filledLines.value));
+// Only an issue goes to the kitchen, so only then are its balance and switch shown.
+const showKitchen = computed(() => KITCHEN_BALANCE_ENABLED && isIssued.value);
+const totalRows = computed(() => buildTotals(
+  recipeRows.value,
+  recipeMap.value,
+  filledLines.value,
+  showKitchen.value && useKitchen.value ? kitchen.value : undefined,
+));
 const totals = computed(() => Object.fromEntries(totalRows.value.map((row) => [
   row.product.uuid,
   row.product.uuid in totalOverrides.value ? totalOverrides.value[row.product.uuid] : row.prefill,
@@ -168,10 +180,12 @@ const load = async () => {
   isLoading.value = true;
   hasError.value = false;
   try {
-    const [recipes, doc] = await Promise.all([
+    const [recipes, doc, kitchenQuantities] = await Promise.all([
       OptionsService.recipes(),
       props.uuid ? StockOutService.get(props.uuid) : null,
+      KITCHEN_BALANCE_ENABLED ? OptionsService.kitchenBalance() : [],
     ]);
+    kitchen.value = new Map(kitchenQuantities.map((item) => [item.productUuid, item.quantity]));
     if (!doc) {
       recipeOptions.value = recipes;
       savedSnapshot.value = snapshotOf();
@@ -183,6 +197,13 @@ const load = async () => {
       return;
     }
     original.value = doc;
+    // The saved doc is already in the kitchen balance: take its part (given − needed) back out.
+    if (doc.department === StockOutDepartment.KITCHEN) {
+      for (const line of doc.lines) {
+        const own = line.quantity - line.neededQuantity;
+        kitchen.value.set(line.product.uuid, Number(((kitchen.value.get(line.product.uuid) ?? 0) - own).toFixed(RECIPE_QUANTITY_DECIMALS)));
+      }
+    }
     form.value = {
       reason: doc.reason,
       date: new Date(doc.date),
@@ -383,8 +404,10 @@ const save = async () => {
 
         <StockOutTotalsPanel
           class="out-layout__totals"
+          v-model:use-kitchen="useKitchen"
           :rows="totalRows"
           :totals="totals"
+          :kitchen="showKitchen ? kitchen : undefined"
           :show-errors="showLineErrors"
           :highlighted="hoveredProduct"
           @update="setTotal"

@@ -20,3 +20,6 @@ export const STOCK_DOCUMENT_MAX_LINES = 500;
 
 /** Longest product barcode we accept (real ones are up to ~48 characters). */
 export const BARCODE_MAX_LENGTH = 64;
+
+/** Kitchen balance (K): its page, the form hints and switch, and the K checks. Off keeps docs and data - set to true to bring it back. */
+export const KITCHEN_BALANCE_ENABLED = true;

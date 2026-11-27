@@ -1,5 +1,5 @@
 import { createRouter, createWebHistory, type RouteRecordRaw } from 'vue-router';
-import { AccountType, COMPANY_ACCOUNT_TYPES, Permission } from 'armstock-shared';
+import { AccountType, COMPANY_ACCOUNT_TYPES, KITCHEN_BALANCE_ENABLED, Permission } from 'armstock-shared';
 import { ROUTE_NAME } from '../constants/constants';
 import { PRODUCT_CATEGORY_PERMISSIONS } from '../constants/pagePermissions';
 import { useAuthStore } from '../stores/auth';
@@ -159,6 +159,12 @@ const routes: RouteRecordRaw[] = [
         component: () => import('../views/company/CompanyStockBalance.vue'),
         meta: { accountTypes: COMPANY_ACCOUNT_TYPES, permissions: [Permission.STOCK_BALANCE_VIEW] },
       },
+      ...(KITCHEN_BALANCE_ENABLED ? [{
+        path: 'stock/kitchen-balance',
+        name: ROUTE_NAME.COMPANY_KITCHEN_BALANCE,
+        component: () => import('../views/company/CompanyKitchenBalance.vue'),
+        meta: { accountTypes: COMPANY_ACCOUNT_TYPES, permissions: [Permission.STOCK_BALANCE_VIEW] },
+      }] : []),
       {
         path: 'product-categories',
         name: ROUTE_NAME.COMPANY_PRODUCT_CATEGORIES,

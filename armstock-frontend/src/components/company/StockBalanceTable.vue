@@ -6,6 +6,8 @@ import { useMeasureUnits } from '../../composables/useMeasureUnits';
 
 defineProps<{
   balances: IStockBalance[];
+  /** Most decimals shown - the kitchen balance has up to 6 (recipe needs). */
+  decimals?: number;
 }>();
 
 const { unitShortName } = useMeasureUnits();
@@ -31,7 +33,7 @@ const { unitShortName } = useMeasureUnits();
       <template #default="{ row }"><span class="cell-text">{{ row.categoryName }}</span></template>
     </el-table-column>
     <el-table-column :label="$t('stockBalance.table.quantity')" min-width="110" align="right">
-      <template #default="{ row }"><span class="cell-text cell-text--strong">{{ formatQuantity(row.quantity) }}</span></template>
+      <template #default="{ row }"><span class="cell-text cell-text--strong">{{ formatQuantity(row.quantity, decimals) }}</span></template>
     </el-table-column>
     <el-table-column :label="$t('stockBalance.table.unit')" min-width="70">
       <template #default="{ row }"><span class="cell-text cell-text--muted">{{ unitShortName(row.measureUnit) }}</span></template>

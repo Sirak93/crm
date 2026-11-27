@@ -5,6 +5,9 @@ import {
     MeasureUnit,
     ProductStatus,
     QUANTITY_DECIMALS,
+    RECIPE_QUANTITY_DECIMALS,
+    StockOutDepartment,
+    type IKitchenQuantity,
     type IPaginationMeta,
     type IStockBalance,
     type IStockBalanceSummary,
@@ -16,12 +19,22 @@ import { Product } from "../models/Product";
 import { ProductCategory } from "../models/ProductCategory";
 import { StockInLine } from "../models/StockInLine";
 import { StockOutLine } from "../models/StockOutLine";
-import { AppError } from "../utils/AppError";
-import type { StockBalanceFilters, StockBalanceQuery } from "../schemas/StockSchema";
+import { StockOutRecipeLine } from "../models/StockOutRecipeLine";
+import { AppError, type ErrorDef } from "../utils/AppError";
+import type { KitchenBalanceQuery, StockBalanceFilters, StockBalanceQuery } from "../schemas/StockSchema";
 
 // Built on the "stock_in" and "stock_out" subqueries from joinStock.
 const QUANTITY = "(COALESCE(stock_in.quantity, 0) - COALESCE(stock_out.quantity, 0))";
-const QUANTITY_SCALE = 10 ** QUANTITY_DECIMALS;
+// Built on the "kitchen_in" and "kitchen_used" subqueries from joinKitchen.
+const KITCHEN_QUANTITY = "(COALESCE(kitchen_in.quantity, 0) - COALESCE(kitchen_used.quantity, 0))";
+
+/** How one stock (S or K) is summed and reported when it would go below zero. */
+interface IStockKind {
+    quantity: string;
+    join: <T extends Product>(qb: SelectQueryBuilder<T>, lineFilter?: string) => SelectQueryBuilder<T>;
+    decimals: number;
+    error: ErrorDef;
+}
 
 interface IBalanceRow {
     uuid: string;
@@ -97,6 +110,20 @@ export class StockService {
      * available to this document (e.g. the document's own stock-out quantity).
      */
     static async assertNotNegative(manager: EntityManager, companyUuid: string, addBack: Map<string, number>): Promise<void> {
+        await StockService.assertKindNotNegative(manager, companyUuid, addBack, StockService.STORE);
+    }
+
+    /** The same for the kitchen balance (K); `addBack` turns the new K into what this document had for its recipes. */
+    static async assertKitchenNotNegative(manager: EntityManager, companyUuid: string, addBack: Map<string, number>): Promise<void> {
+        await StockService.assertKindNotNegative(manager, companyUuid, addBack, StockService.KITCHEN);
+    }
+
+    private static async assertKindNotNegative(
+        manager: EntityManager,
+        companyUuid: string,
+        addBack: Map<string, number>,
+        kind: IStockKind,
+    ): Promise<void> {
         const productUuids = [...addBack.keys()];
         if (!productUuids.length) return;
 
@@ -105,21 +132,21 @@ export class StockService {
             .select("product.uuid", "uuid")
             .addSelect("product.name", "name")
             .addSelect("product.measureUnit", "measureUnit")
-            .addSelect(QUANTITY, "quantity")
+            .addSelect(kind.quantity, "quantity")
             .where("product.companyUuid = :companyUuid", { companyUuid })
             .andWhere("product.uuid IN (:...productUuids)", { productUuids })
-            .andWhere(`${QUANTITY} < 0`)
+            .andWhere(`${kind.quantity} < 0`)
             .orderBy("product.name", "ASC");
-        const negative = await StockService.joinStock(qb, "line.productUuid IN (:...productUuids)")
+        const negative = await kind.join(qb, "line.productUuid IN (:...productUuids)")
             .getRawMany<{ uuid: string; name: string; measureUnit: MeasureUnit; quantity: string }>();
 
         if (negative.length) {
             const shortages: IStockShortage[] = negative.map((row) => ({
                 name: row.name,
                 measureUnit: row.measureUnit,
-                available: Math.round((Number(row.quantity) + addBack.get(row.uuid)!) * QUANTITY_SCALE) / QUANTITY_SCALE,
+                available: Number((Number(row.quantity) + addBack.get(row.uuid)!).toFixed(kind.decimals)),
             }));
-            throw new AppError(ErrorCodes.STOCK.NOT_ENOUGH, undefined, undefined, { productUuids: negative.map((r) => r.uuid) }, shortages);
+            throw new AppError(kind.error, undefined, undefined, { productUuids: negative.map((r) => r.uuid) }, shortages);
         }
     }
 
@@ -139,13 +166,50 @@ export class StockService {
             .leftJoin(sums(StockOutLine), "stock_out", "stock_out.product_uuid = product.uuid");
     }
 
-    /** Products with their stock sums; the list and its summary share it, so the two always match. */
-    private balanceQuery(companyUuid: string, filters: StockBalanceFilters, inStockOnly: boolean): SelectQueryBuilder<Product> {
+    /**
+     * Adds the "kitchen_in" (totals issued to the kitchen) and "kitchen_used" (recipe needs) sums per product.
+     * Only Issued docs have the Kitchen department and recipe rows, so no reason filter is needed.
+     */
+    private static joinKitchen<T extends Product>(qb: SelectQueryBuilder<T>, lineFilter?: string): SelectQueryBuilder<T> {
+        const sums = (entity: typeof StockOutLine | typeof StockOutRecipeLine, column: string, kitchenOnly: boolean) =>
+            (sub: SelectQueryBuilder<ObjectLiteral>) => {
+                sub.from(entity, "line")
+                    .select("line.productUuid", "product_uuid")
+                    .addSelect(`SUM(line.${column})`, "quantity")
+                    .where("line.companyUuid = :companyUuid")
+                    .groupBy("line.productUuid");
+                if (kitchenOnly) sub.andWhere("line.department = :kitchenDepartment");
+                if (lineFilter) sub.andWhere(lineFilter);
+                return sub;
+            };
+        return qb
+            .leftJoin(sums(StockOutLine, "quantity", true), "kitchen_in", "kitchen_in.product_uuid = product.uuid")
+            .leftJoin(sums(StockOutRecipeLine, "neededQuantity", false), "kitchen_used", "kitchen_used.product_uuid = product.uuid")
+            .setParameter("kitchenDepartment", StockOutDepartment.KITCHEN);
+    }
+
+    private static readonly STORE: IStockKind = {
+        quantity: QUANTITY,
+        join: StockService.joinStock,
+        decimals: QUANTITY_DECIMALS,
+        error: ErrorCodes.STOCK.NOT_ENOUGH,
+    };
+
+    // Recipe needs have 6 decimals, so K does too.
+    private static readonly KITCHEN: IStockKind = {
+        quantity: KITCHEN_QUANTITY,
+        join: StockService.joinKitchen,
+        decimals: RECIPE_QUANTITY_DECIMALS,
+        error: ErrorCodes.STOCK.KITCHEN_NOT_ENOUGH,
+    };
+
+    /** Products with their S or K sums; a list and its summary share it, so the two always match. */
+    private balanceQuery(companyUuid: string, filters: StockBalanceFilters, inStockOnly: boolean, kind = StockService.STORE): SelectQueryBuilder<Product> {
         const { search, categoryUuid } = filters;
-        const qb = StockService.joinStock(this.productRepo.createQueryBuilder("product"))
+        const qb = kind.join(this.productRepo.createQueryBuilder("product"))
             .where("product.companyUuid = :companyUuid", { companyUuid })
             // Archived products show only while they still have stock.
-            .andWhere(`(product.status = :active OR ${QUANTITY} > 0)`, { active: ProductStatus.ACTIVE });
+            .andWhere(`(product.status = :active OR ${kind.quantity} > 0)`, { active: ProductStatus.ACTIVE });
 
         if (search) {
             qb.andWhere(new Brackets((w) => {
@@ -153,7 +217,7 @@ export class StockService {
             }));
         }
         if (categoryUuid) qb.andWhere("product.categoryUuid = :categoryUuid", { categoryUuid });
-        if (inStockOnly) qb.andWhere(`${QUANTITY} > 0`);
+        if (inStockOnly) qb.andWhere(`${kind.quantity} > 0`);
         return qb;
     }
 
@@ -187,23 +251,48 @@ export class StockService {
     }
 
     async balanceList(companyUuid: string, query: StockBalanceQuery): Promise<{ items: IStockBalance[]; meta: IPaginationMeta }> {
-        const { page, pageSize, inStockOnly } = query;
+        return this.pagedBalances(companyUuid, query, query.inStockOnly, StockService.STORE);
+    }
+
+    /** Products the kitchen still has (K above 0). */
+    async kitchenBalanceList(companyUuid: string, query: KitchenBalanceQuery): Promise<{ items: IStockBalance[]; meta: IPaginationMeta }> {
+        return this.pagedBalances(companyUuid, query, true, StockService.KITCHEN);
+    }
+
+    /** Every product with K above 0 - the stock-out form shows it next to the totals. */
+    async kitchenQuantities(companyUuid: string): Promise<IKitchenQuantity[]> {
+        const rows = await StockService.joinKitchen(this.productRepo.createQueryBuilder("product"))
+            .select("product.uuid", "productUuid")
+            .addSelect(KITCHEN_QUANTITY, "quantity")
+            .where("product.companyUuid = :companyUuid", { companyUuid })
+            .andWhere(`${KITCHEN_QUANTITY} > 0`)
+            .getRawMany<{ productUuid: string; quantity: string }>();
+        return rows.map((row) => ({ productUuid: row.productUuid, quantity: Number(row.quantity) }));
+    }
+
+    private async pagedBalances(
+        companyUuid: string,
+        query: StockBalanceQuery | KitchenBalanceQuery,
+        inStockOnly: boolean,
+        kind: IStockKind,
+    ): Promise<{ items: IStockBalance[]; meta: IPaginationMeta }> {
+        const { page, pageSize } = query;
 
         const [rows, total] = await Promise.all([
-            this.balanceQuery(companyUuid, query, inStockOnly)
+            this.balanceQuery(companyUuid, query, inStockOnly, kind)
                 .select("product.uuid", "uuid")
                 .addSelect("product.name", "name")
                 .addSelect("product.code", "code")
                 .addSelect("product.status", "status")
                 .addSelect("product.categoryUuid", "categoryUuid")
                 .addSelect("product.measureUnit", "measureUnit")
-                .addSelect(QUANTITY, "quantity")
+                .addSelect(kind.quantity, "quantity")
                 .orderBy("product.name", "ASC")
                 .addOrderBy("product.uuid", "ASC")
                 .offset((page - 1) * pageSize)
                 .limit(pageSize)
                 .getRawMany<IBalanceRow>(),
-            this.balanceQuery(companyUuid, query, inStockOnly).getCount(),
+            this.balanceQuery(companyUuid, query, inStockOnly, kind).getCount(),
         ]);
 
         return {

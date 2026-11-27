@@ -185,6 +185,10 @@ export const ErrorCodes = {
             CODE: "STOCK_NOT_ENOUGH",
             STATUS: 409,
         },
+        KITCHEN_NOT_ENOUGH: {
+            CODE: "STOCK_KITCHEN_NOT_ENOUGH",
+            STATUS: 409,
+        },
     },
     RECIPE: {
         NOT_FOUND: {

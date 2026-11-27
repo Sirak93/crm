@@ -98,6 +98,7 @@ export const COMPANY_ROUTES: ICompanyRoute[] = [
     // Stock
     { method: GET, path: () => PATHS.STOCK_BALANCE, permission: P.STOCK_BALANCE_VIEW },
     { method: GET, path: () => `${PATHS.STOCK_BALANCE}/summary`, permission: P.STOCK_BALANCE_VIEW },
+    { method: GET, path: () => PATHS.KITCHEN_BALANCE, permission: P.STOCK_BALANCE_VIEW },
 
     { method: GET, path: () => PATHS.STOCK_INS, permission: P.STOCK_IN_VIEW },
     { method: GET, path: () => `${PATHS.STOCK_INS}/summary`, permission: P.STOCK_IN_VIEW },
@@ -139,6 +140,7 @@ export const COMPANY_ROUTES: ICompanyRoute[] = [
     { method: GET, path: () => `${PATHS.OPTIONS}/receivers`, permission: null },
     { method: GET, path: () => `${PATHS.OPTIONS}/roles`, permission: null },
     { method: GET, path: () => `${PATHS.OPTIONS}/recipes`, permission: null },
+    { method: GET, path: () => `${PATHS.OPTIONS}/kitchen-balance`, permission: null },
 ];
 
 /** The "not found" each target gives when its uuid is not in the caller's company. */

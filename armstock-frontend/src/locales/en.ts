@@ -109,6 +109,7 @@ export default {
     stockIn: 'In',
     stockOut: 'Out',
     stockBalance: 'Balance',
+    kitchenBalance: 'Kitchen balance',
     productCategories: 'Product categories',
     users: 'Users',
     roles: 'Roles',
@@ -707,6 +708,8 @@ export default {
       changedBy: 'Changed by hand: {amount}',
       neededPart: 'Recipes: {amount}',
       extraPart: 'Extra: {amount}',
+      useKitchen: 'Use kitchen balance',
+      kitchen: 'Kitchen: {amount}',
     },
     panel: {
       title: 'Summary',
@@ -714,6 +717,13 @@ export default {
       empty: 'Pick a recipe or add a product - it will show up here.',
       products: 'Products',
     },
+  },
+  kitchenBalance: {
+    title: 'Kitchen balance',
+    subtitle: 'What the kitchen got but did not use for recipes yet.',
+    empty: 'The kitchen has nothing left over.',
+    noResults: 'No products found.',
+    loadError: 'Could not load the kitchen balance.',
   },
   stockBalance: {
     title: 'Stock balance',
@@ -925,6 +935,13 @@ export default {
     stockInDeleteText: 'Some of these goods already went out, so this document can\'t be deleted.',
     inStock: 'in stock {quantity} {unit}',
   },
+  kitchenShortage: {
+    title: 'Not enough for the recipes',
+    text: 'For these products the kitchen balance plus the total is less than the recipes need. Raise the total.',
+    available: 'kitchen + total {quantity} {unit}',
+    deleteText: 'The kitchen already used these products from this document, so it can\'t be deleted.',
+    inKitchen: 'in the kitchen {quantity} {unit}',
+  },
   supplierReturn: {
     exceedsTitle: 'Too much to return to {supplier}',
     exceedsText: 'You can return only what this supplier brought, minus what was already returned to it.',
@@ -979,6 +996,7 @@ export default {
     STOCK_IN_BELOW_RETURNED: 'Part of these goods was already returned to the supplier.',
     STOCK_IN_PACK_UNIT_MISMATCH: 'The amount is typed in a unit that does not fit the product.',
     STOCK_NOT_ENOUGH: 'Not enough stock - this change would make a product go below zero.',
+    STOCK_KITCHEN_NOT_ENOUGH: 'Not enough for the recipes - the kitchen balance would go below zero.',
     RATE_LIMIT_TOO_MANY_REQUESTS: 'Too many attempts. Please wait a few minutes and try again.',
   } satisfies Record<ErrorCode, string>,
 };

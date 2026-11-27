@@ -18,4 +18,13 @@ export const StockService = {
     });
     return response.data.data!;
   },
+
+  /** Products the kitchen still has - same row shape as the stock balance. */
+  async kitchenBalance(page: number, pageSize: number, filters: Omit<IStockBalanceFilters, 'inStockOnly'>): Promise<{ items: IStockBalance[]; meta: IPaginationMeta }> {
+    const { search, categoryUuid } = filters;
+    const response = await ApiService.get<IAppResponse<IStockBalance[]>>('/stock/kitchen-balance', {
+      params: { page, pageSize, search, categoryUuid },
+    });
+    return { items: response.data.data!, meta: response.data.meta as IPaginationMeta };
+  },
 };

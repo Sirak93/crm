@@ -43,6 +43,7 @@ export type * from "./interfaces/ICompanyUserPayload";
 export type * from "./interfaces/ICompanyUserAccessPayload";
 export type * from "./interfaces/IDatabaseStorage";
 export type * from "./interfaces/IHealthStatus";
+export type * from "./interfaces/IKitchenQuantity";
 export type * from "./interfaces/ILocalizedText";
 export type * from "./interfaces/ILoginResponse";
 export type * from "./interfaces/IMeasureUnit";

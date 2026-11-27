@@ -355,6 +355,15 @@ without recipes is a normal stock-out, like today.
     balance page, no switch / hints in the form, no K checks. Docs and data stay.
 - **Kitchen balance page** (Խոհանոցի մնացորդ): read-only table, no actions. In the menu right
   under "Stock balance", same permission (`STOCK_BALANCE_VIEW`).
+- **Built (Step K, 2026-11-27):**
+  - Page: `GET /stock/kitchen-balance` - products with K above 0 (archived too), search, category,
+    paging. Same row shape as the stock balance (`IStockBalance`), so the table is reused.
+  - Form: `GET /options/kitchen-balance` - every product with K above 0 (`IKitchenQuantity`),
+    open to every member like the other form pickers (an edit-only user still sees it). Loaded once
+    with the form; on edit the form takes the doc's own part (given − needed) back out.
+  - Error `STOCK_KITCHEN_NOT_ENOUGH` with the same product list as "not enough stock": on save the
+    amount is K + this doc's total, on delete it is K as it is now.
+  - The form shows "Kitchen: X" and the switch only for reason Issued.
 
 ## Tables
 

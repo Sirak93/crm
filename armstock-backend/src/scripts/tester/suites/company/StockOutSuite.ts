@@ -466,10 +466,11 @@ export default (context: ICompanySideContext) => defineSuite("Stock-out", (test)
         await storekeeper.api.ok("DELETE", path(plain.uuid));
     });
 
+    // The kitchen balance covers the rest (the first doc left 0.5 oil in the kitchen) - see the Kitchen balance suite.
     test("a total may be 0 or below the recipe needs", async () => {
-        await storekeeper.api.ok("POST", PATHS.STOCK_OUTS, recipeBody([recipeRow(soup, 10)], [total(oil, 0), total(egg, 4)]));
+        await storekeeper.api.ok("POST", PATHS.STOCK_OUTS, recipeBody([recipeRow(soup, 1)], [total(oil, 0), total(egg, 1)]));
         await expectStock(db, oil.uuid, 9);
-        await expectStock(db, egg.uuid, 84);
+        await expectStock(db, egg.uuid, 87);
     });
 
     test("recipes only with reason Issued", async () => {
@@ -581,7 +582,7 @@ export default (context: ICompanySideContext) => defineSuite("Stock-out", (test)
         });
         equals(data.recipes[0].lines.length, 2, "soup copy kept");
         await expectStock(db, oil.uuid, 8.7);
-        await expectStock(db, egg.uuid, 74);
+        await expectStock(db, egg.uuid, 77);
     });
 
     test("a row added on edit uses the current recipe; an archived recipe the doc didn't have is refused", async () => {

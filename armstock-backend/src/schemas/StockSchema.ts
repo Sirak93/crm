@@ -12,5 +12,11 @@ export const StockBalanceQuerySchema = PaginatedSearchQuerySchema.extend({
     inStockOnly: z.stringbool().default(true),
 });
 
+// Only products the kitchen still has, so no "in stock only" switch.
+export const KitchenBalanceQuerySchema = PaginatedSearchQuerySchema.extend({
+    categoryUuid: z.uuid().optional(),
+});
+
 export type StockBalanceFilters = z.infer<typeof StockBalanceFiltersSchema>;
 export type StockBalanceQuery = z.infer<typeof StockBalanceQuerySchema>;
+export type KitchenBalanceQuery = z.infer<typeof KitchenBalanceQuerySchema>;

@@ -289,23 +289,24 @@ Needs Steps U3 (fixed units) and U4 (converter component). Decisions: decisions.
 
 Decisions: decisions.md → "Kitchen balance".
 
-- [ ] Shared: `KITCHEN_BALANCE_ENABLED` switch; kitchen balance row interface
-- [ ] Backend
-  - [ ] K calculated in SQL, not saved: SUM(lines.quantity where department = Kitchen) −
+- [x] Shared: `KITCHEN_BALANCE_ENABLED` switch; kitchen balance row interface
+- [x] Backend
+  - [x] K calculated in SQL, not saved: SUM(lines.quantity where department = Kitchen) −
         SUM(recipe lines.needed_quantity), by company + product
-  - [ ] K check next to the S check (same locks) on stock-out create and edit: for every recipe
+  - [x] K check next to the S check (same locks) on stock-out create and edit: for every recipe
         product, K + total ≥ recipe needs - error "Product X: not enough for the recipes" in the
         same error list
-  - [ ] Stock-out delete gets a K check (refused if K would go below 0)
-  - [ ] Kitchen balance list (`STOCK_BALANCE_VIEW`): products with K, search, category,
+  - [x] Stock-out delete gets a K check (refused if K would go below 0)
+  - [x] Kitchen balance list (`STOCK_BALANCE_VIEW`): products with K, search, category,
         pagination
-  - [ ] Current K for given products, for the form
-- [ ] Frontend
-  - [ ] Menu "Խոհանոցի մնացորդ" under Stock balance - read-only table
-  - [ ] Stock-out form: "Kitchen: 0.5 l" next to each total; "Use kitchen balance" switch →
+  - [x] Current K for the form - `/options/kitchen-balance`, every product with K above 0
+        (decisions.md → Kitchen balance → Built)
+- [x] Frontend
+  - [x] Menu "Խոհանոցի մնացորդ" under Stock balance - read-only table
+  - [x] Stock-out form: "Kitchen: 0.5 l" next to each total; "Use kitchen balance" switch →
         prefill = recipe needs − K (not below 0) + extras, rounded as in Step 3
-  - [ ] Switch off in code → page, menu, hints and switch hidden; K checks skipped
-- [ ] Tests (`KitchenBalanceSuite`): K after Issued docs with / without recipes, other reasons
+  - [x] Switch off in code → page, menu, hints and switch hidden; K checks skipped
+- [x] Tests (`KitchenBalanceSuite`): K after Issued docs with / without recipes, other reasons
       don't touch K, extras stay in K, K + total < needs refused, delete / edit refused when K
       would go below 0, stock-in unaffected, page permissions, other company never counted
 - [ ] Checked in browser: 0.9 l oil in K, recipes need 1.5 l, give 5 l → K 4.4 l

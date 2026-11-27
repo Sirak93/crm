@@ -19,7 +19,12 @@ const props = defineProps<{
   showErrors: boolean;
   /** The product hovered here or in the summary panel. */
   highlighted?: string | null;
+  /** Kitchen balance by product uuid; missing = the kitchen balance is not shown. */
+  kitchen?: ReadonlyMap<string, number>;
 }>();
+
+/** The "Use kitchen balance" switch - it only changes the prefilled totals. */
+const useKitchen = defineModel<boolean>('useKitchen', { default: false });
 
 const emit = defineEmits<{
   update: [productUuid: string, value: number | undefined];
@@ -33,6 +38,13 @@ const rowRefs = new Map<string, HTMLElement>();
 
 const amount = (value: number, row: IStockOutTotalRow) =>
   `${formatQuantity(value, RECIPE_QUANTITY_DECIMALS)} ${unitShortName(row.product.measureUnit)}`;
+
+// Recipe products always show it, others only when the kitchen has some.
+const kitchenOf = (row: IStockOutTotalRow): number | undefined => {
+  if (!props.kitchen) return undefined;
+  const quantity = Math.max(0, props.kitchen.get(row.product.uuid) ?? 0);
+  return row.needed || quantity ? quantity : undefined;
+};
 
 const isEmpty = (row: IStockOutTotalRow) => props.totals[row.product.uuid] === undefined;
 // An empty total stays open after a failed save, so it can be filled in at once.
@@ -74,6 +86,13 @@ const setRowRef = (uuid: string, el: unknown) => {
   <SidePanel :title="$t('stockOut.totals.title')" :hint="$t('stockOut.totals.hint')">
     <template #icon><Scale :size="18" aria-hidden="true" /></template>
 
+    <el-switch
+      v-if="kitchen"
+      v-model="useKitchen"
+      class="totals-panel__kitchen-switch"
+      :active-text="$t('stockOut.totals.useKitchen')"
+    />
+
     <p v-if="!rows.length" class="totals-panel__empty">{{ $t('stockOut.totals.empty') }}</p>
 
     <ul v-else class="totals-panel__list">
@@ -96,7 +115,12 @@ const setRowRef = (uuid: string, el: unknown) => {
           :aria-label="$t('stockOut.totals.editFor', { product: row.product.name })"
           @click="toggle(row)"
         >
-          <span class="totals-panel__product">{{ row.product.name }}</span>
+          <span class="totals-panel__product">
+            {{ row.product.name }}
+            <span v-if="kitchenOf(row) !== undefined" class="totals-panel__kitchen">
+              {{ $t('stockOut.totals.kitchen', { amount: amount(kitchenOf(row)!, row) }) }}
+            </span>
+          </span>
           <span class="totals-panel__leader" aria-hidden="true" />
           <span class="totals-panel__amount">
             {{ isEmpty(row) ? '—' : amount(totals[row.product.uuid]!, row) }}
@@ -198,6 +222,17 @@ const setRowRef = (uuid: string, el: unknown) => {
 .totals-panel__product {
   min-width: 0;
   overflow-wrap: anywhere;
+}
+
+.totals-panel__kitchen {
+  display: block;
+  font-size: var(--text-xs);
+  font-variant-numeric: tabular-nums;
+  color: var(--text-muted);
+}
+
+.totals-panel__kitchen-switch {
+  margin-bottom: 0.5rem;
 }
 
 /* Dots from the name to the amount, like the summary panel. */
