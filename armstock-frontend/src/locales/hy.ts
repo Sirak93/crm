@@ -669,7 +669,6 @@ const hy: typeof en = {
     lines: {
       product: 'Ապրանք',
       productPlaceholder: 'Որոնել ըստ անվանման կամ կոդի',
-      code: 'Կոդ',
       quantity: 'Քանակ',
       unit: 'Միավոր',
       add: 'Ավելացնել տող',

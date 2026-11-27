@@ -669,7 +669,6 @@ export default {
     lines: {
       product: 'Product',
       productPlaceholder: 'Search by name or code',
-      code: 'Code',
       quantity: 'Quantity',
       unit: 'Unit',
       add: 'Add row',

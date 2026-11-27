@@ -1,6 +1,5 @@
 <script setup lang="ts">
 import { convertQuantity, ProductStatus, QUANTITY_DECIMALS, type IStockInLine, type MeasureUnit } from 'armstock-shared';
-import CodeBadge from '../CodeBadge.vue';
 import { formatQuantity } from '../../utils/format';
 import { useMeasureUnits } from '../../composables/useMeasureUnits';
 
@@ -33,12 +32,6 @@ const lineText = (line: IStockInLine): string => {
         <el-tag v-if="row.product.status === ProductStatus.ARCHIVED" size="small" type="info" round class="lines-table__tag">
           {{ $t('status.archived') }}
         </el-tag>
-      </template>
-    </el-table-column>
-    <el-table-column :label="$t('stockIn.lines.code')" min-width="120">
-      <template #default="{ row }">
-        <CodeBadge v-if="row.product.code" :code="row.product.code" />
-        <span v-else class="cell-text cell-text--muted">—</span>
       </template>
     </el-table-column>
     <el-table-column :label="$t('stockIn.lines.quantity')" min-width="180" align="right">

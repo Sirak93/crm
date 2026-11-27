@@ -4,7 +4,6 @@ import { useI18n } from 'vue-i18n';
 import type { IStockLineProduct } from 'armstock-shared';
 import { Plus, Trash2 } from 'lucide-vue-next';
 import ProductSelect from './ProductSelect.vue';
-import CodeBadge from '../CodeBadge.vue';
 import type { IStockOutLineForm } from '../../interfaces/IStockOutLineForm';
 import { emptyOutLine } from '../../utils/stockOutLines';
 import { withScannedProduct } from '../../utils/stockLines';
@@ -98,12 +97,6 @@ const setProductRef = (key: number, el: unknown) => {
             class="lines-editor__product"
             @select="(product: IStockLineProduct) => onProductSelect(row as IStockOutLineForm, product)"
           />
-        </template>
-      </el-table-column>
-      <el-table-column :label="$t('stockOut.lines.code')" min-width="100">
-        <template #default="{ row }">
-          <CodeBadge v-if="row.product?.code" :code="row.product.code" />
-          <span v-else class="cell-text cell-text--muted">—</span>
         </template>
       </el-table-column>
       <el-table-column width="56" align="center">

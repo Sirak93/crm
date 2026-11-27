@@ -1,6 +1,5 @@
 <script setup lang="ts">
 import { ProductStatus, RECIPE_QUANTITY_DECIMALS, type IStockOutLine } from 'armstock-shared';
-import CodeBadge from '../CodeBadge.vue';
 import StockOutTotalDiff from './StockOutTotalDiff.vue';
 import { formatQuantity } from '../../utils/format';
 import { totalDifference } from '../../utils/stockOutTotals';
@@ -37,12 +36,6 @@ const { unitShortName } = useMeasureUnits();
         <el-tag v-if="row.product.status === ProductStatus.ARCHIVED" size="small" type="info" round class="lines-table__tag">
           {{ $t('status.archived') }}
         </el-tag>
-      </template>
-    </el-table-column>
-    <el-table-column :label="$t('stockOut.lines.code')" min-width="120">
-      <template #default="{ row }">
-        <CodeBadge v-if="row.product.code" :code="row.product.code" />
-        <span v-else class="cell-text cell-text--muted">—</span>
       </template>
     </el-table-column>
     <template v-if="withRecipes">
