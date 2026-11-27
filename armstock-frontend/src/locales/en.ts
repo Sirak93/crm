@@ -702,6 +702,7 @@ export default {
       extra: 'Extra',
       total: 'Total given',
       totalFor: 'Total given of {product}',
+      changedBy: 'Changed by hand: {amount}',
     },
   },
   stockBalance: {

@@ -702,6 +702,7 @@ const hy: typeof en = {
       extra: 'Լրացուցիչ',
       total: 'Տրված ընդհանուր',
       totalFor: '{product}՝ տրված ընդհանուր քանակ',
+      changedBy: 'Ձեռքով փոխված՝ {amount}',
     },
   },
   stockBalance: {

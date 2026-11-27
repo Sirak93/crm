@@ -2,8 +2,10 @@
 import { RECIPE_QUANTITY_DECIMALS } from 'armstock-shared';
 import CodeBadge from '../CodeBadge.vue';
 import UnitAmountInput from '../UnitAmountInput.vue';
+import StockOutTotalDiff from './StockOutTotalDiff.vue';
 import type { IStockOutTotalRow } from '../../interfaces/IStockOutTotalRow';
 import { formatQuantity } from '../../utils/format';
+import { totalDifference } from '../../utils/stockOutTotals';
 import { useMeasureUnits } from '../../composables/useMeasureUnits';
 
 defineProps<{
@@ -49,13 +51,20 @@ const amount = (value: number, row: IStockOutTotalRow) =>
       </el-table-column>
       <el-table-column :label="$t('stockOut.totals.total')" min-width="200">
         <template #default="{ row }">
-          <UnitAmountInput
-            :model-value="totals[row.product.uuid]"
-            :product-unit="row.product.measureUnit"
-            :invalid="showErrors && totals[row.product.uuid] === undefined"
-            :label="$t('stockOut.totals.totalFor', { product: row.product.name })"
-            @update:model-value="(value: number | undefined) => emit('update', row.product.uuid, value)"
-          />
+          <div class="totals-table__total">
+            <UnitAmountInput
+              :model-value="totals[row.product.uuid]"
+              :product-unit="row.product.measureUnit"
+              :invalid="showErrors && totals[row.product.uuid] === undefined"
+              :label="$t('stockOut.totals.totalFor', { product: row.product.name })"
+              @update:model-value="(value: number | undefined) => emit('update', row.product.uuid, value)"
+            />
+            <StockOutTotalDiff
+              v-if="totals[row.product.uuid] !== undefined"
+              :difference="totalDifference(totals[row.product.uuid]!, row.needed, row.extra, row.product)"
+              :unit="unitShortName(row.product.measureUnit)"
+            />
+          </div>
         </template>
       </el-table-column>
     </el-table>
@@ -82,6 +91,16 @@ const amount = (value: number, row: IStockOutTotalRow) =>
 
 .totals-table__code {
   margin-left: 0.5rem;
+}
+
+.totals-table__total {
+  display: flex;
+  align-items: center;
+}
+
+.totals-table__total > :first-child {
+  flex: 1;
+  min-width: 0;
 }
 
 .totals-table__number {

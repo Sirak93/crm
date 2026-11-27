@@ -1,7 +1,9 @@
 <script setup lang="ts">
 import { ProductStatus, RECIPE_QUANTITY_DECIMALS, type IStockOutLine } from 'armstock-shared';
 import CodeBadge from '../CodeBadge.vue';
+import StockOutTotalDiff from './StockOutTotalDiff.vue';
 import { formatQuantity } from '../../utils/format';
+import { totalDifference } from '../../utils/stockOutTotals';
 import { useMeasureUnits } from '../../composables/useMeasureUnits';
 
 defineProps<{
@@ -41,7 +43,14 @@ const { unitShortName } = useMeasureUnits();
       </el-table-column>
     </template>
     <el-table-column :label="$t(withRecipes ? 'stockOut.totals.total' : 'stockOut.lines.quantity')" min-width="110" align="right">
-      <template #default="{ row }"><span class="cell-text cell-text--strong">{{ formatQuantity(row.quantity) }}</span></template>
+      <template #default="{ row }">
+        <span class="cell-text cell-text--strong">{{ formatQuantity(row.quantity) }}</span>
+        <StockOutTotalDiff
+          v-if="withRecipes"
+          :difference="totalDifference(row.quantity, row.neededQuantity, row.extraQuantity, row.product)"
+          :unit="unitShortName(row.product.measureUnit)"
+        />
+      </template>
     </el-table-column>
     <el-table-column :label="$t('stockOut.lines.unit')" min-width="70">
       <template #default="{ row }"><span class="cell-text cell-text--muted">{{ unitShortName(row.product.measureUnit) }}</span></template>

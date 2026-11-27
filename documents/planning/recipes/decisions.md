@@ -246,6 +246,9 @@ without recipes is a normal stock-out, like today.
   ```
 - **Stock goes down by the totals.** The doc keeps the recipe and extras amounts too, so the
   difference can be seen later.
+- **Changed totals are marked (decided 2026-11-27):** when a total is not the prefill (recipes +
+  extras, rounded up), a small `(+2)` / `(−1)` shows next to it - in the form and in the doc view.
+  Rows that match show nothing.
 - Same totals list for every stock-out reason (e.g. Returned - then it is just the extras).
 - Total can be **0 or more** (0 = listed but nothing given, e.g. the kitchen still has salt).
   Recipe products stay in the doc as they are. The doc's existing **Note** field is for any

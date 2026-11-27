@@ -27,6 +27,10 @@ export const roundUpTotal = (value: number, product: IStockLineProduct): number 
   return round(Math.ceil(round(value * scale, RECIPE_QUANTITY_DECIMALS)) / scale, decimals);
 };
 
+/** How far a total was changed by hand from its prefill (recipes + extras, rounded up) - 0 when not. */
+export const totalDifference = (total: number, needed: number, extra: number, product: IStockLineProduct): number =>
+  round(total - roundUpTotal(needed + extra, product), QUANTITY_DECIMALS);
+
 export const emptyRecipeRow = (persons?: number): IStockOutRecipeForm => ({ key: nextLineKey(), recipeUuid: '', persons });
 
 /** A doc's recipe row as a picker option, working from the doc's saved copy instead of the current recipe. */
