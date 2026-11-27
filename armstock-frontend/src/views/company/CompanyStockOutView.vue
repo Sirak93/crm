@@ -32,6 +32,8 @@ const doc = ref<IStockOutDetails | null>(null);
 const isLoading = ref(true);
 const hasError = ref(false);
 const isDeleting = ref(false);
+// Hovering a product in the panel or the table marks it in the other too.
+const hoveredProduct = ref<string | null>(null);
 
 /** Edit and delete: the creator only, each with its own permission. */
 const isCreator = computed(() => !!doc.value && doc.value.createdBy.uuid === authStore.user?.uuid);
@@ -123,7 +125,12 @@ const onDelete = async () => {
 
           <AppCard class="lines-card">
             <h2 v-if="hasRecipes" class="lines-card__title">{{ $t('stockOut.totals.title') }}</h2>
-            <StockOutLinesTable :lines="doc.lines" :with-recipes="hasRecipes" />
+            <StockOutLinesTable
+              :lines="doc.lines"
+              :with-recipes="hasRecipes"
+              :highlighted="hoveredProduct"
+              @hover="hoveredProduct = $event"
+            />
             <div v-if="!hasRecipes" class="lines-card__footer">
               <span>{{ $t('stockOut.form.rowCount', { count: formatNumber(doc.lines.length) }) }}</span>
             </div>
@@ -136,6 +143,8 @@ const onDelete = async () => {
           :groups="panelGroups"
           :recipe-count="doc.recipes.length"
           :product-count="doc.lines.length"
+          :highlighted="hoveredProduct"
+          @hover="hoveredProduct = $event"
         />
       </div>
     </template>
