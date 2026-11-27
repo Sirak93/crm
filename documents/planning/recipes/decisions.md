@@ -636,12 +636,21 @@ Not part of recipes - works for every company.
                                    Dish A × 11 persons  1.100
   ```
 
+- **Look of every file:**
+  - Nested rows (recipes, a document's products) are **indented**. Only the stock-in /
+    stock-out list files bold their document rows (every one of them heads a group);
+    elsewhere no row is bold just because it has nested rows.
+  - Amounts with up to 6 decimals (recipe amounts, kitchen balance) show 3 decimals, and
+    more only when the amount has them: `0.300`, `0.000125`.
+  - Column widths fit their content; the last column also fits the right-side header
+    (period, generated), so nothing runs past it.
 - **Single document:** "Export to Excel" on the stock-in and stock-out view pages; the
   document's view permission.
-  - Header block: company, "Stock in IN-…" / "Stock out OUT-…", a details line (date,
-    reason, supplier / where to, invoice), a line with created by and note; generated time
-    on the right.
-  - Stock-in table: product, unit, pack (e.g. "2 × 5 kg", empty for one pack), quantity.
+  - Header block: company, "Stock in IN-…" / "Stock out OUT-…", then the details one per
+    row (date, reason, supplier / where to, invoice, created by, note - empty ones left
+    out); generated time on the right.
+  - Stock-in table: product, unit, pack (e.g. "2 × 5 kg"), quantity. The pack column only
+    when some line came in more than one package.
   - Stock-out table: product, unit, quantity; by-recipe documents get each product's
     recipes nested under it (name × persons, amount).
 

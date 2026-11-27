@@ -142,7 +142,7 @@ export class StockExportService {
                         ];
                         // A by-recipe stock-out: its recipes nested under it, the exact amount in the Out column.
                         return [
-                            { values, bold: doc.recipes.length > 0 },
+                            { values },
                             ...StockExportService.recipeRows(text, doc.recipes, (name, amount) => [null, null, name, null, amount, null]),
                         ];
                     }),
@@ -225,6 +225,8 @@ export class StockExportService {
     async stockIn(companyUuid: string, uuid: string, lang: Locale): Promise<IExportFile> {
         const text = exportTexts(lang);
         const [companyName, doc] = await Promise.all([this.companyName(companyUuid), this.stockInService.get(companyUuid, uuid)]);
+        // The package column only when some line came in more than one package.
+        const hasPacks = doc.lines.some((line) => line.pack.count > 1);
 
         return {
             fileName: exportFileName([EXPORT_FILE_NAME.STOCK_INS, doc.number], []),
@@ -233,25 +235,26 @@ export class StockExportService {
                 left: [
                     companyName,
                     `${text.stockIns} ${doc.number}`,
-                    StockExportService.joinFacts([
+                    ...StockExportService.facts([
                         `${text.date}: ${formatAppDateTime(new Date(doc.date))}`,
                         `${text.reason}: ${STOCK_IN_REASON_NAMES[doc.reason][lang]}`,
                         doc.supplier ? `${text.supplier}: ${doc.supplier.name}` : null,
                         doc.invoiceNumber ? `${text.invoice}: ${doc.invoiceNumber}` : null,
+                        `${text.createdBy}: ${doc.createdBy.name}`,
+                        doc.note ? `${text.note}: ${doc.note}` : null,
                     ]),
-                    StockExportService.joinFacts([`${text.createdBy}: ${doc.createdBy.name}`, doc.note ? `${text.note}: ${doc.note}` : null]),
                 ],
                 right: [generatedLine(text)],
                 columns: [
                     { title: text.product },
                     { title: text.unit },
-                    { title: text.pack },
+                    ...(hasPacks ? [{ title: text.pack }] : []),
                     { title: text.quantity, format: quantityFormat() },
                 ],
                 rows: doc.lines.map((line) => [
                     line.product.name,
                     MEASURE_UNITS[line.product.measureUnit].shortName[lang],
-                    StockExportService.packText(line, lang),
+                    ...(hasPacks ? [StockExportService.packText(line, lang)] : []),
                     line.quantity,
                 ]),
             }),
@@ -271,12 +274,13 @@ export class StockExportService {
                 left: [
                     companyName,
                     `${text.stockOuts} ${doc.number}`,
-                    StockExportService.joinFacts([
+                    ...StockExportService.facts([
                         `${text.date}: ${formatAppDateTime(new Date(doc.date))}`,
                         `${text.reason}: ${doc.recipes.length ? `${reason} (${text.byRecipe})` : reason}`,
                         destination ? `${text.destination}: ${destination}` : null,
+                        `${text.createdBy}: ${doc.createdBy.name}`,
+                        doc.note ? `${text.note}: ${doc.note}` : null,
                     ]),
-                    StockExportService.joinFacts([`${text.createdBy}: ${doc.createdBy.name}`, doc.note ? `${text.note}: ${doc.note}` : null]),
                 ],
                 right: [generatedLine(text)],
                 columns: [
@@ -290,10 +294,7 @@ export class StockExportService {
                         .filter((recipeLine) => recipeLine.product.uuid === line.product.uuid)
                         .map((recipeLine) => ({ name: row.recipe.name, persons: row.persons, quantity: recipeLine.neededQuantity })));
                     return [
-                        {
-                            values: [line.product.name, MEASURE_UNITS[line.product.measureUnit].shortName[lang], line.quantity],
-                            bold: recipes.length > 0,
-                        },
+                        { values: [line.product.name, MEASURE_UNITS[line.product.measureUnit].shortName[lang], line.quantity] },
                         ...StockExportService.recipeRows(text, recipes, (name, amount) => [name, null, amount]),
                     ];
                 }),
@@ -389,8 +390,9 @@ export class StockExportService {
         return `${pack.count} × ${typed} ${MEASURE_UNITS[pack.unit].shortName[lang]}`;
     }
 
-    private static joinFacts(facts: (string | null)[]): string {
-        return facts.filter(Boolean).join(" · ");
+    /** A document's details, one per row; empty ones are left out. */
+    private static facts(facts: (string | null)[]): string[] {
+        return facts.filter((fact): fact is string => !!fact);
     }
 
     /** Stock-in and stock-out lists: the same columns, only the party column differs. */

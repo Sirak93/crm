@@ -372,7 +372,7 @@ export default (context: ICompanySideContext) => defineSuite("Stock movement", (
             [null, null, `${figRecipe.name} × 2 persons`, null, 2, null],
         ]);
         const recipeRow = fig.getRow(TABLE_HEADER_ROW + 3);
-        matches([fig.getRow(TABLE_HEADER_ROW + 2).font?.bold, recipeRow.outlineLevel, recipeRow.getCell(5).numFmt], [true, 1, "#,##0.000000"]);
+        matches([recipeRow.outlineLevel, recipeRow.getCell(3).alignment?.indent, recipeRow.getCell(5).numFmt], [1, 1, "#,##0.000###"]);
 
         const many = await createProduct(storekeeper, { body: { name: `${tag} many` } });
         const count = PRODUCT_MOVEMENT_PAGE_SIZE + 1;

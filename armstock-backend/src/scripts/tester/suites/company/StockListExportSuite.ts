@@ -161,7 +161,7 @@ export default (context: ICompanySideContext) => defineSuite("Excel exports of t
             ["Product", "Category", "Unit", "Quantity"],
             [apple.name, category.name, unit(apple), 4],
         ]);
-        equals(sheet.getCell(tableRow(sheet) + 1, 4).numFmt, "#,##0.000000", "quantity format");
+        equals(sheet.getCell(tableRow(sheet) + 1, 4).numFmt, "#,##0.000###", "quantity format");
     });
 
     test("one stock-in: details in the header, its lines with packs as typed", async () => {
@@ -179,18 +179,27 @@ export default (context: ICompanySideContext) => defineSuite("Excel exports of t
         const file = await storekeeper.api.download(`${PATHS.STOCK_INS}/${doc.uuid}/export?lang=en`);
         equals(file.fileName, `stock-in_${doc.number}.xlsx`, "file name");
         const sheet = await readSheet(file.content);
-        matches(rowsOf(sheet).slice(0, 4).map((row) => row[0]), [
+        matches(rowsOf(sheet).slice(0, 8).map((row) => row[0]), [
             companyA.name,
             `Stock in ${doc.number}`,
-            `Date: 09/01/2019 16:00 · Reason: Purchase · Supplier: ${supplier.name} · Supplier's invoice №: INV-7`,
-            `Created by: ${doc.createdBy.name} · Note: Back door`,
+            "Date: 09/01/2019 16:00",
+            "Reason: Purchase",
+            `Supplier: ${supplier.name}`,
+            "Supplier's invoice №: INV-7",
+            `Created by: ${doc.createdBy.name}`,
+            "Note: Back door",
         ]);
         isTrue(String(rowsOf(sheet)[0][3]).startsWith("Generated: "), "generated on the right");
+        isTrue(sheet.getColumn(4).width! >= String(rowsOf(sheet)[0][3]).length, "last column fits the generated time");
         matches(rowsOf(sheet, tableRow(sheet)), [
             ["Product", "Unit", "Package", "Quantity"],
             [flour.name, unit(flour), "2 × 500 g", 1],
             [apple.name, unit(apple), null, 2],
         ]);
+
+        // Every line one package: no package column.
+        const single = await readSheet((await storekeeper.api.download(`${PATHS.STOCK_INS}/${purchase.uuid}/export?lang=en`)).content);
+        matches(rowsOf(single, tableRow(single)), [["Product", "Unit", "Quantity"], [apple.name, unit(apple), 10], [bean.name, unit(bean), 5]]);
     });
 
     test("one by-recipe stock-out: each product's recipes nested under it", async () => {
@@ -203,9 +212,12 @@ export default (context: ICompanySideContext) => defineSuite("Excel exports of t
         const file = await storekeeper.api.download(`${PATHS.STOCK_OUTS}/${doc.uuid}/export?lang=en`);
         equals(file.fileName, `stock-out_${doc.number}.xlsx`, "file name");
         const sheet = await readSheet(file.content);
-        matches(rowsOf(sheet).slice(1, 3).map((row) => row[0]), [
+        matches(rowsOf(sheet).slice(1, 6).map((row) => row[0]), [
             `Stock out ${doc.number}`,
-            "Date: 10/01/2019 16:00 · Reason: Issued (by recipe) · Where to: Kitchen",
+            "Date: 10/01/2019 16:00",
+            "Reason: Issued (by recipe)",
+            "Where to: Kitchen",
+            `Created by: ${doc.createdBy.name}`,
         ]);
         matches(rowsOf(sheet, tableRow(sheet)), [
             ["Product", "Unit", "Quantity"],
@@ -214,7 +226,8 @@ export default (context: ICompanySideContext) => defineSuite("Excel exports of t
         ]);
         const productRow = sheet.getRow(tableRow(sheet) + 1);
         const recipeRow = sheet.getRow(tableRow(sheet) + 2);
-        matches([productRow.font?.bold, recipeRow.outlineLevel, recipeRow.getCell(3).numFmt], [true, 1, "#,##0.000000"]);
+        matches([productRow.font?.bold, recipeRow.outlineLevel, recipeRow.getCell(1).alignment?.indent, recipeRow.getCell(3).numFmt],
+            [undefined, 1, 1, "#,##0.000###"], "plain product row, indented recipe row");
     });
 
     test("one document: language required; unknown or other company's document not found", async () => {

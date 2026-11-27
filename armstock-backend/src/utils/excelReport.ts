@@ -10,7 +10,7 @@ export type ExcelValue = string | number | Date | null;
 export interface IExcelRow {
     values: ExcelValue[];
     bold?: boolean;
-    /** 1 = nested under the row above it (a document's product line), with Excel's +/- to close the group. */
+    /** 1 = nested under the row above it, indented, with Excel's +/- to close the group. */
     level?: 1;
     /** Number format for this row instead of the column's (recipe amounts have 6 decimals). */
     format?: string;
@@ -35,7 +35,9 @@ export interface IExcelReport {
     boldLastRow?: boolean;
 }
 
-export const quantityFormat = (decimals = QUANTITY_DECIMALS): string => `#,##0.${"0".repeat(decimals)}`;
+/** Always 3 decimals; up to `maxDecimals` only when the amount has them (0.300, but 0.000125). */
+export const quantityFormat = (maxDecimals = QUANTITY_DECIMALS): string =>
+    `#,##0.${"0".repeat(QUANTITY_DECIMALS)}${"#".repeat(maxDecimals - QUANTITY_DECIMALS)}`;
 export const DATE_TIME_FORMAT = "dd/mm/yyyy hh:mm";
 
 const HEADER_FILL = "FFF1F3F5";
@@ -96,13 +98,16 @@ export const buildExcel = async (report: IExcelReport): Promise<Buffer> => {
         row.eachCell((cell, column) => {
             const format = rowFormat ?? report.columns[column - 1].format;
             if (format && (typeof cell.value === "number" || cell.value instanceof Date)) cell.numFmt = format;
+            if (level && typeof cell.value === "string") cell.alignment = { indent: 1 };
         });
     });
     if (report.boldLastRow && rows.length) sheet.lastRow!.font = { bold: true };
 
+    const lastColumn = report.columns.length - 1;
     report.columns.forEach((column, index) => {
-        const lengths = [column.title, ...rows.map((row) => displayText(row.values[index] ?? null, row.format ?? column.format))]
-            .map((text) => text.length);
+        // The last column also holds the right-side header (period, generated), so it must fit too.
+        const texts = [column.title, ...rows.map((row) => displayText(row.values[index] ?? null, row.format ?? column.format))];
+        const lengths = [...texts, ...(index === lastColumn ? report.right : [])].map((text) => text.length);
         sheet.getColumn(index + 1).width = Math.min(COLUMN_WIDTH.MAX, Math.max(COLUMN_WIDTH.MIN, ...lengths) + COLUMN_WIDTH.PADDING);
     });
 
