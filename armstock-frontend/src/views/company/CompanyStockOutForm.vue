@@ -342,27 +342,30 @@ const save = async () => {
         </AppCard>
       </div>
 
-      <StockOutPanel
-        class="out-layout__summary"
-        :groups="panelGroups"
-        :recipe-count="panelGroups.filter((group) => group.persons).length"
-        :product-count="totalRows.length"
-      />
+      <!-- One wrapper, so on wide screens both panels stay in view together at the same height. -->
+      <div class="out-layout__side">
+        <StockOutPanel
+          class="out-layout__summary"
+          :groups="panelGroups"
+          :recipe-count="panelGroups.filter((group) => group.persons).length"
+          :product-count="totalRows.length"
+        />
 
-      <StockOutTotalsPanel
-        class="out-layout__totals"
-        :rows="totalRows"
-        :totals="totals"
-        :show-errors="showLineErrors"
-        @update="setTotal"
-      >
-        <template #footer>
-          <div class="out-actions">
-            <el-button :disabled="isSaving" @click="router.push(backRoute)">{{ $t('common.cancel') }}</el-button>
-            <el-button type="primary" :loading="isSaving" @click="save">{{ $t('common.save') }}</el-button>
-          </div>
-        </template>
-      </StockOutTotalsPanel>
+        <StockOutTotalsPanel
+          class="out-layout__totals"
+          :rows="totalRows"
+          :totals="totals"
+          :show-errors="showLineErrors"
+          @update="setTotal"
+        >
+          <template #footer>
+            <div class="out-actions">
+              <el-button :disabled="isSaving" @click="router.push(backRoute)">{{ $t('common.cancel') }}</el-button>
+              <el-button type="primary" :loading="isSaving" @click="save">{{ $t('common.save') }}</el-button>
+            </div>
+          </template>
+        </StockOutTotalsPanel>
+      </div>
     </div>
   </section>
 </template>
@@ -414,6 +417,11 @@ const save = async () => {
   margin: 0;
 }
 
+/* Below 1600px the wrapper is left out of the layout, so each panel takes its own place. */
+.out-layout__side {
+  display: contents;
+}
+
 @media (min-width: 1200px) {
   .out-layout {
     display: grid;
@@ -443,14 +451,25 @@ const save = async () => {
 
 @media (min-width: 1600px) {
   .out-layout {
-    grid-template-columns: minmax(0, 1fr) clamp(18rem, 18vw, 22rem) clamp(20rem, 20vw, 24rem);
-    grid-template-areas: "main summary totals";
+    grid-template-columns: minmax(0, 1fr) clamp(38rem, 38vw, 46rem);
+    grid-template-areas: "main side";
     grid-template-rows: auto;
   }
 
-  .out-layout__totals {
+  .out-layout__side {
+    grid-area: side;
     position: sticky;
     top: calc(var(--header-height) + 1rem);
+    display: grid;
+    grid-template-columns: minmax(0, 18fr) minmax(0, 20fr);
+    gap: 1rem;
+    align-items: start;
+  }
+
+  .out-layout__summary,
+  .out-layout__totals {
+    grid-area: auto;
+    position: static;
     max-height: calc(100dvh - var(--header-height) - 2rem);
   }
 }
