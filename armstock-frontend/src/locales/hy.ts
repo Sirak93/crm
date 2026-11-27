@@ -744,7 +744,6 @@ const hy: typeof en = {
       document: 'Փաստաթուղթ',
       reason: 'Պատճառ',
       stockAfter: 'Մնացորդ',
-      byRecipe: 'Բաղադրատոմսով',
       recipe: '{name} × {persons} անձ',
     },
   },

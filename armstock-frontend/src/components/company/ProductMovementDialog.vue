@@ -12,6 +12,7 @@ import {
   type StockOutReason,
 } from 'armstock-shared';
 import { ArrowLeftRight, ChevronRight } from 'lucide-vue-next';
+import RecipeIcon from './RecipeIcon.vue';
 import AppDialog from '../AppDialog.vue';
 import ExportButton from '../ExportButton.vue';
 import LoadError from '../LoadError.vue';
@@ -198,7 +199,7 @@ const quantity = (value: number): string => (value ? formatQuantity(value) : '')
                 :class="['product-movement__chevron', { 'product-movement__chevron--open': openRows[row.uuid] }]"
               />
               <span>{{ DOCUMENT_TYPES[(row as IStockMovementDocument).type].reason(row.reason) }}</span>
-              <span class="product-movement__badge">{{ $t('stockMovement.popup.byRecipe') }}</span>
+              <RecipeIcon />
             </button>
             <span v-else class="cell-text">{{ DOCUMENT_TYPES[(row as IStockMovementDocument).type].reason(row.reason) }}</span>
             <ul v-if="openRows[row.uuid]" class="product-movement__recipes product-movement__recipes--names">
@@ -330,15 +331,6 @@ const quantity = (value: number): string => (value ? formatQuantity(value) : '')
 
 .product-movement__chevron--open {
   transform: rotate(90deg);
-}
-
-.product-movement__badge {
-  padding: 0.0625rem 0.5rem;
-  border-radius: 999px;
-  background-color: var(--primary-light);
-  color: var(--primary-dark);
-  font-size: var(--text-xs);
-  font-weight: 600;
 }
 
 /* Same line height in the reason and out cells, so each recipe lines up with its amount. */

@@ -744,7 +744,6 @@ export default {
       document: 'Document',
       reason: 'Reason',
       stockAfter: 'Stock after',
-      byRecipe: 'By recipe',
       recipe: '{name} × {persons} persons',
     },
   },

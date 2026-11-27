@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import type { IStockOut } from 'armstock-shared';
-import { ChefHat, Pencil, Trash2 } from 'lucide-vue-next';
+import { Pencil, Trash2 } from 'lucide-vue-next';
+import RecipeIcon from './RecipeIcon.vue';
 import RowActionsMenu from '../RowActionsMenu.vue';
 import { ROUTE_NAME } from '../../constants/constants';
 import { stockOutDestination } from '../../utils/stockOutDestination';
@@ -52,12 +53,10 @@ const destination = (doc: IStockOut): string => stockOutDestination(doc, departm
     </el-table-column>
     <el-table-column :label="$t('stockOut.table.reason')" min-width="160">
       <template #default="{ row }">
-        <span class="cell-text">{{ stockOutReasonName((row as IStockOut).reason) }}</span>
-        <el-tooltip v-if="row.hasRecipes" :content="$t('stockOut.byRecipe')" placement="top">
-          <span class="stock-outs-table__recipe" role="img" :aria-label="$t('stockOut.byRecipe')">
-            <ChefHat :size="14" aria-hidden="true" />
-          </span>
-        </el-tooltip>
+        <span class="stock-outs-table__reason">
+          <span class="cell-text">{{ stockOutReasonName((row as IStockOut).reason) }}</span>
+          <RecipeIcon v-if="row.hasRecipes" />
+        </span>
       </template>
     </el-table-column>
     <el-table-column :label="$t('stockOut.table.destination')" min-width="200" show-overflow-tooltip>
@@ -109,17 +108,10 @@ const destination = (doc: IStockOut): string => stockOutDestination(doc, departm
   text-decoration: underline;
 }
 
-.stock-outs-table__recipe {
+.stock-outs-table__reason {
   display: inline-flex;
   align-items: center;
-  justify-content: center;
-  width: 1.5rem;
-  height: 1.5rem;
-  margin-left: 0.5rem;
-  vertical-align: middle;
-  border-radius: 50%;
-  color: var(--primary-dark);
-  background-color: var(--primary-light);
+  gap: 0.5rem;
 }
 
 .stock-outs-table__link:focus-visible {
