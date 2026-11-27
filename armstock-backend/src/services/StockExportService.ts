@@ -23,8 +23,6 @@ const QUANTITY_FORMAT = `#,##0.${"0".repeat(QUANTITY_DECIMALS)}`;
 const QUANTITY_TEXT = new Intl.NumberFormat("en-US", { minimumFractionDigits: QUANTITY_DECIMALS, maximumFractionDigits: QUANTITY_DECIMALS });
 const DATE_TIME_FORMAT = "dd/mm/yyyy hh:mm";
 const HEADER_FILL = "FFF1F3F5";
-// Rows 1-5 hold the report header, row 6 is empty.
-const TABLE_HEADER_ROW = 7;
 const COLUMN_WIDTH = { MIN: 10, MAX: 60, PADDING: 2 } as const;
 
 type Texts = { [K in keyof typeof EXPORT_TEXTS]: string };
@@ -39,7 +37,7 @@ export class StockExportService {
     private stockService = new StockService();
 
     async movement(companyUuid: string, query: StockMovementExportQuery): Promise<IExportFile> {
-        const { lang, search, categoryUuid, withoutMovement } = query;
+        const { lang, search, categoryUuid } = query;
         const text = StockExportService.texts(lang);
 
         const [companyName, categoryName, rows] = await Promise.all([
@@ -51,21 +49,21 @@ export class StockExportService {
         const filters = [
             search ? `${text.search}: ${search}` : null,
             categoryName ? `${text.category}: ${categoryName}` : null,
-            `${text.withoutMovement}: ${withoutMovement ? text.yes : text.no}`,
         ].filter(Boolean).join(" · ");
 
         const workbook = new Workbook();
         const sheet = workbook.addWorksheet(text.stockMovement);
-        StockExportService.writeHeader(sheet, [
-            companyName,
-            text.stockMovement,
-            StockExportService.periodText(text, query),
-            `${text.generated}: ${formatAppDateTime(new Date())}`,
-            `${text.filters}: ${filters}`,
-        ]);
+        const headers = [text.product, text.unit, text.initial, text.in, text.out, text.final];
+        const headerRow = StockExportService.writeHeader(
+            sheet,
+            [companyName, text.stockMovement, ...(filters ? [`${text.filters}: ${filters}`] : [])],
+            StockExportService.rightHeader(text, query),
+            headers.length,
+        );
         StockExportService.writeTable(
             sheet,
-            [text.product, text.unit, text.initial, text.in, text.out, text.final],
+            headerRow,
+            headers,
             rows.map((row) => [
                 row.status === ProductStatus.ARCHIVED ? `${row.name} (${text.archived})` : row.name,
                 MEASURE_UNITS[row.measureUnit].shortName[lang],
@@ -94,17 +92,18 @@ export class StockExportService {
 
         const workbook = new Workbook();
         const sheet = workbook.addWorksheet(text.productMovement);
-        StockExportService.writeHeader(sheet, [
-            companyName,
-            text.productMovement,
-            `${text.product}: ${product.name} (${unit})`,
-            StockExportService.periodText(text, query),
-            `${text.generated}: ${formatAppDateTime(new Date())}`,
-        ]);
+        const headers = [text.date, text.document, text.reason, text.in, text.out, text.stockAfter];
+        const headerRow = StockExportService.writeHeader(
+            sheet,
+            [companyName, text.productMovement, `${text.product}: ${product.name} (${unit})`],
+            StockExportService.rightHeader(text, query),
+            headers.length,
+        );
         // Initial stock first and a total last, so the four header numbers are in the table too.
         StockExportService.writeTable(
             sheet,
-            [text.date, text.document, text.reason, text.in, text.out, text.stockAfter],
+            headerRow,
+            headers,
             [
                 [null, null, text.initialStock, null, null, product.initial],
                 ...documents.map((doc) => {
@@ -145,6 +144,11 @@ export class StockExportService {
         return category?.name ?? null;
     }
 
+    /** Period and generated time, shown on the right. */
+    private static rightHeader(text: Texts, range: { dateFrom?: string; dateTo?: string }): string[] {
+        return [StockExportService.periodText(text, range), `${text.generated}: ${formatAppDateTime(new Date())}`];
+    }
+
     private static periodText(text: Texts, { dateFrom, dateTo }: { dateFrom?: string; dateTo?: string }): string {
         const from = dateFrom && formatAppDate(new Date(dateFrom));
         const to = dateTo && formatAppDate(new Date(dateTo));
@@ -160,27 +164,35 @@ export class StockExportService {
         return `${[...parts, ...days].join("_").replace(/[\\/:*?"<>|\s]+/g, "-")}.xlsx`;
     }
 
-    private static writeHeader(sheet: Worksheet, lines: string[]): void {
-        lines.forEach((line, index) => {
-            const row = sheet.getRow(index + 1);
-            row.getCell(1).value = line;
-            if (index < 2) row.font = { bold: true, size: index === 0 ? 14 : 12 };
+    /** `left` from column A, `right` right-aligned in the last table column; returns the table's header row. */
+    private static writeHeader(sheet: Worksheet, left: string[], right: string[], columnCount: number): number {
+        left.forEach((line, index) => {
+            const cell = sheet.getCell(index + 1, 1);
+            cell.value = line;
+            if (index < 2) cell.font = { bold: true, size: index === 0 ? 14 : 12 };
         });
+        right.forEach((line, index) => {
+            const cell = sheet.getCell(index + 1, columnCount);
+            cell.value = line;
+            cell.alignment = { horizontal: "right" };
+        });
+        // One empty row between the header block and the table.
+        return Math.max(left.length, right.length) + 2;
     }
 
     /** Bold header that stays in view on scroll, quantity columns with 3 decimals, widths fitting the content. */
-    private static writeTable(sheet: Worksheet, headers: string[], rows: (string | number | Date | null)[][]): void {
-        const header = sheet.getRow(TABLE_HEADER_ROW);
+    private static writeTable(sheet: Worksheet, headerRow: number, headers: string[], rows: (string | number | Date | null)[][]): void {
+        const header = sheet.getRow(headerRow);
         header.values = headers;
         header.font = { bold: true };
         header.eachCell((cell) => {
             cell.fill = { type: "pattern", pattern: "solid", fgColor: { argb: HEADER_FILL } };
             cell.border = { bottom: { style: "thin" } };
         });
-        sheet.views = [{ state: "frozen", ySplit: TABLE_HEADER_ROW }];
+        sheet.views = [{ state: "frozen", ySplit: headerRow }];
 
         rows.forEach((values, index) => {
-            const row = sheet.getRow(TABLE_HEADER_ROW + 1 + index);
+            const row = sheet.getRow(headerRow + 1 + index);
             row.values = values;
             row.eachCell((cell) => {
                 if (typeof cell.value === "number") cell.numFmt = QUANTITY_FORMAT;

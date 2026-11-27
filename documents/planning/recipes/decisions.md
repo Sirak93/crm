@@ -569,17 +569,18 @@ Not part of recipes - works for every company.
 
   ```
      A                    B      C         D        E        F
-  1  Company LLC
-  2  Stock movement
-  3  Period: 01.11.2026 – 30.11.2026
-  4  Generated: 24.11.2026 14:30
-  5  Filters: Category: Meat · Products without movement: no
-  6
-  7  Product              Unit   Initial   In       Out      Final     ← bold, frozen
-  8  Product 1            kg     40.000    100.000  90.000   50.000
+  1  Company LLC                         Period: 01/11/2026 – 30/11/2026   ← right-aligned in F
+  2  Stock movement                             Generated: 24/11/2026 14:30
+  3  Filters: Search: … · Category: Meat     (only when search or category is set)
+  4
+  5  Product              Unit   Initial   In       Out      Final     ← bold, frozen
+  6  Product 1            kg     40.000    100.000  90.000   50.000
   ```
 
-  Texts in the user's chosen app language (hy / en).
+  Texts in the user's chosen app language (hy / en). The "products without movement"
+  checkbox is not written in the file.
+- Product file: company, "Product movement", product (unit) on the left; period and generated
+  on the right; table starts with an "Initial stock" row and ends with a bold "Total" row.
 - The frontend sends the app language as a `lang` query value (hy / en) - the backend does not
   store it.
 - Dates in the file (period, generated, file name) are in **Armenian time** (`Asia/Yerevan`,

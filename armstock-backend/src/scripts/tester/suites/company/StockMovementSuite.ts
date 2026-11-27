@@ -14,12 +14,13 @@ import {
     type IStockMovement,
 } from "armstock-shared";
 import { defineSuite } from "../../core/Suite";
-import { equals, matches } from "../../core/Assert";
+import { anyString, equals, isTrue, matches } from "../../core/Assert";
 import { createCategory, createProduct, createRecipe, createStockIn, createStockOut, lineOf, recipeBody, stockOutBody } from "../../shared/Builders";
 import { PATHS } from "../../shared/Paths";
 import { randomUuid, uniqueName } from "../../shared/Random";
 import { stockOf } from "../../shared/Stock";
 import { readSheet, rowsOf } from "../../shared/Excel";
+import type { Worksheet } from "exceljs";
 import type { ICompanySideContext } from "../../interfaces/ICompanySideContext";
 
 type Key = "apple" | "bean" | "corn" | "date" | "egg" | "fig";
@@ -282,7 +283,11 @@ export default (context: ICompanySideContext) => defineSuite("Stock movement", (
     const armFrom = (month: number) => new Date(Date.UTC(2021, month - 1, 1) - ARMENIA_OFFSET_MS).toISOString();
     const armTo = (month: number) => new Date(Date.UTC(2021, month, 1) - ARMENIA_OFFSET_MS - 1).toISOString();
     const XLSX = "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet";
-    const TABLE_HEADER_ROW = 7;
+    // Three header lines on the left (company, report, filters or product), then one empty row.
+    const TABLE_HEADER_ROW = 5;
+    const LAST_COLUMN = 6;
+    /** Column A and the last column (period, generated) of the header block. */
+    const headerOf = (sheet: Worksheet) => rowsOf(sheet).slice(0, TABLE_HEADER_ROW - 1).map((row) => [row[0], row[LAST_COLUMN - 1]]);
     const exportPath = (path: string, params: Record<string, string | undefined>) => {
         const query = new URLSearchParams();
         for (const [key, value] of Object.entries(params)) if (value !== undefined) query.set(key, value);
@@ -298,10 +303,15 @@ export default (context: ICompanySideContext) => defineSuite("Stock movement", (
         equals(file.fileName, "stock-movement_2021-03-01_2021-03-31.xlsx", "file name");
 
         const sheet = await readSheet(file.content);
-        const [company, title, period, generated, filters] = rowsOf(sheet).slice(0, 5).map((row) => row[0]);
-        matches([company, title, period], [companyA.name, "Stock movement", "Period: 01/03/2021 – 31/03/2021"]);
-        matches(String(generated).startsWith("Generated: "), true, "generated line");
-        equals(filters, `Filters: Search: ${tag} · Products without movement: no`, "filters line");
+        const header = headerOf(sheet);
+        matches(header, [
+            [companyA.name, "Period: 01/03/2021 – 31/03/2021"],
+            ["Stock movement", anyString],
+            [`Filters: Search: ${tag}`, null],
+            [null, null],
+        ]);
+        isTrue(String(header[1][1]).startsWith("Generated: "), "generated line");
+        equals(sheet.getCell(1, LAST_COLUMN).alignment?.horizontal, "right", "period on the right");
         matches(rowsOf(sheet, TABLE_HEADER_ROW), [
             ["Product", "Unit", "Initial", "In", "Out", "Final"],
             [nameOf("apple"), unitOf("apple"), 0, 100, 30, 70],
@@ -320,10 +330,12 @@ export default (context: ICompanySideContext) => defineSuite("Stock movement", (
         }));
         equals(file.fileName, "stock-movement_2021-04-01.xlsx", "file name");
         const sheet = await readSheet(file.content);
-        const rows = rowsOf(sheet);
-        matches(rows.slice(1, 3).map((row) => row[0]), ["Ապրանքների շարժ", "Ժամանակահատված: Սկսած 01/04/2021"]);
-        equals(rows[4][0], `Ֆիլտրեր: Կատեգորիա: ${ownCategory.name} · Առանց շարժի ապրանքները: այո`, "filters line");
-        matches(rows.slice(TABLE_HEADER_ROW - 1).map((row) => row[0]), ["Ապրանք", nameOf("bean")]);
+        matches(headerOf(sheet).slice(0, 3), [
+            [anyString, "Ժամանակահատված: Սկսած 01/04/2021"],
+            ["Ապրանքների շարժ", anyString],
+            [`Ֆիլտրեր: Կատեգորիա: ${ownCategory.name}`, null],
+        ]);
+        matches(rowsOf(sheet, TABLE_HEADER_ROW).map((row) => row[0]), ["Ապրանք", nameOf("bean")]);
     });
 
     test("Excel product file: initial stock row, documents in Armenian time, total row", async () => {
@@ -334,10 +346,10 @@ export default (context: ICompanySideContext) => defineSuite("Stock movement", (
         equals(file.fileName, `product-movement_${nameOf("apple").replace(" ", "-")}_2021-04-01.xlsx`, "file name");
 
         const sheet = await readSheet(file.content);
-        matches(rowsOf(sheet).slice(1, 4).map((row) => row[0]), [
-            "Product movement",
-            `Product: ${nameOf("apple")} (${unitOf("apple")})`,
-            "Period: From 01/04/2021",
+        matches(headerOf(sheet).slice(0, 3), [
+            [companyA.name, "Period: From 01/04/2021"],
+            ["Product movement", anyString],
+            [`Product: ${nameOf("apple")} (${unitOf("apple")})`, null],
         ]);
         // Documents are at 12:00 UTC, so 16:00 in Armenia.
         matches(rowsOf(sheet, TABLE_HEADER_ROW), [

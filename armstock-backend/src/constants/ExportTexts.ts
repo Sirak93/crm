@@ -26,9 +26,6 @@ export const EXPORT_TEXTS = {
     filters: { hy: "Ֆիլտրեր", en: "Filters" },
     search: { hy: "Որոնում", en: "Search" },
     category: { hy: "Կատեգորիա", en: "Category" },
-    withoutMovement: { hy: "Առանց շարժի ապրանքները", en: "Products without movement" },
-    yes: { hy: "այո", en: "yes" },
-    no: { hy: "ոչ", en: "no" },
 } as const satisfies Record<string, ILocalizedText>;
 
 export const XLSX_CONTENT_TYPE = "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet";
