@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { nextTick } from 'vue';
 import { RECIPE_QUANTITY_DECIMALS, RECIPE_QUANTITY_MAX, type IStockLineProduct } from 'armstock-shared';
-import { Plus, Trash2 } from 'lucide-vue-next';
+import { Carrot, Plus, Search, Trash2 } from 'lucide-vue-next';
 import ProductSelect from './ProductSelect.vue';
 import CodeBadge from '../CodeBadge.vue';
 import UnitAmountInput from '../UnitAmountInput.vue';
@@ -46,20 +46,29 @@ const setProductRef = (key: number, el: unknown) => {
 
 <template>
   <div class="lines-editor">
-    <el-table :data="lines" class="app-table lines-editor__table" row-key="key">
-      <el-table-column type="index" label="#" width="48" align="center" />
+    <p v-if="!lines.length" class="form-empty">
+      <Carrot :size="16" aria-hidden="true" />
+      {{ $t('recipes.lines.empty') }}
+    </p>
+
+    <!-- No column titles: the section title and its "per person" hint say what goes where. -->
+    <el-table v-else :data="lines" :show-header="false" class="app-table app-table--form lines-editor__table" row-key="key">
       <el-table-column :label="$t('recipes.lines.product')" min-width="260">
         <template #default="{ row }">
           <ProductSelect
             :ref="(el) => setProductRef(row.key, el)"
             v-model="row.productUuid"
+            automatic-dropdown
+            remote-show-suffix
             :selected="row.product"
             :placeholder="$t('recipes.lines.productPlaceholder')"
             :exclude-uuids="usedElsewhere(row as IStockOutLineForm)"
             :class="{ 'is-invalid': showErrors && !row.productUuid }"
             class="lines-editor__product"
             @select="(product: IStockLineProduct) => onProductSelect(row as IStockOutLineForm, product)"
-          />
+          >
+            <template #prefix><Search :size="15" aria-hidden="true" /></template>
+          </ProductSelect>
         </template>
       </el-table-column>
       <el-table-column :label="$t('recipes.lines.code')" min-width="100">

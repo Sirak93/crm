@@ -436,6 +436,7 @@ const hy: typeof en = {
       productCount: '{count} ապրանք',
     },
     lines: {
+      empty: 'Ընտրված բաղադրիչներ չկան',
       product: 'Ապրանք',
       productPlaceholder: 'Ընտրեք ապրանքը',
       code: 'Կոդ',
@@ -444,6 +445,7 @@ const hy: typeof en = {
       remove: 'Հեռացնել տողը՝ {row}',
     },
     form: {
+      linesTitle: 'Բաղադրիչներ',
       name: 'Բաղադրատոմսի անվանում',
       namePlaceholder: 'Հավով ապուր',
       nameRequired: 'Մուտքագրեք բաղադրատոմսի անվանումը',
@@ -581,6 +583,7 @@ const hy: typeof en = {
       rowCount: 'Տողեր՝ {count}',
     },
     lines: {
+      empty: 'Ընտրված ապրանքներ չկան',
       product: 'Ապրանք',
       productPlaceholder: 'Որոնել ըստ անվանման կամ կոդի',
       code: 'Կոդ',

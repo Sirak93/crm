@@ -436,6 +436,7 @@ export default {
       productCount: '{count} products',
     },
     lines: {
+      empty: 'No ingredients selected',
       product: 'Product',
       productPlaceholder: 'Choose a product',
       code: 'Code',
@@ -444,6 +445,7 @@ export default {
       remove: 'Remove row {row}',
     },
     form: {
+      linesTitle: 'Ingredients',
       name: 'Recipe name',
       namePlaceholder: 'Chicken soup',
       nameRequired: 'Enter the recipe name',
@@ -581,6 +583,7 @@ export default {
       rowCount: 'Rows: {count}',
     },
     lines: {
+      empty: 'No products selected',
       product: 'Product',
       productPlaceholder: 'Search by name or code',
       code: 'Code',

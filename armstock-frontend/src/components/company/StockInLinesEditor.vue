@@ -9,7 +9,7 @@ import {
   type IProductCategory,
   type IStockLineProduct,
 } from 'armstock-shared';
-import { Plus, Trash2 } from 'lucide-vue-next';
+import { Package, Plus, Search, Trash2 } from 'lucide-vue-next';
 import ProductSelect from './ProductSelect.vue';
 import CodeBadge from '../CodeBadge.vue';
 import UnitAmountInput from '../UnitAmountInput.vue';
@@ -140,13 +140,19 @@ const setProductRef = (key: number, el: unknown) => {
 
 <template>
   <div class="lines-editor">
-    <el-table :data="lines" class="app-table lines-editor__table" row-key="key">
-      <el-table-column type="index" label="#" width="48" align="center" />
+    <p v-if="!lines.length" class="form-empty">
+      <Package :size="16" aria-hidden="true" />
+      {{ $t('stockIn.lines.empty') }}
+    </p>
+
+    <el-table v-else :data="lines" class="app-table app-table--form lines-editor__table" row-key="key">
       <el-table-column :label="$t('stockIn.lines.product')" min-width="240">
         <template #default="{ row }">
           <ProductSelect
             :ref="(el) => setProductRef(row.key, el)"
             v-model="row.productUuid"
+            automatic-dropdown
+            remote-show-suffix
             :selected="row.product"
             :placeholder="$t('stockIn.lines.productPlaceholder')"
             :can-create="canCreateProduct"
@@ -154,7 +160,9 @@ const setProductRef = (key: number, el: unknown) => {
             class="lines-editor__product"
             @select="(product: IStockLineProduct) => onProductSelect(row as IStockInLineForm, product)"
             @create="(name: string) => openProductDialog(row as IStockInLineForm, name)"
-          />
+          >
+            <template #prefix><Search :size="15" aria-hidden="true" /></template>
+          </ProductSelect>
         </template>
       </el-table-column>
       <el-table-column :label="$t('stockIn.lines.code')" min-width="100">

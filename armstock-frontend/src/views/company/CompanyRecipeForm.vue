@@ -2,6 +2,7 @@
 import { computed, onMounted, ref } from 'vue';
 import { useRouter } from 'vue-router';
 import { useI18n } from 'vue-i18n';
+import { Carrot } from 'lucide-vue-next';
 import type { FormInstance, FormRules } from 'element-plus';
 import type { IRecipeDetails, IRecipePayload } from 'armstock-shared';
 import BackLink from '../../components/BackLink.vue';
@@ -9,6 +10,7 @@ import PageHeader from '../../components/PageHeader.vue';
 import AppCard from '../../components/AppCard.vue';
 import LoadError from '../../components/LoadError.vue';
 import RecipeLinesEditor from '../../components/company/RecipeLinesEditor.vue';
+import SectionHeader from '../../components/SectionHeader.vue';
 import { RecipeService } from '../../services/RecipeService';
 import { NotificationService } from '../../services/NotificationService';
 import { useApiErrorMessage } from '../../composables/useApiErrorMessage';
@@ -135,7 +137,9 @@ const save = async () => {
       </AppCard>
 
       <AppCard class="lines-card">
-        <p class="lines-card__hint">{{ $t('recipes.form.linesHint') }}</p>
+        <SectionHeader :title="$t('recipes.form.linesTitle')" :hint="$t('recipes.form.linesHint')" inset>
+          <template #icon><Carrot :size="18" /></template>
+        </SectionHeader>
         <RecipeLinesEditor v-model="lines" :show-errors="showLineErrors" />
       </AppCard>
 
@@ -168,13 +172,6 @@ const save = async () => {
   overflow: hidden;
 }
 
-.lines-card__hint {
-  margin: 0;
-  padding: 0.75rem clamp(0.75rem, 2vw, 1.25rem);
-  font-size: var(--text-sm);
-  color: var(--text-muted);
-  border-bottom: 1px solid var(--border);
-}
 
 /* Stays at the bottom of the screen while the rows scroll. */
 .form-bar {
