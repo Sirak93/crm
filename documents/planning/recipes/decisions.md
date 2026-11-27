@@ -493,6 +493,9 @@ Not part of recipes - works for every company.
   - Unchecked → only products with stock-in or stock-out inside the range.
   - Checked → also products that have stock but no movement in the range.
   - Archived products show when they match, like any other product.
+  - **Kept on purpose** (re-checked 2026-11-27): it is the only way to see the stock of every
+    product on a past date (the balance page shows stock now only), which the Excel export
+    needs for period-end reports. The name stays as it is.
 - Date range: the same picker and shortcuts as the stock-in / stock-out lists. Default
   **this month**. Can be cleared: no "from" = from the beginning (initial 0), no "to" = up
   to now (final = current stock).
