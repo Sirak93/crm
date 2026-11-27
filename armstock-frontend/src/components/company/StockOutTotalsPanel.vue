@@ -35,9 +35,8 @@ const amount = (value: number, row: IStockOutTotalRow) =>
   `${formatQuantity(value, RECIPE_QUANTITY_DECIMALS)} ${unitShortName(row.product.measureUnit)}`;
 
 const isEmpty = (row: IStockOutTotalRow) => props.totals[row.product.uuid] === undefined;
-// A product just added in the extras (nothing to prefill) and any empty total after a failed save stay open.
-const isOpen = (row: IStockOutTotalRow) => editing.value === row.product.uuid
-  || (isEmpty(row) && (row.prefill === undefined || props.showErrors));
+// An empty total stays open after a failed save, so it can be filled in at once.
+const isOpen = (row: IStockOutTotalRow) => editing.value === row.product.uuid || (props.showErrors && isEmpty(row));
 const extra = (row: IStockOutTotalRow) => (isEmpty(row) ? 0 : extraOf(props.totals[row.product.uuid]!, row.needed, row.product));
 // More than the recipes is the extra, so only a total below them is marked.
 const shortfall = (row: IStockOutTotalRow) =>
@@ -50,7 +49,7 @@ const toggle = async (row: IStockOutTotalRow) => {
   rowRefs.get(row.product.uuid)?.querySelector('input')?.focus();
 };
 
-// Typing keeps the row open, also one that opened by itself while empty.
+// Typing keeps the row open, also one that opened by itself after a failed save.
 const onUpdate = (row: IStockOutTotalRow, value: number | undefined) => {
   editing.value = row.product.uuid;
   emit('update', row.product.uuid, value);

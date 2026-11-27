@@ -362,6 +362,9 @@ const save = async () => {
           <StockOutLinesEditor
             v-model="lines"
             :exclude-uuids="totalProductUuids"
+            :totals="totals"
+            :show-errors="showLineErrors"
+            @update-total="setTotal"
             :supplied-by="isReturned ? form.supplierUuid || null : undefined"
           />
         </AppCard>

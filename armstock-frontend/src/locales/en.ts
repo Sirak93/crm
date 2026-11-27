@@ -689,7 +689,7 @@ export default {
       remove: 'Remove row {row}',
       chooseSupplierFirst: 'Choose the supplier first',
       title: 'Extra products',
-      hint: 'Products given out without a recipe. Type their amounts in Totals.',
+      hint: 'Products given out without a recipe.',
     },
     recipes: {
       empty: 'No recipes selected',

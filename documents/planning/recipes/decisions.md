@@ -230,8 +230,12 @@ without recipes is a normal stock-out, like today.
 ### Extra products
 
 - **One place for amounts (decided 2026-11-27, replaces "product + amount" lines):** the Extras
-  block only adds products that are in no recipe - a product picker, no amount. Every amount is
-  typed in the totals; an extras product starts with an empty total that must be filled in.
+  block only adds products that are in no recipe. Every amount is the product's total; an extras
+  product starts with an empty total that must be filled in.
+- **Amount on the extras row (decided 2026-11-27):** an extras row has product + amount + remove
+  again, but its amount field *is* that product's total (no recipe part), not a separate number -
+  typing there or in the totals panel changes the same value. Recipe products are never in the
+  extras, so their amount is changed only in the totals.
 - **Extra is worked out, not typed:** extra = total − recipes (rounded up), when above 0; saved
   in `extra_quantity` as before. 17.5 eggs → 18; typed 20 → extra 2 (count units stay whole).
 - **Changing recipes or people resets** the totals of the products they feed back to the

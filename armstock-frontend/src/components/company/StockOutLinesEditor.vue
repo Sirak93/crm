@@ -4,6 +4,7 @@ import { useI18n } from 'vue-i18n';
 import type { IStockLineProduct } from 'armstock-shared';
 import { Package, Plus, Search, Trash2 } from 'lucide-vue-next';
 import SectionHeader from '../SectionHeader.vue';
+import UnitAmountInput from '../UnitAmountInput.vue';
 import ProductSelect from './ProductSelect.vue';
 import type { IStockOutLineForm } from '../../interfaces/IStockOutLineForm';
 import { emptyOutLine } from '../../utils/stockOutLines';
@@ -13,20 +14,30 @@ import { NotificationService } from '../../services/NotificationService';
 import { useApiErrorMessage } from '../../composables/useApiErrorMessage';
 import { useBarcodeScanner } from '../../composables/useBarcodeScanner';
 
-/** Products given out without a recipe - picked here, their amounts typed in the totals. */
+/**
+ * Products given out without a recipe. The amount field is the product's total itself (no recipe part),
+ * so typing here or in the totals panel changes the same number.
+ */
 const props = defineProps<{
   /** Products already in the totals - not offered again. */
   excludeUuids: string[];
+  /** The totals, by product uuid. */
+  totals: Record<string, number | undefined>;
+  /** Highlight empty amounts - set after a failed save. */
+  showErrors: boolean;
   /** Return: the supplier whose products can be picked (null = none picked yet). */
   suppliedBy?: string | null;
 }>();
 
 const lines = defineModel<IStockOutLineForm[]>({ required: true });
 
+const emit = defineEmits<{ updateTotal: [productUuid: string, value: number | undefined] }>();
+
 const { t } = useI18n();
 const { parseError } = useApiErrorMessage();
 
 const productRefs = new Map<number, { focus: () => void }>();
+const amountRefs = new Map<number, HTMLElement>();
 const isScanning = ref(false);
 
 // Like 1C: the new row goes at the bottom and the cursor jumps to its product.
@@ -42,8 +53,11 @@ const removeLine = (key: number) => {
   productRefs.delete(key);
 };
 
-const onProductSelect = (line: IStockOutLineForm, product: IStockLineProduct) => {
+// The amount comes next, so the cursor moves there.
+const onProductSelect = async (line: IStockOutLineForm, product: IStockLineProduct) => {
   line.product = product;
+  await nextTick();
+  amountRefs.get(line.key)?.querySelector('input')?.focus();
 };
 
 // Same rules as the product picker: stock-out products only, and for a return only this supplier's.
@@ -73,6 +87,11 @@ useBarcodeScanner(onScan, () => !isScanning.value);
 
 const setProductRef = (key: number, el: unknown) => {
   if (el) productRefs.set(key, el as { focus: () => void });
+};
+
+const setAmountRef = (key: number, el: unknown) => {
+  if (el) amountRefs.set(key, el as HTMLElement);
+  else amountRefs.delete(key);
 };
 </script>
 
@@ -106,6 +125,20 @@ const setProductRef = (key: number, el: unknown) => {
           >
             <template #prefix><Search :size="15" aria-hidden="true" /></template>
           </ProductSelect>
+        </template>
+      </el-table-column>
+      <el-table-column :label="$t('stockOut.lines.quantity')" width="200">
+        <template #default="{ row }">
+          <div :ref="(el: unknown) => setAmountRef(row.key, el)">
+            <UnitAmountInput
+              :model-value="row.productUuid ? totals[row.productUuid] : undefined"
+              :product-unit="row.product?.measureUnit ?? null"
+              :disabled="!row.productUuid"
+              :invalid="showErrors && !!row.productUuid && totals[row.productUuid] === undefined"
+              :label="$t('stockOut.lines.quantity')"
+              @update:model-value="(value: number | undefined) => emit('updateTotal', row.productUuid, value)"
+            />
+          </div>
         </template>
       </el-table-column>
       <el-table-column width="56" align="center">
