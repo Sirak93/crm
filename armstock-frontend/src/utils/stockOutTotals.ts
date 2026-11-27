@@ -27,6 +27,10 @@ export const roundUpTotal = (value: number, product: IStockLineProduct): number 
   return round(Math.ceil(round(value * scale, RECIPE_QUANTITY_DECIMALS)) / scale, decimals);
 };
 
+/** The part of a total above the recipes (rounded up) - saved as the extra; 0 when the total is not above them. */
+export const extraOf = (total: number, needed: number, product: IStockLineProduct): number =>
+  Math.max(0, round(total - roundUpTotal(needed, product), QUANTITY_DECIMALS));
+
 /** How far a total was changed by hand from its prefill (recipes + extras, rounded up) - 0 when not. */
 export const totalDifference = (total: number, needed: number, extra: number, product: IStockLineProduct): number =>
   round(total - roundUpTotal(needed + extra, product), QUANTITY_DECIMALS);
@@ -40,10 +44,10 @@ export const toSavedRecipeOption = (row: IStockOutRecipe): IRecipeOption => ({
   lines: row.lines.map(({ uuid, product, quantity }) => ({ uuid, product, quantity })),
 });
 
-/** An extras row nothing was typed in yet - left out of the document. */
-export const isBlankOutLine = (line: IStockOutLineForm): boolean => !line.productUuid && line.quantity === undefined;
-
-/** Each product of the recipes and extras once, in the order it first shows up. */
+/**
+ * Each product of the recipes and extras once, in the order it first shows up. Extras rows only add a
+ * product: its total is typed, so it has no prefill.
+ */
 export const buildTotals = (
   rows: IStockOutRecipeForm[],
   recipes: ReadonlyMap<string, IRecipeOption>,
@@ -53,7 +57,7 @@ export const buildTotals = (
   const rowOf = (product: IStockLineProduct) => {
     let row = totals.get(product.uuid);
     if (!row) {
-      row = { product, needed: 0, extra: 0, prefill: 0 };
+      row = { product, needed: 0, prefill: undefined };
       totals.set(product.uuid, row);
     }
     return row;
@@ -68,10 +72,8 @@ export const buildTotals = (
     }
   }
   for (const line of extras) {
-    if (!line.product || !line.quantity) continue;
-    const total = rowOf(line.product);
-    total.extra = round(total.extra + line.quantity, QUANTITY_DECIMALS);
+    if (line.product) rowOf(line.product);
   }
 
-  return [...totals.values()].map((row) => ({ ...row, prefill: roundUpTotal(row.needed + row.extra, row.product) }));
+  return [...totals.values()].map((row) => ({ ...row, prefill: row.needed ? roundUpTotal(row.needed, row.product) : undefined }));
 };

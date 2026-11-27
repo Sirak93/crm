@@ -662,7 +662,6 @@ export default {
       noteRequired: 'Add a note for "Other"',
       optional: 'Optional',
       linesRequired: 'Add a recipe or a product.',
-      linesInvalid: 'Fill in every extra product row: product and quantity above 0.',
       recipesInvalid: 'Fill in every recipe row: recipe and persons (1 or more).',
       totalsInvalid: 'Fill in every total (0 or more).',
       rowCount: 'Rows: {count}',
@@ -677,7 +676,7 @@ export default {
       remove: 'Remove row {row}',
       chooseSupplierFirst: 'Choose the supplier first',
       title: 'Extra products',
-      hint: 'Products given out without a recipe.',
+      hint: 'Products given out without a recipe. Type their amounts in Totals.',
     },
     recipes: {
       title: 'Recipes',

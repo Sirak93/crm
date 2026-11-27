@@ -7,7 +7,7 @@ import UnitAmountInput from '../UnitAmountInput.vue';
 import StockOutTotalDiff from './StockOutTotalDiff.vue';
 import type { IStockOutTotalRow } from '../../interfaces/IStockOutTotalRow';
 import { formatQuantity } from '../../utils/format';
-import { totalDifference } from '../../utils/stockOutTotals';
+import { extraOf, totalDifference } from '../../utils/stockOutTotals';
 import { useMeasureUnits } from '../../composables/useMeasureUnits';
 
 /** The totals list as a panel: each product once, compact; a click on a product opens its total to change. */
@@ -30,14 +30,25 @@ const amount = (value: number, row: IStockOutTotalRow) =>
   `${formatQuantity(value, RECIPE_QUANTITY_DECIMALS)} ${unitShortName(row.product.measureUnit)}`;
 
 const isEmpty = (row: IStockOutTotalRow) => props.totals[row.product.uuid] === undefined;
-// An empty total stays open after a failed save, so it can be filled in at once.
-const isOpen = (row: IStockOutTotalRow) => editing.value === row.product.uuid || (props.showErrors && isEmpty(row));
+// A product just added in the extras (nothing to prefill) and any empty total after a failed save stay open.
+const isOpen = (row: IStockOutTotalRow) => editing.value === row.product.uuid
+  || (isEmpty(row) && (row.prefill === undefined || props.showErrors));
+const extra = (row: IStockOutTotalRow) => (isEmpty(row) ? 0 : extraOf(props.totals[row.product.uuid]!, row.needed, row.product));
+// More than the recipes is the extra, so only a total below them is marked.
+const shortfall = (row: IStockOutTotalRow) =>
+  (isEmpty(row) ? 0 : Math.min(0, totalDifference(props.totals[row.product.uuid]!, row.needed, 0, row.product)));
 
 const toggle = async (row: IStockOutTotalRow) => {
   editing.value = editing.value === row.product.uuid ? null : row.product.uuid;
   if (!editing.value) return;
   await nextTick();
   rowRefs.get(row.product.uuid)?.querySelector('input')?.focus();
+};
+
+// Typing keeps the row open, also one that opened by itself while empty.
+const onUpdate = (row: IStockOutTotalRow, value: number | undefined) => {
+  editing.value = row.product.uuid;
+  emit('update', row.product.uuid, value);
 };
 
 const close = () => {
@@ -80,18 +91,14 @@ const setRowRef = (uuid: string, el: unknown) => {
           <span class="totals-panel__amount">
             {{ isEmpty(row) ? '—' : amount(totals[row.product.uuid]!, row) }}
           </span>
-          <StockOutTotalDiff
-            v-if="!isEmpty(row)"
-            :difference="totalDifference(totals[row.product.uuid]!, row.needed, row.extra, row.product)"
-            :unit="unitShortName(row.product.measureUnit)"
-          />
+          <StockOutTotalDiff :difference="shortfall(row)" :unit="unitShortName(row.product.measureUnit)" />
           <Pencil :size="14" class="totals-panel__pencil" aria-hidden="true" />
         </button>
 
         <div v-if="isOpen(row)" class="totals-panel__edit" @keydown.enter="onEnter" @keydown.esc="close">
-          <p v-if="row.needed || row.extra" class="totals-panel__parts">
+          <p v-if="row.needed || extra(row)" class="totals-panel__parts">
             <span v-if="row.needed">{{ $t('stockOut.totals.neededPart', { amount: amount(row.needed, row) }) }}</span>
-            <span v-if="row.extra">{{ $t('stockOut.totals.extraPart', { amount: amount(row.extra, row) }) }}</span>
+            <span v-if="extra(row)">{{ $t('stockOut.totals.extraPart', { amount: amount(extra(row), row) }) }}</span>
           </p>
           <div class="totals-panel__field">
             <UnitAmountInput
@@ -99,7 +106,7 @@ const setRowRef = (uuid: string, el: unknown) => {
               :product-unit="row.product.measureUnit"
               :invalid="showErrors && isEmpty(row)"
               :label="$t('stockOut.totals.totalFor', { product: row.product.name })"
-              @update:model-value="(value: number | undefined) => emit('update', row.product.uuid, value)"
+              @update:model-value="(value: number | undefined) => onUpdate(row as IStockOutTotalRow, value)"
             />
             <el-button
               circle

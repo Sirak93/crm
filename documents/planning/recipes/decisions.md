@@ -229,9 +229,15 @@ without recipes is a normal stock-out, like today.
 
 ### Extra products
 
-- Normal product lines (product + amount), as in today's stock-out form - for products given
-  out without a recipe.
-- The same product can be both in a recipe and in the extras.
+- **One place for amounts (decided 2026-11-27, replaces "product + amount" lines):** the Extras
+  block only adds products that are in no recipe - a product picker, no amount. Every amount is
+  typed in the totals; an extras product starts with an empty total that must be filled in.
+- **Extra is worked out, not typed:** extra = total − recipes (rounded up), when above 0; saved
+  in `extra_quantity` as before. 17.5 eggs → 18; typed 20 → extra 2 (count units stay whole).
+- **Changing recipes or people resets** the totals of the products they feed back to the
+  calculated amount; the storekeeper checks the totals before saving.
+- Backend and DB unchanged. A saved doc opens the same way: its extras block lists the products
+  with no recipe part, every total comes back as saved.
 
 ### Totals - one Actual per product (decided 2026-11-26)
 
@@ -248,14 +254,15 @@ without recipes is a normal stock-out, like today.
   difference can be seen later.
 - **Changed totals are marked (decided 2026-11-27):** when a total is not the prefill (recipes +
   extras, rounded up), a small `(+2)` / `(−1)` shows next to it - in the form and in the doc view.
-  Rows that match show nothing.
+  Rows that match show nothing. Since extras are worked out from the total, the form only ever
+  shows `(−1)` (a total below the recipes); `(+2)` stays for older docs in the view.
 - **Summary panel (decided 2026-11-27):** stock-out form and the view of a doc with recipes show a
   panel on the right (sticky on wide screens, below the page on small ones): each recipe with its
   people and amounts, then the extra products, with recipe and product counts. Read only. Recipe
   rows in the form are one line (recipe, people, remove); their amounts show only in the panel.
 - **Totals panel (add / edit only, decided 2026-11-27):** the totals table is replaced by a second
-  panel in the same style: each product once, no groups, total editable as before, with the
-  recipe / extra parts under the name and the (+2) mark. Save and Cancel live at its bottom.
+  panel in the same style: each product once, no groups, compact rows - a click opens a row's total
+  to change, with the recipe / extra parts and the mark. Save and Cancel live at its bottom.
   1600px+: summary and totals side by side on the right, both sticky. 1200-1599px: summary sticky
   on the right, totals under the rows. Smaller: one column.
 - Same totals list for every stock-out reason (e.g. Returned - then it is just the extras).

@@ -37,8 +37,8 @@ import {
 import type { IStockOutLineForm } from '../../interfaces/IStockOutLineForm';
 import type { IStockOutRecipeForm } from '../../interfaces/IStockOutRecipeForm';
 import { isFutureDay } from '../../utils/format';
-import { emptyOutLine, isOutLineValid, toOutLineForm } from '../../utils/stockOutLines';
-import { buildTotals, emptyRecipeRow, isBlankOutLine, toSavedRecipeOption } from '../../utils/stockOutTotals';
+import { emptyOutLine } from '../../utils/stockOutLines';
+import { buildTotals, emptyRecipeRow, extraOf, toSavedRecipeOption } from '../../utils/stockOutTotals';
 import { formPanelGroups } from '../../utils/stockOutPanel';
 import { AppLogger } from '../../utils/AppLogger';
 
@@ -64,11 +64,11 @@ const form = ref({
   receiverUuid: '',
   note: '',
 });
-// The extras block - products given out without a recipe.
+// The extras block - products given out without a recipe; their amounts are typed in the totals.
 const lines = ref<IStockOutLineForm[]>([emptyOutLine()]);
 const recipeRows = ref<IStockOutRecipeForm[]>([]);
 const recipeOptions = ref<IRecipeOption[]>([]);
-// Totals the storekeeper changed, by product uuid; every other product shows its prefill.
+// Totals the storekeeper typed, by product uuid; every other product shows its prefill.
 const totalOverrides = ref<Record<string, number | undefined>>({});
 const original = ref<IStockOutDetails | null>(null);
 const selectedSupplier = ref<INamedRef | null>(null);
@@ -84,16 +84,24 @@ const isIssued = computed(() => form.value.reason === StockOutReason.ISSUED);
 const isOther = computed(() => form.value.reason === StockOutReason.OTHER);
 
 const recipeMap = computed(() => new Map(recipeOptions.value.map((recipe) => [recipe.uuid, recipe])));
-const filledLines = computed(() => lines.value.filter((line) => !isBlankOutLine(line)));
+const filledLines = computed(() => lines.value.filter((line) => line.productUuid));
 const totalRows = computed(() => buildTotals(recipeRows.value, recipeMap.value, filledLines.value));
-const panelGroups = computed(() => formPanelGroups(recipeRows.value, recipeMap.value, filledLines.value, t('stockOut.lines.title')));
 const totals = computed(() => Object.fromEntries(totalRows.value.map((row) => [
   row.product.uuid,
   row.product.uuid in totalOverrides.value ? totalOverrides.value[row.product.uuid] : row.prefill,
 ])));
+/** The extra of each product - its total above the recipes. */
+const extras = computed(() => totalRows.value.flatMap((row) => {
+  const total = totals.value[row.product.uuid];
+  const quantity = total === undefined ? 0 : extraOf(total, row.needed, row.product);
+  return quantity ? [{ key: row.product.uuid, product: row.product, quantity }] : [];
+}));
+const panelGroups = computed(() => formPanelGroups(recipeRows.value, recipeMap.value, extras.value, t('stockOut.lines.title')));
+// Products already in the totals are not offered again in the extras block.
+const totalProductUuids = computed(() => totalRows.value.map((row) => row.product.uuid));
 
-// A product whose prefill changes (a recipe, persons or extra changed) drops the typed total and shows the new prefill.
-let lastPrefills = new Map<string, number>();
+// A product whose prefill changes (a recipe or persons changed) drops the typed total and shows the new prefill.
+let lastPrefills = new Map<string, number | undefined>();
 watch(() => totalRows.value.map((row) => `${row.product.uuid}:${row.prefill}`).join('|'), () => {
   const prefills = new Map(totalRows.value.map((row) => [row.product.uuid, row.prefill]));
   totalOverrides.value = Object.fromEntries(Object.entries(totalOverrides.value)
@@ -109,7 +117,7 @@ const setTotal = (productUuid: string, value: number | undefined) => {
 const snapshotOf = () => JSON.stringify({
   ...form.value,
   date: form.value.date?.getTime(),
-  lines: lines.value.map(({ productUuid, quantity }) => ({ productUuid, quantity })),
+  lines: lines.value.map(({ productUuid }) => productUuid),
   recipes: recipeRows.value.map(({ recipeUuid, persons }) => ({ recipeUuid, persons })),
   totals: totals.value,
 });
@@ -178,12 +186,12 @@ const load = async () => {
     const savedUuids = new Set(savedRecipes.map((recipe) => recipe.uuid));
     recipeOptions.value = [...savedRecipes, ...recipes.filter((recipe) => !savedUuids.has(recipe.uuid))];
     recipeRows.value = doc.recipes.map((row) => ({ ...emptyRecipeRow(row.persons), recipeUuid: row.recipe.uuid }));
-    // A line with no recipe part and no extra (sent so by the API) still loads, as an extra of its total.
-    const extras = doc.lines
-      .filter((line) => line.extraQuantity > 0 || !line.neededQuantity)
-      .map((line) => toOutLineForm({ ...line, quantity: line.extraQuantity || line.quantity }));
-    lines.value = extras.length ? extras : [emptyOutLine()];
-    // Totals typed by hand stay; set the prefills first, so the watch above keeps them.
+    // The extras block lists the products in no recipe; every total comes back as saved.
+    const extraLines = doc.lines
+      .filter((line) => !line.neededQuantity)
+      .map((line) => ({ ...emptyOutLine(), productUuid: line.product.uuid, product: line.product }));
+    lines.value = extraLines.length ? extraLines : [emptyOutLine()];
+    // Set the prefills first, so the watch above keeps the typed totals.
     lastPrefills = new Map(totalRows.value.map((row) => [row.product.uuid, row.prefill]));
     totalOverrides.value = Object.fromEntries(doc.lines
       .filter((line) => line.quantity !== lastPrefills.get(line.product.uuid))
@@ -210,7 +218,7 @@ const toPayload = (): IStockOutPayload => ({
   lines: totalRows.value.map((row) => ({
     productUuid: row.product.uuid,
     quantity: totals.value[row.product.uuid]!,
-    extraQuantity: row.extra,
+    extraQuantity: extraOf(totals.value[row.product.uuid]!, row.needed, row.product),
   })),
 });
 
@@ -218,13 +226,11 @@ const save = async () => {
   const isHeaderValid = await formRef.value?.validate().catch(() => false);
   const invalidKey = !recipeRows.value.every((row) => row.recipeUuid && row.persons && row.persons >= 1)
     ? 'stockOut.form.recipesInvalid'
-    : !filledLines.value.every(isOutLineValid)
-      ? 'stockOut.form.linesInvalid'
-      : !totalRows.value.length
-        ? 'stockOut.form.linesRequired'
-        : totalRows.value.some((row) => totals.value[row.product.uuid] === undefined)
-          ? 'stockOut.form.totalsInvalid'
-          : null;
+    : !totalRows.value.length
+      ? 'stockOut.form.linesRequired'
+      : totalRows.value.some((row) => totals.value[row.product.uuid] === undefined)
+        ? 'stockOut.form.totalsInvalid'
+        : null;
   showLineErrors.value = !!invalidKey;
   if (invalidKey) NotificationService.error(t(invalidKey));
   if (!isHeaderValid || invalidKey) return;
@@ -336,7 +342,7 @@ const save = async () => {
         <AppCard class="lines-card">
           <StockOutLinesEditor
             v-model="lines"
-            :show-errors="showLineErrors"
+            :exclude-uuids="totalProductUuids"
             :supplied-by="isReturned ? form.supplierUuid || null : undefined"
           />
         </AppCard>

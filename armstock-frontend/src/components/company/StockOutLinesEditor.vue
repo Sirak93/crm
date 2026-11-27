@@ -1,23 +1,22 @@
 <script setup lang="ts">
 import { nextTick, ref } from 'vue';
 import { useI18n } from 'vue-i18n';
-import { MEASURE_UNITS, type IStockLineProduct } from 'armstock-shared';
+import type { IStockLineProduct } from 'armstock-shared';
 import { Plus, Trash2 } from 'lucide-vue-next';
 import ProductSelect from './ProductSelect.vue';
 import CodeBadge from '../CodeBadge.vue';
-import UnitAmountInput from '../UnitAmountInput.vue';
 import type { IStockOutLineForm } from '../../interfaces/IStockOutLineForm';
 import { emptyOutLine } from '../../utils/stockOutLines';
-import { isBlankOutLine } from '../../utils/stockOutTotals';
 import { withScannedProduct } from '../../utils/stockLines';
 import { OptionsService } from '../../services/OptionsService';
 import { NotificationService } from '../../services/NotificationService';
 import { useApiErrorMessage } from '../../composables/useApiErrorMessage';
 import { useBarcodeScanner } from '../../composables/useBarcodeScanner';
 
+/** Products given out without a recipe - picked here, their amounts typed in the totals. */
 const props = defineProps<{
-  /** Highlight rows that are not filled in correctly - set after a failed save. */
-  showErrors: boolean;
+  /** Products already in the totals - not offered again. */
+  excludeUuids: string[];
   /** Return: the supplier whose products can be picked (null = none picked yet). */
   suppliedBy?: string | null;
 }>();
@@ -45,8 +44,6 @@ const removeLine = (key: number) => {
 
 const onProductSelect = (line: IStockOutLineForm, product: IStockLineProduct) => {
   line.product = product;
-  // A whole-number unit drops any decimals typed for the previous product.
-  if (!MEASURE_UNITS[product.measureUnit].allowsDecimals && line.quantity !== undefined) line.quantity = Math.round(line.quantity);
 };
 
 // Same rules as the product picker: stock-out products only, and for a return only this supplier's.
@@ -62,10 +59,8 @@ const onScan = async (barcode: string) => {
       NotificationService.error(t('scanner.notFound', { barcode }));
       return;
     }
-    const result = withScannedProduct(lines.value, product, emptyOutLine, {
-      get: (line) => line.quantity,
-      set: (line, value) => { line.quantity = value; },
-    });
+    // No amount here - a product scanned again stays on its row.
+    const result = withScannedProduct(lines.value, product, emptyOutLine, { get: () => 0, set: () => {} });
     lines.value = result.lines;
   } catch (error) {
     NotificationService.error(parseError(error, 'scanner.lookupError'));
@@ -99,7 +94,7 @@ const setProductRef = (key: number, el: unknown) => {
             :placeholder="$t('stockOut.lines.productPlaceholder')"
             for-stock-out
             :supplied-by="suppliedBy"
-            :class="{ 'is-invalid': showErrors && !isBlankOutLine(row as IStockOutLineForm) && !row.productUuid }"
+            :exclude-uuids="excludeUuids"
             class="lines-editor__product"
             @select="(product: IStockLineProduct) => onProductSelect(row as IStockOutLineForm, product)"
           />
@@ -109,17 +104,6 @@ const setProductRef = (key: number, el: unknown) => {
         <template #default="{ row }">
           <CodeBadge v-if="row.product?.code" :code="row.product.code" />
           <span v-else class="cell-text cell-text--muted">—</span>
-        </template>
-      </el-table-column>
-      <el-table-column :label="$t('stockOut.lines.quantity')" min-width="200">
-        <template #default="{ row }">
-          <UnitAmountInput
-            v-model="row.quantity"
-            :product-unit="row.product?.measureUnit ?? null"
-            :disabled="!row.productUuid"
-            :invalid="showErrors && !isBlankOutLine(row as IStockOutLineForm) && !(row.quantity > 0)"
-            :label="$t('stockOut.lines.quantity')"
-          />
         </template>
       </el-table-column>
       <el-table-column width="56" align="center">
@@ -165,11 +149,6 @@ const setProductRef = (key: number, el: unknown) => {
 
 .lines-editor__product {
   width: 100%;
-}
-
-.lines-editor :deep(.is-invalid .el-input__wrapper),
-.lines-editor :deep(.is-invalid .el-select__wrapper) {
-  border-color: var(--danger) !important;
 }
 
 .lines-editor__remove {

@@ -1,14 +1,13 @@
 import type { IRecipeOption, IStockOutDetails } from 'armstock-shared';
-import type { IStockOutLineForm } from '../interfaces/IStockOutLineForm';
 import type { IStockOutPanelGroup } from '../interfaces/IStockOutPanelGroup';
 import type { IStockOutRecipeForm } from '../interfaces/IStockOutRecipeForm';
 import { neededQuantity } from './stockOutTotals';
 
-/** The form's recipe rows (picked, with persons) and its filled extras, as summary groups. */
+/** The form's recipe rows (picked, with persons) and the extra parts of its totals, as summary groups. */
 export const formPanelGroups = (
   rows: IStockOutRecipeForm[],
   recipes: ReadonlyMap<string, IRecipeOption>,
-  extras: IStockOutLineForm[],
+  extraLines: IStockOutPanelGroup['lines'],
   extrasName: string,
 ): IStockOutPanelGroup[] => {
   const groups: IStockOutPanelGroup[] = [];
@@ -22,9 +21,6 @@ export const formPanelGroups = (
       lines: recipe.lines.map((line) => ({ key: line.uuid, product: line.product, quantity: neededQuantity(line.quantity, row.persons!) })),
     });
   }
-  const extraLines = extras
-    .filter((line) => line.product && line.quantity)
-    .map((line) => ({ key: String(line.key), product: line.product!, quantity: line.quantity! }));
   if (extraLines.length) groups.push({ key: 'extras', name: extrasName, lines: extraLines });
   return groups;
 };
