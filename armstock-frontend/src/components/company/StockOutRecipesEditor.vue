@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { nextTick } from 'vue';
 import { RECIPE_PERSONS_MAX, type IRecipeOption } from 'armstock-shared';
-import { ChefHat, Plus, Trash2 } from 'lucide-vue-next';
+import { ChefHat, Plus, Trash2, Users } from 'lucide-vue-next';
 import SectionHeader from '../SectionHeader.vue';
 import type { IStockOutRecipeForm } from '../../interfaces/IStockOutRecipeForm';
 import { emptyRecipeRow } from '../../utils/stockOutTotals';
@@ -56,8 +56,13 @@ const setRecipeRef = (key: number, el: unknown) => {
       <template #icon><ChefHat :size="18" /></template>
     </SectionHeader>
 
-    <el-table v-if="available && rows.length" :data="rows" class="app-table" row-key="key">
-      <el-table-column type="index" label="#" width="48" align="center" />
+    <p v-if="available && !rows.length" class="form-empty">
+      <ChefHat :size="16" aria-hidden="true" />
+      {{ $t('stockOut.recipes.empty') }}
+    </p>
+
+    <!-- No column titles: the section title and the fields' own text say what goes where. -->
+    <el-table v-if="available && rows.length" :data="rows" :show-header="false" class="app-table app-table--form" row-key="key">
       <el-table-column :label="$t('stockOut.recipes.recipe')" min-width="220">
         <template #default="{ row }">
           <el-select
@@ -71,11 +76,12 @@ const setRecipeRef = (key: number, el: unknown) => {
             :class="{ 'is-invalid': showErrors && !row.recipeUuid }"
             class="recipes-editor__field"
           >
+            <template #prefix><ChefHat :size="15" aria-hidden="true" /></template>
             <el-option v-for="recipe in offeredFor(row as IStockOutRecipeForm)" :key="recipe.uuid" :label="recipe.name" :value="recipe.uuid" />
           </el-select>
         </template>
       </el-table-column>
-      <el-table-column :label="$t('stockOut.recipes.persons')" width="120">
+      <el-table-column :label="$t('stockOut.recipes.persons')" width="130">
         <template #default="{ row }">
           <el-input-number
             v-model="row.persons"
@@ -87,7 +93,9 @@ const setRecipeRef = (key: number, el: unknown) => {
             :aria-label="$t('stockOut.recipes.persons')"
             :class="{ 'is-invalid': showErrors && !isPersonsValid(row.persons) }"
             class="recipes-editor__field recipes-editor__number"
-          />
+          >
+            <template #prefix><Users :size="15" aria-hidden="true" /></template>
+          </el-input-number>
         </template>
       </el-table-column>
       <el-table-column width="56" align="center">

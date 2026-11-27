@@ -10,3 +10,54 @@
         grid-template-columns: 1fr 1fr;
     }
 }
+
+/* Tables inside a form: readable column titles in normal letters (the list tables keep small caps). */
+.app-table.app-table--form th.el-table__cell {
+    font-size: var(--text-sm) !important;
+    font-weight: 600 !important;
+    letter-spacing: 0 !important;
+    text-transform: none !important;
+}
+
+/* What to do next when a form section has no rows yet. */
+.form-empty {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    margin: 0 clamp(0.75rem, 2vw, 1.25rem) 0.75rem;
+    padding: 0.875rem 1rem;
+    border: 1px dashed var(--border-dark);
+    border-radius: var(--radius);
+    font-size: var(--text-sm);
+    color: var(--text-muted);
+    background-color: var(--bg-app);
+}
+
+/* Fields in a form table: soft filled look that turns white with a ring on focus; icons stay muted. */
+.app-table--form .el-input__wrapper,
+.app-table--form .el-select__wrapper {
+    border-color: transparent !important;
+    background-color: var(--bg-app) !important;
+}
+
+.app-table--form .el-input__wrapper:hover,
+.app-table--form .el-select__wrapper:hover {
+    border-color: var(--border-dark) !important;
+}
+
+.app-table--form .el-input__wrapper.is-focus,
+.app-table--form .el-select__wrapper.is-focus {
+    border-color: var(--primary) !important;
+    background-color: var(--bg-card) !important;
+}
+
+.app-table--form .el-input__prefix,
+.app-table--form .el-select__prefix,
+.app-table--form .el-input__suffix {
+    color: var(--text-muted);
+}
+
+.app-table--form .is-focus .el-input__prefix,
+.app-table--form .is-focus .el-select__prefix {
+    color: var(--primary-dark);
+}

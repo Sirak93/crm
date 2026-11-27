@@ -2,7 +2,7 @@
 import { nextTick, ref } from 'vue';
 import { useI18n } from 'vue-i18n';
 import type { IStockLineProduct } from 'armstock-shared';
-import { Package, Plus, Trash2 } from 'lucide-vue-next';
+import { Package, Plus, Search, Trash2 } from 'lucide-vue-next';
 import SectionHeader from '../SectionHeader.vue';
 import ProductSelect from './ProductSelect.vue';
 import type { IStockOutLineForm } from '../../interfaces/IStockOutLineForm';
@@ -82,8 +82,13 @@ const setProductRef = (key: number, el: unknown) => {
       <template #icon><Package :size="18" /></template>
     </SectionHeader>
 
-    <el-table v-if="lines.length" :data="lines" class="app-table lines-editor__table" row-key="key">
-      <el-table-column type="index" label="#" width="48" align="center" />
+    <p v-if="!lines.length" class="form-empty">
+      <Package :size="16" aria-hidden="true" />
+      {{ $t('stockOut.lines.empty') }}
+    </p>
+
+    <!-- No column titles: the section title and the field's own text say what goes where. -->
+    <el-table v-else :data="lines" :show-header="false" class="app-table app-table--form lines-editor__table" row-key="key">
       <el-table-column :label="$t('stockOut.lines.product')" min-width="260">
         <template #default="{ row }">
           <ProductSelect
@@ -96,7 +101,9 @@ const setProductRef = (key: number, el: unknown) => {
             :exclude-uuids="excludeUuids"
             class="lines-editor__product"
             @select="(product: IStockLineProduct) => onProductSelect(row as IStockOutLineForm, product)"
-          />
+          >
+            <template #prefix><Search :size="15" aria-hidden="true" /></template>
+          </ProductSelect>
         </template>
       </el-table-column>
       <el-table-column width="56" align="center">

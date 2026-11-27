@@ -677,6 +677,7 @@ export default {
       rowCount: 'Rows: {count}',
     },
     lines: {
+      empty: 'No extra products yet. Click "Add row" below.',
       product: 'Product',
       productPlaceholder: 'Search by name or code',
       quantity: 'Quantity',
@@ -688,6 +689,7 @@ export default {
       hint: 'Products given out without a recipe. Type their amounts in Totals.',
     },
     recipes: {
+      empty: 'No recipes yet. Click "Add recipe" below.',
       title: 'Recipes',
       hint: 'Pick a recipe and the number of persons - the amounts are worked out for you.',
       issuedOnly: 'Recipes can be added only when the reason is Issued.',

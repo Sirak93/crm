@@ -101,6 +101,7 @@ defineExpose({ focus: () => selectRef.value?.focus() });
     :no-data-text="suppliedBy === null ? $t('stockOut.lines.chooseSupplierFirst') : undefined"
     @change="onChange"
   >
+    <template v-if="$slots.prefix" #prefix><slot name="prefix" /></template>
     <el-option v-for="option in shownOptions" :key="option.uuid" :label="option.name" :value="option.uuid">
       <div class="product-option">
         <span class="product-option__name">{{ option.name }}</span>
