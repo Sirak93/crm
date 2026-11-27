@@ -41,8 +41,8 @@ read only once.
 - [x] Step 3 — Stock-out: recipes block + totals list (create)
 - [x] Step 4 — Stock-out with recipes: list mark and view
 - [x] Step 5 — Stock-out with recipes: edit and delete
-- [ ] Step K — Kitchen balance
-- [ ] Step 6 — Date on stock lines + "this month" default on stock lists
+- [x] Step K — Kitchen balance
+- [x] Step 6 — Date on stock lines + "this month" default on stock lists
 - [ ] Step 7 — Stock movement page
 - [ ] Step 8 — Product movement popup
 - [ ] Step 9 — Excel export
@@ -309,7 +309,7 @@ Decisions: decisions.md → "Kitchen balance".
 - [x] Tests (`KitchenBalanceSuite`): K after Issued docs with / without recipes, other reasons
       don't touch K, extras stay in K, K + total < needs refused, delete / edit refused when K
       would go below 0, stock-in unaffected, page permissions, other company never counted
-- [ ] Checked in browser: 0.9 l oil in K, recipes need 1.5 l, give 5 l → K 4.4 l
+- [x] Checked in browser: 0.9 l oil in K, recipes need 1.5 l, give 5 l → K 4.4 l
 
 ## Step 6 — Date on stock lines + "this month" default on stock lists
 
@@ -321,7 +321,7 @@ Decisions: decisions.md → "Kitchen balance".
       stock-out recipe lines)
 - [x] Frontend: stock-in and stock-out lists default to this month (still clearable)
 - [x] Tests: lines carry the doc date; changing a doc's date moves its lines' date
-- [ ] Checked in browser: both lists open on this month
+- [x] Checked in browser: both lists open on this month
 
 ## Step 7 — Stock movement page
 
