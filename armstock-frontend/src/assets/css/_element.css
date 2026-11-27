@@ -268,6 +268,19 @@
     color: var(--primary-dark);
 }
 
+/* The shortcut matching the picked range (class set by useDateRangeShortcuts). */
+.date-shortcut-active-1 .el-picker-panel__shortcut:nth-child(1),
+.date-shortcut-active-2 .el-picker-panel__shortcut:nth-child(2),
+.date-shortcut-active-3 .el-picker-panel__shortcut:nth-child(3),
+.date-shortcut-active-4 .el-picker-panel__shortcut:nth-child(4),
+.date-shortcut-active-5 .el-picker-panel__shortcut:nth-child(5),
+.date-shortcut-active-6 .el-picker-panel__shortcut:nth-child(6) {
+    background-color: var(--primary-light);
+    color: var(--primary-dark);
+    border-color: var(--primary);
+    font-weight: 600;
+}
+
 /* Phones: two months side by side plus shortcuts (~650px) don't fit - stack them, shortcuts on top. */
 @media (max-width: 575px) {
     .el-date-range-picker.el-picker-panel {

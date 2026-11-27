@@ -12,7 +12,7 @@ import { useDateRangeShortcuts } from '../../composables/useDateRangeShortcuts';
 
 const emit = defineEmits<{ change: [filters: IStockOutFilters] }>();
 
-const dateShortcuts = useDateRangeShortcuts();
+const { shortcuts: dateShortcuts, activeClass: activeShortcutClass } = useDateRangeShortcuts();
 
 const form = reactive({
   dateRange: thisMonthRange() as [string, string] | null,
@@ -57,6 +57,7 @@ onMounted(emitChange);
       :format="DATE_PICKER_FORMAT"
       :disabled-date="isFutureDay"
       :shortcuts="dateShortcuts"
+      :popper-class="activeShortcutClass(form.dateRange)"
       :range-separator="$t('stockOut.filters.to')"
       :start-placeholder="$t('stockOut.filters.startDate')"
       :end-placeholder="$t('stockOut.filters.endDate')"

@@ -1,13 +1,17 @@
 import { computed } from 'vue';
 import { useI18n } from 'vue-i18n';
+import { toPickerDay } from '../utils/monthStart';
 
 const DAYS_IN_LAST_WEEK = 7;
 
-/** Quick ranges for an Element Plus daterange picker. None reaches past today. */
+/**
+ * Quick ranges for an Element Plus daterange picker. None reaches past today.
+ * `activeClass` goes to the picker's `popper-class`: Element has no selected state, so CSS marks the matching one.
+ */
 export const useDateRangeShortcuts = () => {
   const { t } = useI18n();
 
-  return computed(() => [
+  const shortcuts = computed(() => [
     {
       text: t('dateRanges.today'),
       value: () => [new Date(), new Date()],
@@ -50,4 +54,15 @@ export const useDateRangeShortcuts = () => {
       },
     },
   ]);
+
+  const activeClass = (range: [string, string] | null): string => {
+    if (!range) return '';
+    const index = shortcuts.value.findIndex((shortcut) => {
+      const [from, to] = shortcut.value();
+      return toPickerDay(from) === range[0] && toPickerDay(to) === range[1];
+    });
+    return index < 0 ? '' : `date-shortcut-active-${index + 1}`;
+  };
+
+  return { shortcuts, activeClass };
 };
