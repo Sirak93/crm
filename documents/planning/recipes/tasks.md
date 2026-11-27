@@ -44,10 +44,10 @@ read only once.
 - [x] Step K — Kitchen balance
 - [x] Step 6 — Date on stock lines + "this month" default on stock lists
 - [x] Step 7 — Stock movement page
-- [ ] Step 8 — Product movement popup
-- [ ] Step 9 — Excel export
-- [ ] Step 9b — Excel export for the lists (stock-in, stock-out, stock balance, kitchen balance)
-- [ ] Step 9c — Excel: row limit, recipes in the product file, single-document export
+- [x] Step 8 — Product movement popup
+- [x] Step 9 — Excel export
+- [x] Step 9b — Excel export for the lists (stock-in, stock-out, stock balance, kitchen balance)
+- [x] Step 9c — Excel: row limit, recipes in the product file, single-document export
 - [ ] Step T — Armenian time everywhere
 - [ ] Step 10 — Excel review
 
@@ -355,7 +355,7 @@ Decisions: decisions.md → "Kitchen balance".
   - [x] Doc number opens the doc in a new tab (plain text without view permission)
 - [x] Tests: order (date, then created), stock after across pages, recipe lines, same
       numbers as the table row
-- [ ] Checked in browser: popup for a product with many documents
+- [x] Checked in browser: popup for a product with many documents
 
 ## Step 9 — Excel export
 
@@ -367,7 +367,7 @@ Decisions: decisions.md → "Kitchen balance".
 - [x] Frontend: "Export to Excel" above the table, "Export" in row actions, button in the
       popup; reason names read from shared
 - [x] Tests: both endpoints return a valid .xlsx with the expected rows; permissions
-- [ ] Checked in browser: files open in Excel with Armenian text
+- [x] Checked in browser: files open in Excel with Armenian text
 
 ## Step 9b — Excel export for the lists
 
@@ -376,7 +376,7 @@ Decisions: decisions.md → "Kitchen balance".
       balance; the page's filters, all rows; same header block and formatting as Step 9
 - [x] Frontend: "Export to Excel" button on each of the four pages
 - [x] Tests: each endpoint returns the expected rows; filters; permissions
-- [ ] Checked in browser: the four files open in Excel
+- [x] Checked in browser: the four files open in Excel
 
 ## Step 9c — Excel: row limit, recipes in the product file, single-document export
 
@@ -389,7 +389,7 @@ Decisions: decisions.md → "Kitchen balance".
 - [x] Frontend: "Export to Excel" on the stock-in and stock-out view pages
 - [x] Tests: limit refused; recipe rows; both document files; permissions; other company's
       document not found
-- [ ] Checked in browser: the files open in Excel
+- [x] Checked in browser: the files open in Excel
 
 ## Step T — Armenian time everywhere
 
