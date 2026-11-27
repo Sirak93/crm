@@ -5,6 +5,7 @@ import { useI18n } from 'vue-i18n';
 import type { FormInstance, FormItemRule, FormRules } from 'element-plus';
 import { StockInReason, type INamedRef, type IStockInDetails, type IStockInPayload } from 'armstock-shared';
 import BackLink from '../../components/BackLink.vue';
+import ReasonSelect from '../../components/ReasonSelect.vue';
 import PageHeader from '../../components/PageHeader.vue';
 import AppCard from '../../components/AppCard.vue';
 import LoadError from '../../components/LoadError.vue';
@@ -16,7 +17,7 @@ import { STOCK_SHORTAGE_TEXT, useApiErrorMessage } from '../../composables/useAp
 import { useUnsavedChanges } from '../../composables/useUnsavedChanges';
 import { useAuthStore } from '../../stores/auth';
 import { DATE_TIME_PICKER_FORMAT, REQUIRED_RULE_TRIGGER, ROUTE_NAME } from '../../constants/constants';
-import { STOCK_IN_REASON_LABEL, STOCK_IN_REASONS } from '../../constants/stockInReasons';
+import { STOCK_IN_REASON_ICON, STOCK_IN_REASON_LABEL, STOCK_IN_REASONS } from '../../constants/stockInReasons';
 import type { IStockInLineForm } from '../../interfaces/IStockInLineForm';
 import { formatNumber, isFutureDay } from '../../utils/format';
 import { emptyLine, isLineValid, toLineForm } from '../../utils/stockInLines';
@@ -50,6 +51,12 @@ const isLoading = ref(isEdit.value);
 const hasError = ref(false);
 const isSaving = ref(false);
 const showLineErrors = ref(false);
+
+const reasonOptions = computed(() => STOCK_IN_REASONS.map((reason) => ({
+  value: reason,
+  label: t(STOCK_IN_REASON_LABEL[reason]),
+  icon: STOCK_IN_REASON_ICON[reason],
+})));
 
 const isPurchase = computed(() => form.value.reason === StockInReason.PURCHASE);
 
@@ -176,9 +183,7 @@ const save = async () => {
         <el-form ref="formRef" :model="form" :rules="rules" label-position="top" :disabled="isSaving" @submit.prevent="save">
           <div class="form-row">
             <el-form-item :label="$t('stockIn.form.reason')" prop="reason">
-              <el-select v-model="form.reason" :aria-label="$t('stockIn.form.reason')">
-                <el-option v-for="reason in STOCK_IN_REASONS" :key="reason" :label="$t(STOCK_IN_REASON_LABEL[reason])" :value="reason" />
-              </el-select>
+              <ReasonSelect v-model="form.reason" :options="reasonOptions" :label="$t('stockIn.form.reason')" />
             </el-form-item>
             <el-form-item :label="$t('stockIn.form.date')" prop="date">
               <el-date-picker
@@ -249,8 +254,9 @@ const save = async () => {
   margin-bottom: 0;
 }
 
-.stock-in-form__date {
-  width: 100%;
+/* Element Plus sizes the date field by this variable, not by width; :deep as the picker has no single root for the scoped style. */
+:deep(.stock-in-form__date) {
+  --el-date-editor-width: 100%;
 }
 
 .lines-card {

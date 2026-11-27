@@ -12,6 +12,7 @@ import {
   type IStockOutPayload,
 } from 'armstock-shared';
 import BackLink from '../../components/BackLink.vue';
+import ReasonSelect from '../../components/ReasonSelect.vue';
 import PageHeader from '../../components/PageHeader.vue';
 import AppCard from '../../components/AppCard.vue';
 import LoadError from '../../components/LoadError.vue';
@@ -31,6 +32,7 @@ import { DATE_TIME_PICKER_FORMAT, REQUIRED_RULE_TRIGGER, ROUTE_NAME } from '../.
 import {
   STOCK_OUT_DEPARTMENT_LABEL,
   STOCK_OUT_DEPARTMENTS,
+  STOCK_OUT_REASON_ICON,
   STOCK_OUT_REASON_LABEL,
   STOCK_OUT_REASONS,
 } from '../../constants/stockOutReasons';
@@ -80,6 +82,12 @@ const isSaving = ref(false);
 const showLineErrors = ref(false);
 // Hovering a product in one panel marks it in the other too.
 const hoveredProduct = ref<string | null>(null);
+
+const reasonOptions = computed(() => STOCK_OUT_REASONS.map((reason) => ({
+  value: reason,
+  label: t(STOCK_OUT_REASON_LABEL[reason]),
+  icon: STOCK_OUT_REASON_ICON[reason],
+})));
 
 const isReturned = computed(() => form.value.reason === StockOutReason.RETURNED);
 const isIssued = computed(() => form.value.reason === StockOutReason.ISSUED);
@@ -273,9 +281,12 @@ const save = async () => {
             <div class="form-row">
               <el-form-item :label="$t('stockOut.form.reason')" prop="reason">
                 <!-- Recipes are for Issued only, so the reason stays while any recipe row is there. -->
-                <el-select v-model="form.reason" :disabled="recipeRows.length > 0" :aria-label="$t('stockOut.form.reason')">
-                  <el-option v-for="reason in STOCK_OUT_REASONS" :key="reason" :label="$t(STOCK_OUT_REASON_LABEL[reason])" :value="reason" />
-                </el-select>
+                <ReasonSelect
+                  v-model="form.reason"
+                  :options="reasonOptions"
+                  :label="$t('stockOut.form.reason')"
+                  :disabled="recipeRows.length > 0"
+                />
               </el-form-item>
               <el-form-item :label="$t('stockOut.form.date')" prop="date">
                 <el-date-picker
@@ -393,8 +404,9 @@ const save = async () => {
   margin-bottom: 0;
 }
 
-.stock-out-form__date {
-  width: 100%;
+/* Element Plus sizes the date field by this variable, not by width; :deep as the picker has no single root for the scoped style. */
+:deep(.stock-out-form__date) {
+  --el-date-editor-width: 100%;
 }
 
 .lines-card {
