@@ -17,13 +17,11 @@ import { Product } from "../models/Product";
 import { Supplier } from "../models/Supplier";
 import { User } from "../models/User";
 import { AppError } from "../utils/AppError";
-import { formatDocumentNumber, saveNumberedDocument } from "../utils/documentNumber";
+import { formatDocumentNumber, saveNumberedDocument, STOCK_IN_NUMBER_PREFIX } from "../utils/documentNumber";
 import { userName } from "../utils/userName";
 import { StockService } from "./StockService";
 import { SupplierReturnService } from "./SupplierReturnService";
 import type { StockInBody, StockInFilters, StockInsQuery } from "../schemas/StockInSchema";
-
-const NUMBER_PREFIX = "IN";
 
 /** What the document had before an edit - archived products and supplier may stay. */
 interface IExistingRefs {
@@ -124,7 +122,7 @@ export class StockInService {
 
         return docs.map((doc) => ({
             uuid: doc.uuid,
-            number: formatDocumentNumber(NUMBER_PREFIX, doc.year, doc.number),
+            number: formatDocumentNumber(STOCK_IN_NUMBER_PREFIX, doc.year, doc.number),
             reason: doc.reason,
             date: doc.date.toISOString(),
             supplier: doc.supplierUuid ? { uuid: doc.supplierUuid, name: supplierMap.get(doc.supplierUuid) ?? "" } : null,

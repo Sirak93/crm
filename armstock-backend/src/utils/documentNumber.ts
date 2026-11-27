@@ -1,6 +1,9 @@
 import { type EntityManager, type EntityTarget, type ObjectLiteral } from "typeorm";
 import { AppDataSource } from "../config/database";
 
+export const STOCK_IN_NUMBER_PREFIX = "IN";
+export const STOCK_OUT_NUMBER_PREFIX = "OUT";
+
 /** e.g. IN-2026-0015 */
 export const formatDocumentNumber = (prefix: string, year: number, number: number): string =>
     `${prefix}-${year}-${String(number).padStart(4, "0")}`;

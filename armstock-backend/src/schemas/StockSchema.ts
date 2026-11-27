@@ -1,4 +1,5 @@
 import { z } from "zod";
+import { PRODUCT_MOVEMENT_PAGE_SIZE } from "armstock-shared";
 import { PaginatedSearchQuerySchema } from "./SharedSchema";
 import { StockDocumentFiltersSchema } from "./StockDocumentSchema";
 
@@ -26,7 +27,14 @@ export const StockMovementQuerySchema = PaginatedSearchQuerySchema.extend({
     withoutMovement: z.stringbool().default(false),
 });
 
+// One product's documents; same range as the movement table.
+export const ProductMovementQuerySchema = PaginatedSearchQuerySchema.pick({ page: true, pageSize: true }).extend({
+    pageSize: PaginatedSearchQuerySchema.shape.pageSize.unwrap().default(PRODUCT_MOVEMENT_PAGE_SIZE),
+    ...StockDocumentFiltersSchema.pick({ dateFrom: true, dateTo: true }).shape,
+});
+
 export type StockBalanceFilters = z.infer<typeof StockBalanceFiltersSchema>;
 export type StockBalanceQuery = z.infer<typeof StockBalanceQuerySchema>;
 export type KitchenBalanceQuery = z.infer<typeof KitchenBalanceQuerySchema>;
 export type StockMovementQuery = z.infer<typeof StockMovementQuerySchema>;
+export type ProductMovementQuery = z.infer<typeof ProductMovementQuerySchema>;

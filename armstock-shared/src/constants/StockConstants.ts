@@ -23,3 +23,6 @@ export const BARCODE_MAX_LENGTH = 64;
 
 /** Kitchen balance (K): its page, the form hints and switch, and the K checks. Off keeps docs and data - set to true to bring it back. */
 export const KITCHEN_BALANCE_ENABLED = true;
+
+/** Documents per page of one product's movement - more load on scroll. */
+export const PRODUCT_MOVEMENT_PAGE_SIZE = 50;

@@ -7,6 +7,7 @@ import AppCard from '../../components/AppCard.vue';
 import LoadError from '../../components/LoadError.vue';
 import StockMovementFilters from '../../components/company/StockMovementFilters.vue';
 import StockMovementTable from '../../components/company/StockMovementTable.vue';
+import ProductMovementDialog from '../../components/company/ProductMovementDialog.vue';
 import { StockService } from '../../services/StockService';
 import { ProductCategoryService } from '../../services/ProductCategoryService';
 import { DEFAULT_PAGE_SIZE } from '../../constants/constants';
@@ -21,6 +22,8 @@ const filters = ref<IStockMovementFilters>({ withoutMovement: false });
 const isLoading = ref(true);
 const hasLoaded = ref(false);
 const hasError = ref(false);
+const viewed = ref<IStockMovement | null>(null);
+const isPopupOpen = ref(false);
 
 const load = async (page = meta.value.page) => {
   isLoading.value = true;
@@ -53,6 +56,11 @@ const onFiltersChange = (newFilters: IStockMovementFilters) => {
   load(1);
 };
 
+const view = (row: IStockMovement) => {
+  viewed.value = row;
+  isPopupOpen.value = true;
+};
+
 const retry = () => Promise.all([loadCategories(), load()]);
 
 loadCategories();
@@ -77,7 +85,7 @@ loadCategories();
         <template #image><ArrowLeftRight :size="40" aria-hidden="true" /></template>
       </el-empty>
 
-      <StockMovementTable v-else v-loading="isLoading" :rows="rows" />
+      <StockMovementTable v-else v-loading="isLoading" :rows="rows" @view="view" />
     </AppCard>
 
     <el-pagination
@@ -90,6 +98,8 @@ loadCategories();
       :page-size="meta.pageSize"
       @current-change="load"
     />
+
+    <ProductMovementDialog v-model="isPopupOpen" :product="viewed" :range="filters" />
   </section>
 </template>
 

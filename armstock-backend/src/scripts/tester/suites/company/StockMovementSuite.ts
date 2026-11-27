@@ -1,9 +1,21 @@
-import { ErrorCodes, ProductStatus, type IProduct, type IProductCategory, type IStockMovement } from "armstock-shared";
+import {
+    ErrorCodes,
+    PRODUCT_MOVEMENT_PAGE_SIZE,
+    ProductStatus,
+    StockDocumentType,
+    StockInReason,
+    StockOutReason,
+    type IProduct,
+    type IProductCategory,
+    type IProductMovement,
+    type IRecipeDetails,
+    type IStockMovement,
+} from "armstock-shared";
 import { defineSuite } from "../../core/Suite";
 import { equals, matches } from "../../core/Assert";
-import { createCategory, createProduct, createRecipe, createStockIn, createStockOut, lineOf, stockOutBody } from "../../shared/Builders";
+import { createCategory, createProduct, createRecipe, createStockIn, createStockOut, lineOf, recipeBody, stockOutBody } from "../../shared/Builders";
 import { PATHS } from "../../shared/Paths";
-import { uniqueName } from "../../shared/Random";
+import { randomUuid, uniqueName } from "../../shared/Random";
 import { stockOf } from "../../shared/Stock";
 import type { ICompanySideContext } from "../../interfaces/ICompanySideContext";
 
@@ -23,6 +35,10 @@ export default (context: ICompanySideContext) => defineSuite("Stock movement", (
     // date: in and out in March, 0 left. egg: in in March, archived later. fig: a by-recipe line with total 0 in April.
     const products: Record<Key, IProduct> = {} as never;
     let ownCategory: IProductCategory;
+    let figRecipe: IRecipeDetails;
+    /** Apple's documents in date order: in 100, out 30, in 10, out 5. */
+    const appleDocs: { uuid: string; number: string; date: string }[] = [];
+    const keepDoc = ({ uuid, number, date }: { uuid: string; number: string; date: string }) => appleDocs.push({ uuid, number, date });
 
     const nameOf = (key: Key) => `${tag} ${key}`;
     const day = (month: number, date: number) => `2021-${String(month).padStart(2, "0")}-${String(date).padStart(2, "0")}T12:00:00.000Z`;
@@ -54,20 +70,20 @@ export default (context: ICompanySideContext) => defineSuite("Stock movement", (
 
         await createStockIn(storekeeper, [lineOf(bean, 20), lineOf(fig, 10)], { date: day(2, 1) });
         await createStockOut(storekeeper, [lineOf(fig, 5)], { date: day(3, 1) });
-        await createStockIn(storekeeper, [lineOf(apple, 100)], { date: day(3, 5) });
+        keepDoc(await createStockIn(storekeeper, [lineOf(apple, 100)], { date: day(3, 5) }));
         await createStockIn(storekeeper, [lineOf(date, 5)], { date: day(3, 10) });
         await createStockOut(storekeeper, [lineOf(date, 5)], { date: day(3, 11) });
         await createStockIn(storekeeper, [lineOf(egg, 4)], { date: day(3, 12) });
-        await createStockOut(storekeeper, [lineOf(apple, 30)], { date: day(3, 20) });
-        await createStockIn(storekeeper, [lineOf(apple, 10)], { date: day(4, 10) });
+        keepDoc(await createStockOut(storekeeper, [lineOf(apple, 30)], { date: day(3, 20) }));
+        keepDoc(await createStockIn(storekeeper, [lineOf(apple, 10)], { date: day(4, 10) }));
         // The kitchen has the 5 figs from March, so the recipe needs no new ones.
-        const recipe = await createRecipe(companyA.owner, [lineOf(fig, 1)]);
+        figRecipe = await createRecipe(companyA.owner, [lineOf(fig, 1)]);
         await storekeeper.api.ok("POST", PATHS.STOCK_OUTS, stockOutBody([], {
             date: day(4, 15),
-            recipes: [{ recipeUuid: recipe.uuid, persons: 1 }],
+            recipes: [{ recipeUuid: figRecipe.uuid, persons: 2 }],
             lines: [{ productUuid: fig.uuid, quantity: 0, extraQuantity: 0 }],
         }));
-        await createStockOut(storekeeper, [lineOf(apple, 5)], { date: day(5, 2) });
+        keepDoc(await createStockOut(storekeeper, [lineOf(apple, 5)], { date: day(5, 2) }));
         await storekeeper.api.ok("PATCH", `${PATHS.PRODUCTS}/${egg.uuid}/status`, { status: ProductStatus.ARCHIVED });
     });
 
@@ -180,5 +196,82 @@ export default (context: ICompanySideContext) => defineSuite("Stock movement", (
         const { data } = await companyB.owner.api.ok<IStockMovement[]>("GET",
             `${PATHS.STOCK_MOVEMENT}?search=${encodeURIComponent(tag)}&withoutMovement=true`);
         matches(data.map((item) => item.uuid), [theirs.uuid]);
+    });
+
+    const productMovement = (product: IProduct, params: Record<string, string | undefined> = {}) => {
+        const query = new URLSearchParams();
+        for (const [key, value] of Object.entries(params)) if (value !== undefined) query.set(key, value);
+        return storekeeper.api.ok<IProductMovement>("GET", `${PATHS.STOCK_MOVEMENT}/${product.uuid}?${query}`);
+    };
+
+    test("product popup: every document oldest first, with the stock after each", async () => {
+        const { data, meta } = await productMovement(products.apple);
+        matches(data.documents, [
+            { ...appleDocs[0], type: StockDocumentType.STOCK_IN, reason: StockInReason.INITIAL_STOCK, incoming: 100, outgoing: 0, stockAfter: 100, recipes: [] },
+            { ...appleDocs[1], type: StockDocumentType.STOCK_OUT, reason: StockOutReason.ISSUED, incoming: 0, outgoing: 30, stockAfter: 70 },
+            { ...appleDocs[2], type: StockDocumentType.STOCK_IN, incoming: 10, outgoing: 0, stockAfter: 80 },
+            { ...appleDocs[3], type: StockDocumentType.STOCK_OUT, incoming: 0, outgoing: 5, stockAfter: 75 },
+        ]);
+        matches(meta, { page: 1, total: 4, totalPages: 1 });
+    });
+
+    test("product popup: the header has the same numbers as the table row; stock after starts from the initial", async () => {
+        for (const range of [{ dateFrom: from(4), dateTo: to(4) }, { dateFrom: from(4) }, { dateTo: to(3) }, {}]) {
+            const [{ data }, rows] = await Promise.all([productMovement(products.apple, range), list({ ...range, withoutMovement: "true" })]);
+            const row = rows.data.find((item) => item.uuid === products.apple.uuid)!;
+            matches(data.product, row, `header for ${JSON.stringify(range)}`);
+        }
+        const { data } = await productMovement(products.apple, { dateFrom: from(4) });
+        matches(data.product, { initial: 70, incoming: 10, outgoing: 5, final: 75 });
+        matches(data.documents.map((doc) => doc.stockAfter), [80, 75]);
+    });
+
+    test("product popup: a by-recipe stock-out shows its recipes from the saved copy", async () => {
+        const { data } = await productMovement(products.fig, { dateFrom: from(4), dateTo: to(4) });
+        matches(data.documents, [{
+            type: StockDocumentType.STOCK_OUT,
+            outgoing: 0,
+            stockAfter: 5,
+            recipes: [{ name: figRecipe.name, persons: 2, quantity: 2 }],
+        }]);
+        // Changing the recipe later leaves the document as it was that day.
+        await companyA.owner.api.ok("PUT", `${PATHS.RECIPES}/${figRecipe.uuid}`, recipeBody([lineOf(products.fig, 3)], { name: figRecipe.name }));
+        const after = await productMovement(products.fig, { dateFrom: from(4), dateTo: to(4) });
+        matches(after.data.documents[0].recipes, [{ persons: 2, quantity: 2 }]);
+    });
+
+    test("product popup: same date → the one created first; one stock-in with the product twice is one row; stock after across pages", async () => {
+        const grape = await createProduct(storekeeper, { body: { name: `${tag} grape` } });
+        const sameDay = "2020-06-01T12:00:00.000Z";
+        await createStockIn(storekeeper, [lineOf(grape, 2), lineOf(grape, 3)], { date: sameDay });
+        await createStockOut(storekeeper, [lineOf(grape, 2)], { date: sameDay });
+        await createStockIn(storekeeper, [lineOf(grape, 3)], { date: sameDay });
+        await createStockOut(storekeeper, [lineOf(grape, 1)], { date: sameDay });
+        await createStockIn(storekeeper, [lineOf(grape, 4)], { date: sameDay });
+
+        const pages = await Promise.all([1, 2, 3].map((page) => productMovement(grape, { page: String(page), pageSize: "2" })));
+        matches(pages.map(({ data }) => data.documents.map((doc) => [doc.incoming, doc.outgoing, doc.stockAfter])), [
+            [[5, 0, 5], [0, 2, 3]],
+            [[3, 0, 6], [0, 1, 5]],
+            [[4, 0, 9]],
+        ]);
+        matches(pages[2].meta, { page: 3, pageSize: 2, total: 5, totalPages: 3 });
+        matches(pages[2].data.product, { initial: 0, incoming: 12, outgoing: 3, final: 9 });
+    });
+
+    test("product popup: a product without movement in the range has no rows; unknown product and bad query refused", async () => {
+        const { data, meta } = await productMovement(products.bean, { dateFrom: from(3), dateTo: to(3) });
+        matches(data, { product: { initial: 20, incoming: 0, outgoing: 0, final: 20 }, documents: [] });
+        equals(meta.total, 0, "total");
+        await storekeeper.api.rejects("GET", `${PATHS.STOCK_MOVEMENT}/${randomUuid()}`, ErrorCodes.PRODUCT.NOT_FOUND);
+        await storekeeper.api.rejectsField("GET", `${PATHS.STOCK_MOVEMENT}/nope`, "uuid");
+        for (const [query, field] of [["dateFrom=nope", "dateFrom"], ["pageSize=101", "pageSize"], ["page=0", "page"]]) {
+            await storekeeper.api.rejectsField("GET", `${PATHS.STOCK_MOVEMENT}/${products.apple.uuid}?${query}`, field);
+        }
+    });
+
+    test("product popup: the default page has 50 rows", async () => {
+        const { meta } = await productMovement(products.apple);
+        equals(meta.pageSize, PRODUCT_MOVEMENT_PAGE_SIZE, "pageSize");
     });
 });

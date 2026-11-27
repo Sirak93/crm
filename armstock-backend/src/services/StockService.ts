@@ -6,23 +6,31 @@ import {
     ProductStatus,
     QUANTITY_DECIMALS,
     RECIPE_QUANTITY_DECIMALS,
+    StockDocumentType,
     StockOutDepartment,
     type IKitchenQuantity,
     type IPaginationMeta,
+    type IProductMovement,
     type IStockBalance,
     type IStockBalanceSummary,
     type IStockLineProduct,
     type IStockMovement,
+    type IStockMovementRecipe,
     type IStockShortage,
+    type StockInReason,
+    type StockOutReason,
 } from "armstock-shared";
 import { AppDataSource } from "../config/database";
 import { Product } from "../models/Product";
 import { ProductCategory } from "../models/ProductCategory";
+import { Recipe } from "../models/Recipe";
 import { StockInLine } from "../models/StockInLine";
 import { StockOutLine } from "../models/StockOutLine";
+import { StockOutRecipe } from "../models/StockOutRecipe";
 import { StockOutRecipeLine } from "../models/StockOutRecipeLine";
 import { AppError, type ErrorDef } from "../utils/AppError";
-import type { KitchenBalanceQuery, StockBalanceFilters, StockBalanceQuery, StockMovementQuery } from "../schemas/StockSchema";
+import { formatDocumentNumber, STOCK_IN_NUMBER_PREFIX, STOCK_OUT_NUMBER_PREFIX } from "../utils/documentNumber";
+import type { KitchenBalanceQuery, ProductMovementQuery, StockBalanceFilters, StockBalanceQuery, StockMovementQuery } from "../schemas/StockSchema";
 
 // Built on the "stock_in" and "stock_out" subqueries from joinStock.
 const QUANTITY = "(COALESCE(stock_in.quantity, 0) - COALESCE(stock_out.quantity, 0))";
@@ -53,6 +61,19 @@ interface IMovementRow {
     incoming: string;
     outgoing: string;
     final: string;
+}
+
+interface IMovementDocumentRow {
+    uuid: string;
+    type: StockDocumentType;
+    year: number;
+    number: number;
+    reason: StockInReason | StockOutReason;
+    date: Date;
+    incoming: string;
+    outgoing: string;
+    /** Running sum of in − out up to this document. */
+    change: string;
 }
 
 interface IBalanceRow {
@@ -325,15 +346,7 @@ export class StockService {
         const { page, pageSize } = query;
 
         const [rows, total] = await Promise.all([
-            this.movementQuery(companyUuid, query)
-                .select("product.uuid", "uuid")
-                .addSelect("product.name", "name")
-                .addSelect("product.status", "status")
-                .addSelect("product.measureUnit", "measureUnit")
-                .addSelect(MOVEMENT_INITIAL, "initial")
-                .addSelect(MOVEMENT_IN, "incoming")
-                .addSelect(MOVEMENT_OUT, "outgoing")
-                .addSelect(`${MOVEMENT_INITIAL} + ${MOVEMENT_IN} - ${MOVEMENT_OUT}`, "final")
+            StockService.selectMovement(this.movementQuery(companyUuid, query))
                 .orderBy("product.name", "ASC")
                 .addOrderBy("product.uuid", "ASC")
                 .offset((page - 1) * pageSize)
@@ -343,18 +356,136 @@ export class StockService {
         ]);
 
         return {
-            items: rows.map((row) => ({
-                uuid: row.uuid,
-                name: row.name,
-                status: row.status,
-                measureUnit: row.measureUnit,
-                initial: Number(row.initial),
-                incoming: Number(row.incoming),
-                outgoing: Number(row.outgoing),
-                final: Number(row.final),
-            })),
+            items: rows.map(StockService.toMovement),
             meta: { page, pageSize, total, totalPages: Math.ceil(total / pageSize) },
         };
+    }
+
+    private static selectMovement(qb: SelectQueryBuilder<Product>): SelectQueryBuilder<Product> {
+        return qb
+            .select("product.uuid", "uuid")
+            .addSelect("product.name", "name")
+            .addSelect("product.status", "status")
+            .addSelect("product.measureUnit", "measureUnit")
+            .addSelect(MOVEMENT_INITIAL, "initial")
+            .addSelect(MOVEMENT_IN, "incoming")
+            .addSelect(MOVEMENT_OUT, "outgoing")
+            .addSelect(`${MOVEMENT_INITIAL} + ${MOVEMENT_IN} - ${MOVEMENT_OUT}`, "final");
+    }
+
+    private static toMovement(row: IMovementRow): IStockMovement {
+        return {
+            uuid: row.uuid,
+            name: row.name,
+            status: row.status,
+            measureUnit: row.measureUnit,
+            initial: Number(row.initial),
+            incoming: Number(row.incoming),
+            outgoing: Number(row.outgoing),
+            final: Number(row.final),
+        };
+    }
+
+    /**
+     * One product's documents in the range, oldest first (same date → created first), with the stock
+     * after each. The header is the product's movement row, so it matches the table.
+     */
+    async productMovement(
+        companyUuid: string,
+        productUuid: string,
+        query: ProductMovementQuery,
+    ): Promise<{ data: IProductMovement; meta: IPaginationMeta }> {
+        const { page, pageSize, dateFrom, dateTo } = query;
+
+        const params: unknown[] = [companyUuid, productUuid];
+        let range = "";
+        if (dateFrom) range += ` AND line.date >= $${params.push(new Date(dateFrom))}`;
+        if (dateTo) range += ` AND line.date <= $${params.push(new Date(dateTo))}`;
+        // A stock-in may have the product on two lines, so it is summed per document.
+        const documents = `
+            SELECT doc.uuid, ${StockDocumentType.STOCK_IN} AS type, doc.year, doc.number, doc.reason, doc.date, doc.created_at,
+                   SUM(line.quantity) AS incoming, 0 AS outgoing
+            FROM stock_in_lines line JOIN stock_ins doc ON doc.uuid = line.stock_in_uuid
+            WHERE line.company_uuid = $1 AND line.product_uuid = $2${range}
+            GROUP BY doc.uuid
+            UNION ALL
+            SELECT doc.uuid, ${StockDocumentType.STOCK_OUT}, doc.year, doc.number, doc.reason, doc.date, doc.created_at,
+                   0, line.quantity
+            FROM stock_out_lines line JOIN stock_outs doc ON doc.uuid = line.stock_out_uuid
+            WHERE line.company_uuid = $1 AND line.product_uuid = $2${range}`;
+        const order = "date, created_at, uuid";
+
+        // The running sum covers the pages before this one too, so "stock after" is right on every page.
+        const [header, rows, count] = await Promise.all([
+            StockService.selectMovement(this.joinMovement(this.productRepo.createQueryBuilder("product"), query))
+                .where("product.companyUuid = :companyUuid", { companyUuid })
+                .andWhere("product.uuid = :productUuid", { productUuid })
+                .getRawOne<IMovementRow>(),
+            AppDataSource.query<IMovementDocumentRow[]>(`
+                SELECT *, SUM(incoming - outgoing) OVER (ORDER BY ${order} ROWS UNBOUNDED PRECEDING) AS change
+                FROM (${documents}) documents
+                ORDER BY ${order}
+                OFFSET $${params.length + 1} LIMIT $${params.length + 2}`, [...params, (page - 1) * pageSize, pageSize]),
+            AppDataSource.query<{ total: string }[]>(`SELECT COUNT(*) AS total FROM (${documents}) documents`, params),
+        ]);
+        if (!header) throw new AppError(ErrorCodes.PRODUCT.NOT_FOUND, undefined, undefined, { uuid: productUuid });
+
+        const product = StockService.toMovement(header);
+        const recipes = await this.movementRecipes(
+            companyUuid,
+            productUuid,
+            rows.filter((row) => row.type === StockDocumentType.STOCK_OUT).map((row) => row.uuid),
+        );
+        const total = Number(count[0].total);
+
+        return {
+            data: {
+                product,
+                documents: rows.map((row) => ({
+                    uuid: row.uuid,
+                    type: row.type,
+                    number: formatDocumentNumber(
+                        row.type === StockDocumentType.STOCK_IN ? STOCK_IN_NUMBER_PREFIX : STOCK_OUT_NUMBER_PREFIX,
+                        row.year,
+                        row.number,
+                    ),
+                    reason: row.reason,
+                    date: row.date.toISOString(),
+                    incoming: Number(row.incoming),
+                    outgoing: Number(row.outgoing),
+                    stockAfter: Number((product.initial + Number(row.change)).toFixed(QUANTITY_DECIMALS)),
+                    recipes: recipes.get(row.uuid) ?? [],
+                })),
+            },
+            meta: { page, pageSize, total, totalPages: Math.ceil(total / pageSize) },
+        };
+    }
+
+    /** The recipes of these stock-outs that used the product, per stock-out, from the saved copy. */
+    private async movementRecipes(companyUuid: string, productUuid: string, stockOutUuids: string[]): Promise<Map<string, IStockMovementRecipe[]>> {
+        const map = new Map<string, IStockMovementRecipe[]>();
+        if (!stockOutUuids.length) return map;
+
+        const rows = await AppDataSource.getRepository(StockOutRecipeLine)
+            .createQueryBuilder("line")
+            .innerJoin(StockOutRecipe, "row", "row.uuid = line.stockOutRecipeUuid")
+            .innerJoin(Recipe, "recipe", "recipe.uuid = row.recipeUuid")
+            .select("row.stockOutUuid", "stockOutUuid")
+            .addSelect("recipe.name", "name")
+            .addSelect("row.persons", "persons")
+            .addSelect("line.neededQuantity", "quantity")
+            .where("line.companyUuid = :companyUuid", { companyUuid })
+            .andWhere("line.productUuid = :productUuid", { productUuid })
+            .andWhere("row.stockOutUuid IN (:...stockOutUuids)", { stockOutUuids })
+            .orderBy("row.position", "ASC")
+            .getRawMany<{ stockOutUuid: string; name: string; persons: number; quantity: string }>();
+
+        for (const row of rows) {
+            const list = map.get(row.stockOutUuid) ?? [];
+            list.push({ name: row.name, persons: row.persons, quantity: Number(row.quantity) });
+            map.set(row.stockOutUuid, list);
+        }
+        return map;
     }
 
     /** Archived products are not left out - a range in the past may have their movement. */
@@ -375,7 +506,7 @@ export class StockService {
     }
 
     /** Adds the "move_in" and "move_out" sums per product: before "from" and inside the range, plus the line count inside. */
-    private joinMovement(qb: SelectQueryBuilder<Product>, { dateFrom, dateTo }: StockMovementQuery): SelectQueryBuilder<Product> {
+    private joinMovement(qb: SelectQueryBuilder<Product>, { dateFrom, dateTo }: Pick<StockMovementQuery, "dateFrom" | "dateTo">): SelectQueryBuilder<Product> {
         const inside = dateFrom ? " FILTER (WHERE line.date >= :dateFrom)" : "";
         const sums = (entity: typeof StockInLine | typeof StockOutLine) => (sub: SelectQueryBuilder<ObjectLiteral>) => {
             sub.from(entity, "line")

@@ -523,13 +523,17 @@ Not part of recipes - works for every company.
 - Sorted by document date, oldest first; same date and time → the one created first.
 - **Stock after** = how much was in stock right after that document (initial + each row in
   order). Every row has it.
-- **Paging:** 50 rows at a time, more load on scroll. The backend sends each page's
-  starting stock, so "stock after" stays correct on every page.
+- **Paging:** 50 rows at a time, more load on scroll. "Stock after" stays correct on every
+  page: the backend works it out in SQL as a running sum over all the product's documents in
+  the range (window function), then cuts the page - so each row already has its own value.
 - **By-recipe rows** have an arrow, **closed by default** (one click opens or closes one
   row). Opened: each recipe that used this product, with people count and amount. Amounts
   come from the saved copy (`stock_out_recipe_lines` × persons), so they are exact for that
   day. The recipe amounts are exact; the doc's out amount may be rounded up (e.g. eggs 1.6 →
   2) - both are shown.
+- Endpoint: `GET /stock/movement/:uuid` (`STOCK_BALANCE_VIEW`), same range as the table.
+  Each page also sends the header numbers (the product's movement row). A stock-in that has
+  the product on two lines is one row (summed).
 - **Document number** is a link that opens the document in a **new browser tab**. Without
   `STOCK_IN_VIEW` / `STOCK_OUT_VIEW` for that kind of document it is plain text.
 
@@ -622,3 +626,11 @@ Do not build any of this until it is settled.
   - The migration that adds it must turn it **on** for companies already using recipes.
 - Owner picks which default roles a new company gets.
 - Stock movement in money (initial / in / out / final value), if accountants ask.
+- **Measure stock queries on big data** (raised 2026-11-27). The stock balance, stock movement
+  and kitchen balance pages (and `/options/kitchen-balance`) sum **all** of a company's lines
+  on every open, so they grow with its history. Save checks only sum the document's products
+  (index), so they stay cheap. Before real data grows: fill a test database with about 3 years
+  of documents, run `EXPLAIN ANALYZE`, and fix only what is slow. Likely fixes, small to big:
+  1. `INCLUDE (quantity)` on the line indexes (index-only reads).
+  2. Sum only the products of the current page, not all products.
+  3. A monthly closing balance table - initial = last saved month + lines since.

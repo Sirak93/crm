@@ -43,7 +43,7 @@ read only once.
 - [x] Step 5 — Stock-out with recipes: edit and delete
 - [x] Step K — Kitchen balance
 - [x] Step 6 — Date on stock lines + "this month" default on stock lists
-- [ ] Step 7 — Stock movement page
+- [x] Step 7 — Stock movement page
 - [ ] Step 8 — Product movement popup
 - [ ] Step 9 — Excel export
 - [ ] Step 10 — Excel review
@@ -332,25 +332,25 @@ Decisions: decisions.md → "Kitchen balance".
 - [x] Frontend
   - [x] Menu "Ապրանքների շարժ" under Stock balance
   - [x] Table: "Product (unit)" | Initial | In | Out | Final; filters; default this month
-  - [ ] Row actions menu (View / Export) - View opens the popup from Step 8, Export from
+  - [x] Row actions menu (View / Export) - View opens the popup from Step 8, Export from
         Step 9 (hidden until those steps)
 - [x] Tests: `StockMovementSuite` - numbers for ranges before / inside / after documents,
       empty from / to, checkbox on / off, archived products, filters, permissions, other
       company's data never counted
-- [ ] Checked in browser: numbers match the stock-in / stock-out documents
+- [x] Checked in browser: numbers match the stock-in / stock-out documents
 
 ## Step 8 — Product movement popup
 
-- [ ] Backend: one product's documents in the range - date, number, reason, in, out, stock
+- [x] Backend: one product's documents in the range - date, number, reason, in, out, stock
       after; page starting stock sent with each page; header totals; by-recipe rows with
       their recipe lines (from the copy)
-- [ ] Frontend
-  - [ ] Opens on row click and "View"
-  - [ ] Header: Initial / In / Out / Final
-  - [ ] List with "stock after", 50 rows per page loaded on scroll
-  - [ ] By-recipe rows closed by default, one click opens
-  - [ ] Doc number opens the doc in a new tab (plain text without view permission)
-- [ ] Tests: order (date, then created), stock after across pages, recipe lines, same
+- [x] Frontend
+  - [x] Opens on row click and "View"
+  - [x] Header: Initial / In / Out / Final
+  - [x] List with "stock after", 50 rows per page loaded on scroll
+  - [x] By-recipe rows closed by default, one click opens
+  - [x] Doc number opens the doc in a new tab (plain text without view permission)
+- [x] Tests: order (date, then created), stock after across pages, recipe lines, same
       numbers as the table row
 - [ ] Checked in browser: popup for a product with many documents
 

@@ -26,13 +26,11 @@ import { Product } from "../models/Product";
 import { Supplier } from "../models/Supplier";
 import { User } from "../models/User";
 import { AppError } from "../utils/AppError";
-import { formatDocumentNumber, saveNumberedDocument } from "../utils/documentNumber";
+import { formatDocumentNumber, saveNumberedDocument, STOCK_OUT_NUMBER_PREFIX } from "../utils/documentNumber";
 import { userName } from "../utils/userName";
 import { StockService } from "./StockService";
 import { SupplierReturnService } from "./SupplierReturnService";
 import type { StockOutBody, StockOutFilters, StockOutsQuery } from "../schemas/StockOutSchema";
-
-const NUMBER_PREFIX = "OUT";
 
 /** The lines a recipe row is copied from - its current recipe lines, or the doc's own saved copy. */
 type RecipeLinesMap = Map<string, Pick<RecipeLine, "productUuid" | "position" | "quantity">[]>;
@@ -241,7 +239,7 @@ export class StockOutService {
 
         return docs.map((doc) => ({
             uuid: doc.uuid,
-            number: formatDocumentNumber(NUMBER_PREFIX, doc.year, doc.number),
+            number: formatDocumentNumber(STOCK_OUT_NUMBER_PREFIX, doc.year, doc.number),
             reason: doc.reason,
             date: doc.date.toISOString(),
             supplier: doc.supplierUuid ? { uuid: doc.supplierUuid, name: supplierMap.get(doc.supplierUuid) ?? "" } : null,

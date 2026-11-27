@@ -1,4 +1,12 @@
-import type { IAppResponse, IPaginationMeta, IStockBalance, IStockBalanceSummary, IStockMovement } from 'armstock-shared';
+import {
+  PRODUCT_MOVEMENT_PAGE_SIZE,
+  type IAppResponse,
+  type IPaginationMeta,
+  type IProductMovement,
+  type IStockBalance,
+  type IStockBalanceSummary,
+  type IStockMovement,
+} from 'armstock-shared';
 import ApiService from './ApiService';
 import type { IStockBalanceFilters } from '../interfaces/IStockBalanceFilters';
 import type { IStockMovementFilters } from '../interfaces/IStockMovementFilters';
@@ -35,5 +43,17 @@ export const StockService = {
       params: { page, pageSize, ...filters },
     });
     return { items: response.data.data!, meta: response.data.meta as IPaginationMeta };
+  },
+
+  /** One page of a product's documents in the range, with its movement numbers. */
+  async productMovement(
+    uuid: string,
+    page: number,
+    range: Pick<IStockMovementFilters, 'dateFrom' | 'dateTo'>,
+  ): Promise<{ data: IProductMovement; meta: IPaginationMeta }> {
+    const response = await ApiService.get<IAppResponse<IProductMovement>>(`/stock/movement/${uuid}`, {
+      params: { page, pageSize: PRODUCT_MOVEMENT_PAGE_SIZE, dateFrom: range.dateFrom, dateTo: range.dateTo },
+    });
+    return { data: response.data.data!, meta: response.data.meta as IPaginationMeta };
   },
 };

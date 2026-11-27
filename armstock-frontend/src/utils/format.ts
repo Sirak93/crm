@@ -18,6 +18,9 @@ export const isFutureDay = (date: Date): boolean => {
   return date > endOfToday;
 };
 
+/** DD/MM/YYYY, numbers only like formatDateTime. */
+export const formatDate = (iso: string): string => formatDateTime(iso).slice(0, 10);
+
 /** DD/MM/YYYY HH:mm (24-hour), numbers only like formatDateTime. */
 export const formatDateTimeShort = (iso: string): string => formatDateTime(iso).slice(0, 16);
 

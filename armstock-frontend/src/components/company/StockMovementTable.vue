@@ -1,9 +1,14 @@
 <script setup lang="ts">
 import { ProductStatus, type IStockMovement } from 'armstock-shared';
+import { Eye } from 'lucide-vue-next';
+import RowActionsMenu from '../RowActionsMenu.vue';
+import { ROW_ACTION } from '../../constants/rowActions';
 import { formatQuantity } from '../../utils/format';
 import { useMeasureUnits } from '../../composables/useMeasureUnits';
 
 defineProps<{ rows: IStockMovement[] }>();
+
+const emit = defineEmits<{ view: [row: IStockMovement] }>();
 
 const { unitShortName } = useMeasureUnits();
 
@@ -16,7 +21,7 @@ const COLUMNS = [
 </script>
 
 <template>
-  <el-table :data="rows" class="app-table app-table--nowrap" row-key="uuid">
+  <el-table :data="rows" class="app-table app-table--nowrap movement-table" row-key="uuid" @row-click="(row: IStockMovement) => emit('view', row)">
     <el-table-column :label="$t('stockMovement.table.product')" min-width="240" show-overflow-tooltip>
       <template #default="{ row }">
         <span class="cell-text cell-text--strong">{{ row.name }}</span>
@@ -31,10 +36,26 @@ const COLUMNS = [
         <span class="cell-text" :class="{ 'cell-text--strong': column.key === 'final' }">{{ formatQuantity(row[column.key]) }}</span>
       </template>
     </el-table-column>
+    <el-table-column min-width="70" align="center">
+      <template #default="{ row }">
+        <div @click.stop>
+          <RowActionsMenu :label="$t('stockMovement.actionsFor', { name: row.name })" @command="emit('view', row as IStockMovement)">
+            <el-dropdown-item :command="ROW_ACTION.VIEW">
+              <Eye :size="16" aria-hidden="true" />
+              <span>{{ $t('stockMovement.actions.view') }}</span>
+            </el-dropdown-item>
+          </RowActionsMenu>
+        </div>
+      </template>
+    </el-table-column>
   </el-table>
 </template>
 
 <style scoped>
+.movement-table :deep(.el-table__row) {
+  cursor: pointer;
+}
+
 .movement-table__tag {
   margin-left: 0.5rem;
 }
