@@ -49,7 +49,7 @@ read only once.
 - [x] Step 9b — Excel export for the lists (stock-in, stock-out, stock balance, kitchen balance)
 - [x] Step 9c — Excel: row limit, recipes in the product file, single-document export
 - [x] Step T — Armenian time everywhere
-- [ ] Step 10 — Excel review
+- [x] Step 10 — Excel review
 
 ---
 
@@ -405,7 +405,7 @@ Decisions: decisions.md → "Kitchen balance".
 
 ## Step 10 — Excel review
 
-- [ ] Review all 8 files together with real data (stock movement, product movement,
+- [x] Review all 8 files together with real data (stock movement, product movement,
       stock-in list, stock-out list, stock balance, kitchen balance, single stock-in,
       single stock-out); adjust layout so they all match
-- [ ] Decisions.md updated with the final layout
+- [x] Decisions.md updated with the final layout

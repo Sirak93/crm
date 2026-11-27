@@ -672,6 +672,9 @@ Not part of recipes - works for every company.
   products, suppliers and about 16 recipes the company is missing, then day by day: about
   2–3 purchases and 6–8 stock-outs (mostly by recipe, plus manual issues, write-offs,
   "other", and a few supplier returns). Used for the Excel review and API speed tests.
+- **Result (2026-11-27):** all 8 files reviewed with seeded data - the layouts described in
+  the Excel sections above are final. The only change was the file name without a period
+  (export day added).
 
 ## Armenian time everywhere
 
