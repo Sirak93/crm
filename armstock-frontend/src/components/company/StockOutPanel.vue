@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { ChefHat, ClipboardList, Package, Users } from 'lucide-vue-next';
+import SidePanel from '../SidePanel.vue';
 import type { IStockOutPanelGroup } from '../../interfaces/IStockOutPanelGroup';
 import { formatNumber, formatQuantity } from '../../utils/format';
 import { useMeasureUnits } from '../../composables/useMeasureUnits';
@@ -18,41 +19,33 @@ const amountOf = (group: IStockOutPanelGroup, line: IStockOutPanelGroup['lines']
 </script>
 
 <template>
-  <aside class="out-panel" :aria-label="$t('stockOut.panel.title')">
-    <header class="out-panel__head">
-      <h2 class="out-panel__title">
-        <ClipboardList :size="18" aria-hidden="true" />
-        {{ $t('stockOut.panel.title') }}
-      </h2>
-      <p class="out-panel__hint">{{ $t('stockOut.panel.hint') }}</p>
-    </header>
+  <SidePanel :title="$t('stockOut.panel.title')" :hint="$t('stockOut.panel.hint')">
+    <template #icon><ClipboardList :size="18" aria-hidden="true" /></template>
 
-    <div class="out-panel__body">
-      <p v-if="!groups.length" class="out-panel__empty">{{ $t('stockOut.panel.empty') }}</p>
+    <p v-if="!groups.length" class="out-panel__empty">{{ $t('stockOut.panel.empty') }}</p>
 
-      <section v-for="group in groups" :key="group.key" class="out-group" :aria-label="group.name">
-        <div class="out-group__head">
-          <span class="out-group__icon" :class="{ 'out-group__icon--extra': !group.persons }" aria-hidden="true">
-            <ChefHat v-if="group.persons" :size="16" />
-            <Package v-else :size="16" />
-          </span>
-          <h3 class="out-group__name">{{ group.name }}</h3>
-          <span v-if="group.persons" class="out-group__persons">
-            <Users :size="13" aria-hidden="true" />
-            {{ $t('stockOut.recipes.personCount', { count: formatNumber(group.persons) }) }}
-          </span>
-        </div>
-        <ul class="out-group__lines">
-          <li v-for="line in group.lines" :key="line.key" class="out-group__line">
-            <span class="out-group__product">{{ line.product.name }}</span>
-            <span class="out-group__leader" aria-hidden="true" />
-            <span class="out-group__amount">{{ amountOf(group, line) }}</span>
-          </li>
-        </ul>
-      </section>
-    </div>
+    <section v-for="group in groups" :key="group.key" class="out-group" :aria-label="group.name">
+      <div class="out-group__head">
+        <span class="out-group__icon" :class="{ 'out-group__icon--extra': !group.persons }" aria-hidden="true">
+          <ChefHat v-if="group.persons" :size="16" />
+          <Package v-else :size="16" />
+        </span>
+        <h3 class="out-group__name">{{ group.name }}</h3>
+        <span v-if="group.persons" class="out-group__persons">
+          <Users :size="13" aria-hidden="true" />
+          {{ $t('stockOut.recipes.personCount', { count: formatNumber(group.persons) }) }}
+        </span>
+      </div>
+      <ul class="out-group__lines">
+        <li v-for="line in group.lines" :key="line.key" class="out-group__line">
+          <span class="out-group__product">{{ line.product.name }}</span>
+          <span class="out-group__leader" aria-hidden="true" />
+          <span class="out-group__amount">{{ amountOf(group, line) }}</span>
+        </li>
+      </ul>
+    </section>
 
-    <footer class="out-panel__foot">
+    <template #footer>
       <dl class="out-panel__stats">
         <div class="out-panel__stat">
           <dt>{{ $t('stockOut.recipes.title') }}</dt>
@@ -63,50 +56,11 @@ const amountOf = (group: IStockOutPanelGroup, line: IStockOutPanelGroup['lines']
           <dd>{{ formatNumber(productCount) }}</dd>
         </div>
       </dl>
-      <slot name="actions" />
-    </footer>
-  </aside>
+    </template>
+  </SidePanel>
 </template>
 
 <style scoped>
-.out-panel {
-  display: flex;
-  flex-direction: column;
-  background-color: var(--bg-card);
-  border: 1px solid var(--border);
-  border-radius: var(--radius);
-  box-shadow: var(--shadow-md);
-}
-
-.out-panel__head {
-  padding: 1rem 1.125rem 0.75rem;
-  border-bottom: 1px solid var(--border);
-}
-
-.out-panel__title {
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
-  margin: 0;
-  font-size: var(--text-base);
-  font-weight: 600;
-  color: var(--text-main);
-}
-
-.out-panel__hint {
-  margin: 0.25rem 0 0;
-  font-size: var(--text-sm);
-  color: var(--text-muted);
-}
-
-.out-panel__body {
-  display: flex;
-  flex-direction: column;
-  gap: 1rem;
-  padding: 1rem 1.125rem;
-  overflow-y: auto;
-}
-
 .out-panel__empty {
   margin: 0;
   padding: 1.5rem 0.5rem;
@@ -194,16 +148,6 @@ const amountOf = (group: IStockOutPanelGroup, line: IStockOutPanelGroup['lines']
   font-weight: 600;
   font-variant-numeric: tabular-nums;
   color: var(--text-main);
-}
-
-.out-panel__foot {
-  display: flex;
-  flex-direction: column;
-  gap: 0.75rem;
-  padding: 0.875rem 1.125rem 1rem;
-  border-top: 1px solid var(--border);
-  background-color: var(--bg-app);
-  border-radius: 0 0 var(--radius) var(--radius);
 }
 
 .out-panel__stats {

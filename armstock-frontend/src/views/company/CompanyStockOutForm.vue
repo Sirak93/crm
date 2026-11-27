@@ -19,7 +19,7 @@ import SupplierSelect from '../../components/company/SupplierSelect.vue';
 import ReceiverSelect from '../../components/company/ReceiverSelect.vue';
 import StockOutLinesEditor from '../../components/company/StockOutLinesEditor.vue';
 import StockOutRecipesEditor from '../../components/company/StockOutRecipesEditor.vue';
-import StockOutTotalsTable from '../../components/company/StockOutTotalsTable.vue';
+import StockOutTotalsPanel from '../../components/company/StockOutTotalsPanel.vue';
 import StockOutPanel from '../../components/company/StockOutPanel.vue';
 import { StockOutService } from '../../services/StockOutService';
 import { OptionsService } from '../../services/OptionsService';
@@ -340,25 +340,29 @@ const save = async () => {
             :supplied-by="isReturned ? form.supplierUuid || null : undefined"
           />
         </AppCard>
-
-        <AppCard class="lines-card">
-          <StockOutTotalsTable :rows="totalRows" :totals="totals" :show-errors="showLineErrors" @update="setTotal" />
-        </AppCard>
       </div>
 
       <StockOutPanel
-        class="out-layout__side"
+        class="out-layout__summary"
         :groups="panelGroups"
         :recipe-count="panelGroups.filter((group) => group.persons).length"
         :product-count="totalRows.length"
+      />
+
+      <StockOutTotalsPanel
+        class="out-layout__totals"
+        :rows="totalRows"
+        :totals="totals"
+        :show-errors="showLineErrors"
+        @update="setTotal"
       >
-        <template #actions>
+        <template #footer>
           <div class="out-actions">
             <el-button :disabled="isSaving" @click="router.push(backRoute)">{{ $t('common.cancel') }}</el-button>
             <el-button type="primary" :loading="isSaving" @click="save">{{ $t('common.save') }}</el-button>
           </div>
         </template>
-      </StockOutPanel>
+      </StockOutTotalsPanel>
     </div>
   </section>
 </template>
@@ -383,7 +387,10 @@ const save = async () => {
   overflow: hidden;
 }
 
-/* Wide screens: the summary stays on the right while the rows scroll. */
+/*
+ * Small screens: everything in one column. 1200px+: the summary stays on the right, the totals go
+ * under the rows. 1600px+: summary and totals side by side on the right, both staying in view.
+ */
 .out-layout {
   display: flex;
   flex-direction: column;
@@ -410,11 +417,38 @@ const save = async () => {
 @media (min-width: 1200px) {
   .out-layout {
     display: grid;
-    grid-template-columns: minmax(0, 1fr) clamp(18rem, 24vw, 24rem);
+    grid-template-columns: minmax(0, 1fr) clamp(18rem, 22vw, 24rem);
+    grid-template-areas:
+      "main summary"
+      "totals summary";
+    grid-template-rows: auto 1fr;
     align-items: start;
   }
 
-  .out-layout__side {
+  .out-layout__main {
+    grid-area: main;
+  }
+
+  .out-layout__summary {
+    grid-area: summary;
+    position: sticky;
+    top: calc(var(--header-height) + 1rem);
+    max-height: calc(100dvh - var(--header-height) - 2rem);
+  }
+
+  .out-layout__totals {
+    grid-area: totals;
+  }
+}
+
+@media (min-width: 1600px) {
+  .out-layout {
+    grid-template-columns: minmax(0, 1fr) clamp(18rem, 18vw, 22rem) clamp(20rem, 20vw, 24rem);
+    grid-template-areas: "main summary totals";
+    grid-template-rows: auto;
+  }
+
+  .out-layout__totals {
     position: sticky;
     top: calc(var(--header-height) + 1rem);
     max-height: calc(100dvh - var(--header-height) - 2rem);
