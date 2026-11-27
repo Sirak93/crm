@@ -14,3 +14,9 @@ export const thisMonthRange = (): [string, string] => {
   const now = new Date();
   return [toPickerDay(new Date(now.getFullYear(), now.getMonth(), 1)), toPickerDay(now)];
 };
+
+/** A daterange picker's YYYY-MM-DD days as ISO date-times: from the start of the first to the end of the last, browser time zone. */
+export const pickerRangeToIso = (range: [string, string] | null): { dateFrom?: string; dateTo?: string } => ({
+  dateFrom: range ? new Date(`${range[0]}T00:00:00`).toISOString() : undefined,
+  dateTo: range ? new Date(`${range[1]}T23:59:59.999`).toISOString() : undefined,
+});

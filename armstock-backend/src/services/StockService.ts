@@ -12,6 +12,7 @@ import {
     type IStockBalance,
     type IStockBalanceSummary,
     type IStockLineProduct,
+    type IStockMovement,
     type IStockShortage,
 } from "armstock-shared";
 import { AppDataSource } from "../config/database";
@@ -21,12 +22,19 @@ import { StockInLine } from "../models/StockInLine";
 import { StockOutLine } from "../models/StockOutLine";
 import { StockOutRecipeLine } from "../models/StockOutRecipeLine";
 import { AppError, type ErrorDef } from "../utils/AppError";
-import type { KitchenBalanceQuery, StockBalanceFilters, StockBalanceQuery } from "../schemas/StockSchema";
+import type { KitchenBalanceQuery, StockBalanceFilters, StockBalanceQuery, StockMovementQuery } from "../schemas/StockSchema";
 
 // Built on the "stock_in" and "stock_out" subqueries from joinStock.
 const QUANTITY = "(COALESCE(stock_in.quantity, 0) - COALESCE(stock_out.quantity, 0))";
 // Built on the "kitchen_in" and "kitchen_used" subqueries from joinKitchen.
 const KITCHEN_QUANTITY = "(COALESCE(kitchen_in.quantity, 0) - COALESCE(kitchen_used.quantity, 0))";
+
+// Built on the "move_in" and "move_out" subqueries from joinMovement.
+const MOVEMENT_INITIAL = "(COALESCE(move_in.before, 0) - COALESCE(move_out.before, 0))";
+const MOVEMENT_IN = "COALESCE(move_in.inside, 0)";
+const MOVEMENT_OUT = "COALESCE(move_out.inside, 0)";
+// Lines, not quantities: a stock-out line with total 0 is still a movement.
+const MOVEMENT_LINES = "(COALESCE(move_in.lines, 0) + COALESCE(move_out.lines, 0))";
 
 /** How one stock (S or K) is summed and reported when it would go below zero. */
 interface IStockKind {
@@ -34,6 +42,17 @@ interface IStockKind {
     join: <T extends Product>(qb: SelectQueryBuilder<T>, lineFilter?: string) => SelectQueryBuilder<T>;
     decimals: number;
     error: ErrorDef;
+}
+
+interface IMovementRow {
+    uuid: string;
+    name: string;
+    status: ProductStatus;
+    measureUnit: MeasureUnit;
+    initial: string;
+    incoming: string;
+    outgoing: string;
+    final: string;
 }
 
 interface IBalanceRow {
@@ -299,5 +318,80 @@ export class StockService {
             items: await this.toBalances(companyUuid, rows),
             meta: { page, pageSize, total, totalPages: Math.ceil(total / pageSize) },
         };
+    }
+
+    /** Initial, in, out and final per product; lines after "to" are left out, lines before "from" make the initial stock. */
+    async movementList(companyUuid: string, query: StockMovementQuery): Promise<{ items: IStockMovement[]; meta: IPaginationMeta }> {
+        const { page, pageSize } = query;
+
+        const [rows, total] = await Promise.all([
+            this.movementQuery(companyUuid, query)
+                .select("product.uuid", "uuid")
+                .addSelect("product.name", "name")
+                .addSelect("product.status", "status")
+                .addSelect("product.measureUnit", "measureUnit")
+                .addSelect(MOVEMENT_INITIAL, "initial")
+                .addSelect(MOVEMENT_IN, "incoming")
+                .addSelect(MOVEMENT_OUT, "outgoing")
+                .addSelect(`${MOVEMENT_INITIAL} + ${MOVEMENT_IN} - ${MOVEMENT_OUT}`, "final")
+                .orderBy("product.name", "ASC")
+                .addOrderBy("product.uuid", "ASC")
+                .offset((page - 1) * pageSize)
+                .limit(pageSize)
+                .getRawMany<IMovementRow>(),
+            this.movementQuery(companyUuid, query).getCount(),
+        ]);
+
+        return {
+            items: rows.map((row) => ({
+                uuid: row.uuid,
+                name: row.name,
+                status: row.status,
+                measureUnit: row.measureUnit,
+                initial: Number(row.initial),
+                incoming: Number(row.incoming),
+                outgoing: Number(row.outgoing),
+                final: Number(row.final),
+            })),
+            meta: { page, pageSize, total, totalPages: Math.ceil(total / pageSize) },
+        };
+    }
+
+    /** Archived products are not left out - a range in the past may have their movement. */
+    private movementQuery(companyUuid: string, query: StockMovementQuery): SelectQueryBuilder<Product> {
+        const { search, categoryUuid, withoutMovement } = query;
+        const qb = this.joinMovement(this.productRepo.createQueryBuilder("product"), query)
+            .where("product.companyUuid = :companyUuid", { companyUuid });
+
+        if (search) {
+            qb.andWhere(new Brackets((w) => {
+                w.where("product.name ILIKE :search", { search: `%${search}%` }).orWhere("product.code ILIKE :search");
+            }));
+        }
+        if (categoryUuid) qb.andWhere("product.categoryUuid = :categoryUuid", { categoryUuid });
+        // Stock never goes below 0, so "has stock" is initial above 0.
+        qb.andWhere(withoutMovement ? `(${MOVEMENT_LINES} > 0 OR ${MOVEMENT_INITIAL} > 0)` : `${MOVEMENT_LINES} > 0`);
+        return qb;
+    }
+
+    /** Adds the "move_in" and "move_out" sums per product: before "from" and inside the range, plus the line count inside. */
+    private joinMovement(qb: SelectQueryBuilder<Product>, { dateFrom, dateTo }: StockMovementQuery): SelectQueryBuilder<Product> {
+        const inside = dateFrom ? " FILTER (WHERE line.date >= :dateFrom)" : "";
+        const sums = (entity: typeof StockInLine | typeof StockOutLine) => (sub: SelectQueryBuilder<ObjectLiteral>) => {
+            sub.from(entity, "line")
+                .select("line.productUuid", "product_uuid")
+                .addSelect(dateFrom ? "SUM(line.quantity) FILTER (WHERE line.date < :dateFrom)" : "0", "before")
+                .addSelect(`SUM(line.quantity)${inside}`, "inside")
+                .addSelect(`COUNT(*)${inside}`, "lines")
+                .where("line.companyUuid = :companyUuid")
+                .groupBy("line.productUuid");
+            if (dateTo) sub.andWhere("line.date <= :dateTo");
+            return sub;
+        };
+        qb.leftJoin(sums(StockInLine), "move_in", "move_in.product_uuid = product.uuid")
+            .leftJoin(sums(StockOutLine), "move_out", "move_out.product_uuid = product.uuid");
+        if (dateFrom) qb.setParameter("dateFrom", new Date(dateFrom));
+        if (dateTo) qb.setParameter("dateTo", new Date(dateTo));
+        return qb;
     }
 }

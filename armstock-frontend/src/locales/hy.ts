@@ -109,6 +109,7 @@ const hy: typeof en = {
     stockIn: 'Մուտք',
     stockOut: 'Ելք',
     stockBalance: 'Մնացորդ',
+    stockMovement: 'Ապրանքների շարժ',
     kitchenBalance: 'Խոհանոցի մնացորդ',
     productCategories: 'Ապրանքի կատեգորիաներ',
     users: 'Օգտատերեր',
@@ -716,6 +717,25 @@ const hy: typeof en = {
       hint: 'Հաշվարկված քանակներ',
       empty: 'Ընտրեք բաղադրատոմս կամ ավելացրեք ապրանք՝ այն կերևա այստեղ։',
       products: 'Ապրանքներ',
+    },
+  },
+  stockMovement: {
+    title: 'Ապրանքների շարժ',
+    subtitle: 'Որքան մուտք և ելք է եղել յուրաքանչյուր ապրանքից ընտրված ժամանակահատվածում։',
+    empty: 'Այս ֆիլտրերով ապրանքներ չկան։',
+    loadError: 'Չհաջողվեց բեռնել ապրանքների շարժը։',
+    filters: {
+      to: 'մինչև',
+      startDate: 'Սկսած',
+      endDate: 'Մինչև',
+      withoutMovement: 'Ցույց տալ առանց շարժի ապրանքները',
+    },
+    table: {
+      product: 'Ապրանք (միավոր)',
+      initial: 'Սկզբնական',
+      in: 'Մուտք',
+      out: 'Ելք',
+      final: 'Վերջնական',
     },
   },
   kitchenBalance: {

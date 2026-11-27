@@ -325,16 +325,16 @@ Decisions: decisions.md → "Kitchen balance".
 
 ## Step 7 — Stock movement page
 
-- [ ] Shared: movement row interface
-- [ ] Backend (`STOCK_BALANCE_VIEW`): list per product - initial, in, out, final; search,
+- [x] Shared: movement row interface
+- [x] Backend (`STOCK_BALANCE_VIEW`): list per product - initial, in, out, final; search,
       category, date range (empty ends allowed), "show products without movement";
       sorted by name, paginated; sums in SQL
-- [ ] Frontend
-  - [ ] Menu "Ապրանքների շարժ" under Stock balance
-  - [ ] Table: "Product (unit)" | Initial | In | Out | Final; filters; default this month
+- [x] Frontend
+  - [x] Menu "Ապրանքների շարժ" under Stock balance
+  - [x] Table: "Product (unit)" | Initial | In | Out | Final; filters; default this month
   - [ ] Row actions menu (View / Export) - View opens the popup from Step 8, Export from
         Step 9 (hidden until those steps)
-- [ ] Tests: `StockMovementSuite` - numbers for ranges before / inside / after documents,
+- [x] Tests: `StockMovementSuite` - numbers for ranges before / inside / after documents,
       empty from / to, checkbox on / off, archived products, filters, permissions, other
       company's data never counted
 - [ ] Checked in browser: numbers match the stock-in / stock-out documents

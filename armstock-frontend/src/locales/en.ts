@@ -109,6 +109,7 @@ export default {
     stockIn: 'In',
     stockOut: 'Out',
     stockBalance: 'Balance',
+    stockMovement: 'Stock movement',
     kitchenBalance: 'Kitchen balance',
     productCategories: 'Product categories',
     users: 'Users',
@@ -716,6 +717,25 @@ export default {
       hint: 'Calculated amounts',
       empty: 'Pick a recipe or add a product - it will show up here.',
       products: 'Products',
+    },
+  },
+  stockMovement: {
+    title: 'Stock movement',
+    subtitle: 'How much of each product came in and went out over a period.',
+    empty: 'No products for these filters.',
+    loadError: 'Could not load the stock movement.',
+    filters: {
+      to: 'to',
+      startDate: 'From',
+      endDate: 'To',
+      withoutMovement: 'Show products without movement',
+    },
+    table: {
+      product: 'Product (unit)',
+      initial: 'Initial',
+      in: 'In',
+      out: 'Out',
+      final: 'Final',
     },
   },
   kitchenBalance: {

@@ -1,7 +1,7 @@
 import { Response } from "express";
 import { AuthRequest } from "../middlewares/AuthMiddleware";
 import { StockService } from "../services/StockService";
-import type { KitchenBalanceQuery, StockBalanceFilters, StockBalanceQuery } from "../schemas/StockSchema";
+import type { KitchenBalanceQuery, StockBalanceFilters, StockBalanceQuery, StockMovementQuery } from "../schemas/StockSchema";
 import { AppResponse } from "../utils/AppResponse";
 import { requireCompanyUuid } from "../utils/requireCompanyUuid";
 
@@ -16,6 +16,11 @@ export class StockController {
 
     balanceSummary = async (req: AuthRequest, res: Response) => {
         return AppResponse.send(res, await this.service.balanceSummary(requireCompanyUuid(req), req.query as unknown as StockBalanceFilters));
+    };
+
+    movement = async (req: AuthRequest, res: Response) => {
+        const { items, meta } = await this.service.movementList(requireCompanyUuid(req), req.query as unknown as StockMovementQuery);
+        return AppResponse.send(res, items, meta);
     };
 
     kitchenBalance = async (req: AuthRequest, res: Response) => {

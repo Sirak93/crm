@@ -159,6 +159,12 @@ const routes: RouteRecordRaw[] = [
         component: () => import('../views/company/CompanyStockBalance.vue'),
         meta: { accountTypes: COMPANY_ACCOUNT_TYPES, permissions: [Permission.STOCK_BALANCE_VIEW] },
       },
+      {
+        path: 'stock/movement',
+        name: ROUTE_NAME.COMPANY_STOCK_MOVEMENT,
+        component: () => import('../views/company/CompanyStockMovement.vue'),
+        meta: { accountTypes: COMPANY_ACCOUNT_TYPES, permissions: [Permission.STOCK_BALANCE_VIEW] },
+      },
       ...(KITCHEN_BALANCE_ENABLED ? [{
         path: 'stock/kitchen-balance',
         name: ROUTE_NAME.COMPANY_KITCHEN_BALANCE,

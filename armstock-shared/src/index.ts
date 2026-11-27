@@ -68,6 +68,7 @@ export type * from "./interfaces/IRoleInUse";
 export type * from "./interfaces/IRolePayload";
 export type * from "./interfaces/IStockBalance";
 export type * from "./interfaces/IStockBalanceSummary";
+export type * from "./interfaces/IStockMovement";
 export type * from "./interfaces/IStockIn";
 export type * from "./interfaces/IStockInDetails";
 export type * from "./interfaces/IStockInLine";

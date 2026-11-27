@@ -1,6 +1,7 @@
-import type { IAppResponse, IPaginationMeta, IStockBalance, IStockBalanceSummary } from 'armstock-shared';
+import type { IAppResponse, IPaginationMeta, IStockBalance, IStockBalanceSummary, IStockMovement } from 'armstock-shared';
 import ApiService from './ApiService';
 import type { IStockBalanceFilters } from '../interfaces/IStockBalanceFilters';
+import type { IStockMovementFilters } from '../interfaces/IStockMovementFilters';
 
 /** The logged-in user's company stock balance. */
 export const StockService = {
@@ -24,6 +25,14 @@ export const StockService = {
     const { search, categoryUuid } = filters;
     const response = await ApiService.get<IAppResponse<IStockBalance[]>>('/stock/kitchen-balance', {
       params: { page, pageSize, search, categoryUuid },
+    });
+    return { items: response.data.data!, meta: response.data.meta as IPaginationMeta };
+  },
+
+  /** Initial, in, out and final per product for the date range. */
+  async movement(page: number, pageSize: number, filters: IStockMovementFilters): Promise<{ items: IStockMovement[]; meta: IPaginationMeta }> {
+    const response = await ApiService.get<IAppResponse<IStockMovement[]>>('/stock/movement', {
+      params: { page, pageSize, ...filters },
     });
     return { items: response.data.data!, meta: response.data.meta as IPaginationMeta };
   },

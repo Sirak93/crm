@@ -98,6 +98,7 @@ export const COMPANY_ROUTES: ICompanyRoute[] = [
     // Stock
     { method: GET, path: () => PATHS.STOCK_BALANCE, permission: P.STOCK_BALANCE_VIEW },
     { method: GET, path: () => `${PATHS.STOCK_BALANCE}/summary`, permission: P.STOCK_BALANCE_VIEW },
+    { method: GET, path: () => PATHS.STOCK_MOVEMENT, permission: P.STOCK_BALANCE_VIEW },
     { method: GET, path: () => PATHS.KITCHEN_BALANCE, permission: P.STOCK_BALANCE_VIEW },
 
     { method: GET, path: () => PATHS.STOCK_INS, permission: P.STOCK_IN_VIEW },

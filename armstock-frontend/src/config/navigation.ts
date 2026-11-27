@@ -1,5 +1,6 @@
 import {
   ArrowDownToLine,
+  ArrowLeftRight,
   ArrowUpFromLine,
   Boxes,
   Building2,
@@ -74,6 +75,12 @@ export const NAV_ITEMS: (INavItem | INavGroup)[] = [
         labelKey: 'nav.stockBalance',
         icon: Scale,
         routeName: ROUTE_NAME.COMPANY_STOCK_BALANCE,
+      },
+      {
+        id: 'company-stock-movement',
+        labelKey: 'nav.stockMovement',
+        icon: ArrowLeftRight,
+        routeName: ROUTE_NAME.COMPANY_STOCK_MOVEMENT,
       },
       ...(KITCHEN_BALANCE_ENABLED ? [{
         id: 'company-kitchen-balance',
