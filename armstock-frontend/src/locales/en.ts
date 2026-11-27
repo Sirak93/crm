@@ -704,7 +704,7 @@ export default {
     },
     panel: {
       title: 'Summary',
-      hint: 'What goes out, by recipe and extra products.',
+      hint: 'By recipe and extra products.',
       empty: 'Pick a recipe or add a product - it will show up here.',
       products: 'Products',
     },
