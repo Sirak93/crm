@@ -1,4 +1,4 @@
-import { QUANTITY_DECIMALS } from 'armstock-shared';
+import { QUANTITY_DECIMALS, toAppWallClock } from 'armstock-shared';
 import i18n from '../i18n';
 
 const BYTE_UNITS = ['B', 'KB', 'MB', 'GB', 'TB'];
@@ -10,13 +10,6 @@ export const formatNumber = (value: number): string => new Intl.NumberFormat(loc
 /** Decimals only when there are any, e.g. 100 or 1.25 */
 export const formatQuantity = (value: number, decimals = QUANTITY_DECIMALS): string =>
   new Intl.NumberFormat(locale(), { maximumFractionDigits: decimals }).format(value);
-
-/** For date pickers: greys out every day after today. */
-export const isFutureDay = (date: Date): boolean => {
-  const endOfToday = new Date();
-  endOfToday.setHours(23, 59, 59, 999);
-  return date > endOfToday;
-};
 
 /** DD/MM/YYYY, numbers only like formatDateTime. */
 export const formatDate = (iso: string): string => formatDateTime(iso).slice(0, 10);
@@ -33,9 +26,9 @@ export const formatBytes = (bytes: number): string => {
 
 export const pad = (value: number): string => String(value).padStart(2, '0');
 
-/** Numbers only, so no translation can change it: DD/MM/YYYY HH:mm:ss (24-hour). */
+/** Numbers only, so no translation can change it: DD/MM/YYYY HH:mm:ss (24-hour), Armenian time. */
 export const formatDateTime = (iso: string | null): string => {
   if (!iso) return '—';
-  const d = new Date(iso);
-  return `${pad(d.getDate())}/${pad(d.getMonth() + 1)}/${d.getFullYear()} ${pad(d.getHours())}:${pad(d.getMinutes())}:${pad(d.getSeconds())}`;
+  const d = toAppWallClock(new Date(iso));
+  return `${pad(d.getUTCDate())}/${pad(d.getUTCMonth() + 1)}/${d.getUTCFullYear()} ${pad(d.getUTCHours())}:${pad(d.getUTCMinutes())}:${pad(d.getUTCSeconds())}`;
 };

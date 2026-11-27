@@ -26,6 +26,7 @@ export * from "./enums/StockOutReason";
 export * from "./enums/SupplierStatus";
 export * from "./enums/UserStatus";
 
+export * from "./helpers/appTime";
 export * from "./helpers/can";
 export * from "./helpers/lockedPermissions";
 export * from "./helpers/measureUnits";

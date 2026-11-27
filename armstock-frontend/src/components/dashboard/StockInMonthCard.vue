@@ -3,7 +3,7 @@ import DashboardCard from './DashboardCard.vue';
 import StockInSummary from '../company/StockInSummary.vue';
 import { StockInService } from '../../services/StockInService';
 import { useCardData } from '../../composables/useCardData';
-import { monthStartIso } from '../../utils/monthStart';
+import { monthStartIso } from '../../utils/appTime';
 
 const { data, isLoading, hasError, load } = useCardData('stock-in month', () => StockInService.summary({ dateFrom: monthStartIso() }));
 </script>

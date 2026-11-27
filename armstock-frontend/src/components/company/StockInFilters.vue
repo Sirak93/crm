@@ -5,8 +5,7 @@ import SupplierSelect from './SupplierSelect.vue';
 import { DATE_PICKER_FORMAT } from '../../constants/constants';
 import { STOCK_IN_REASONS } from '../../constants/stockInReasons';
 import type { IStockInFilters } from '../../interfaces/IStockInFilters';
-import { isFutureDay } from '../../utils/format';
-import { thisMonthRange } from '../../utils/monthStart';
+import { isFutureDay, pickerRangeToIso, thisMonthRange } from '../../utils/appTime';
 import { useDateRangeShortcuts } from '../../composables/useDateRangeShortcuts';
 import { useStockReasons } from '../../composables/useStockReasons';
 
@@ -25,9 +24,7 @@ const form = reactive({
 const toFilters = (): IStockInFilters => ({
   reason: form.reason || undefined,
   supplierUuid: form.supplierUuid || undefined,
-  // Whole days in the browser's time zone.
-  dateFrom: form.dateRange ? new Date(`${form.dateRange[0]}T00:00:00`).toISOString() : undefined,
-  dateTo: form.dateRange ? new Date(`${form.dateRange[1]}T23:59:59.999`).toISOString() : undefined,
+  ...pickerRangeToIso(form.dateRange),
 });
 
 const emitChange = () => emit('change', toFilters());

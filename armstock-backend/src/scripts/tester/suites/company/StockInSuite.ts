@@ -15,6 +15,7 @@ import {
     type IStockInSummary,
     type ISupplier,
 } from "armstock-shared";
+import { appYear } from "../../../../utils/appDate";
 import { defineSuite } from "../../core/Suite";
 import { equals, isNull, isTrue, matches } from "../../core/Assert";
 import { createMember } from "../../shared/Accounts";
@@ -75,6 +76,16 @@ export default (context: ICompanySideContext) => defineSuite("Stock-in", (test) 
         isTrue(NUMBER_FORMAT.test(doc.number), `number "${doc.number}" has the IN-YYYY-NNNN form`);
         await expectStock(db, pieces.uuid, 4);
         await expectStock(db, kilos.uuid, 1.25);
+    });
+
+    test("document number year is the Armenian year, also on 1 Jan 00:00-04:00 (still 31 Dec in UTC)", async () => {
+        equals(appYear(new Date("2026-12-31T20:00:00.000Z")), 2027, "1 Jan 00:00 in Armenia");
+        equals(appYear(new Date("2026-12-31T23:59:59.000Z")), 2027, "1 Jan 03:59 in Armenia");
+        equals(appYear(new Date("2026-12-31T19:59:59.000Z")), 2026, "31 Dec 23:59 in Armenia");
+
+        // Its own product, so the stock counts of the other cases stay as they are.
+        const doc = await createStockIn(storekeeper, [line(await createProduct(storekeeper), 1)]);
+        equals(doc.number.split("-")[1], String(appYear(new Date())), "a new document's number year");
     });
 
     test("purchase without a supplier is refused", async () => {

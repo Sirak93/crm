@@ -4,7 +4,7 @@ export interface IStockOutFilters {
   reason?: StockOutReason;
   supplierUuid?: string;
   receiverUuid?: string;
-  /** ISO date-times, whole days in the browser's time zone. */
+  /** ISO date-times, whole days in Armenian time. */
   dateFrom?: string;
   dateTo?: string;
 }

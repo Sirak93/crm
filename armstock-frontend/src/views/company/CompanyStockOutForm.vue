@@ -40,7 +40,7 @@ import {
 } from '../../constants/stockOutReasons';
 import type { IStockOutLineForm } from '../../interfaces/IStockOutLineForm';
 import type { IStockOutRecipeForm } from '../../interfaces/IStockOutRecipeForm';
-import { isFutureDay } from '../../utils/format';
+import { appNow, fromPickerDate, isFutureDay, toPickerDate } from '../../utils/appTime';
 import { emptyOutLine } from '../../utils/stockOutLines';
 import { buildTotals, emptyRecipeRow, extraOf, toSavedRecipeOption } from '../../utils/stockOutTotals';
 import { formPanelGroups } from '../../utils/stockOutPanel';
@@ -65,7 +65,7 @@ const formRef = ref<FormInstance>();
 // The department stays filled in, so switching to Issued already has Kitchen.
 const form = ref({
   reason: StockOutReason.ISSUED as StockOutReason,
-  date: new Date(),
+  date: appNow(),
   supplierUuid: '',
   department: StockOutDepartment.KITCHEN as StockOutDepartment | '',
   receiverUuid: '',
@@ -151,7 +151,7 @@ const isDirty = computed(() => snapshotOf() !== savedSnapshot.value);
 
 useUnsavedChanges(isDirty);
 
-const isFuture = (date: Date) => date.getTime() > Date.now();
+const isFuture = (date: Date) => fromPickerDate(date).getTime() > Date.now();
 
 const requiredWhen = (condition: () => boolean, messageKey: string): FormItemRule => ({
   validator: (_rule, value: string | number, callback) => {
@@ -207,7 +207,7 @@ const load = async () => {
     }
     form.value = {
       reason: doc.reason,
-      date: new Date(doc.date),
+      date: toPickerDate(new Date(doc.date)),
       supplierUuid: doc.supplier?.uuid ?? '',
       department: doc.department ?? StockOutDepartment.KITCHEN,
       receiverUuid: doc.receiver?.uuid ?? '',
@@ -243,7 +243,7 @@ onMounted(load);
 
 const toPayload = (): IStockOutPayload => ({
   reason: form.value.reason,
-  date: form.value.date.toISOString(),
+  date: fromPickerDate(form.value.date).toISOString(),
   supplierUuid: isReturned.value ? form.value.supplierUuid || null : null,
   department: isIssued.value ? form.value.department || null : null,
   receiverUuid: isIssued.value ? form.value.receiverUuid || null : null,

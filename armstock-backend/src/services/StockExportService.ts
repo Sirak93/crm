@@ -10,6 +10,7 @@ import {
     STOCK_OUT_DEPARTMENT_NAMES,
     STOCK_OUT_REASON_NAMES,
     StockDocumentType,
+    toAppWallClock,
     type IStockBalance,
     type IStockInLine,
     type IStockMovementRecipe,
@@ -38,7 +39,7 @@ import type {
 } from "../schemas/StockSchema";
 import type { StockInExportQuery } from "../schemas/StockInSchema";
 import type { StockOutExportQuery } from "../schemas/StockOutSchema";
-import { formatAppDateTime, toAppWallClock } from "../utils/appDate";
+import { formatAppDateTime } from "../utils/appDate";
 import { userName } from "../utils/userName";
 import {
     buildExcel,

@@ -1,23 +1,6 @@
-import { APP_TIME_ZONE } from "armstock-shared";
-
-const PARTS = new Intl.DateTimeFormat("en-GB", {
-    timeZone: APP_TIME_ZONE,
-    year: "numeric",
-    month: "2-digit",
-    day: "2-digit",
-    hour: "2-digit",
-    minute: "2-digit",
-    second: "2-digit",
-    hourCycle: "h23",
-});
+import { toAppWallClock } from "armstock-shared";
 
 const pad = (value: number): string => String(value).padStart(2, "0");
-
-/** The Armenian wall-clock time stored as UTC - Excel date cells have no time zone. */
-export const toAppWallClock = (date: Date): Date => {
-    const parts = Object.fromEntries(PARTS.formatToParts(date).map((part) => [part.type, Number(part.value)]));
-    return new Date(Date.UTC(parts.year, parts.month - 1, parts.day, parts.hour, parts.minute, parts.second));
-};
 
 /** DD/MM/YYYY in Armenian time, like the app shows dates. */
 export const formatAppDate = (date: Date): string => {
@@ -33,3 +16,6 @@ export const formatAppDateTime = (date: Date): string => {
 
 /** YYYY-MM-DD in Armenian time - for file names. */
 export const appIsoDay = (date: Date): string => toAppWallClock(date).toISOString().slice(0, 10);
+
+/** The year in Armenian time - document numbers count per year. */
+export const appYear = (date: Date): number => toAppWallClock(date).getUTCFullYear();

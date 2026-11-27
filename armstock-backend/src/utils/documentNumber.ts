@@ -1,5 +1,6 @@
 import { type EntityManager, type EntityTarget, type ObjectLiteral } from "typeorm";
 import { AppDataSource } from "../config/database";
+import { appYear } from "./appDate";
 
 export const STOCK_IN_NUMBER_PREFIX = "IN";
 export const STOCK_OUT_NUMBER_PREFIX = "OUT";
@@ -24,7 +25,7 @@ export const saveNumberedDocument = async (
         // after another instead of clashing. Taken before any product lock, so no deadlock.
         await manager.query("SELECT pg_advisory_xact_lock(hashtext($1))", [`${table}:${companyUuid}`]);
 
-        const year = new Date().getFullYear();
+        const year = appYear(new Date());
         const { max } = await manager.createQueryBuilder(entity, "doc")
             .select("MAX(doc.number)", "max")
             .where("doc.companyUuid = :companyUuid AND doc.year = :year", { companyUuid, year })

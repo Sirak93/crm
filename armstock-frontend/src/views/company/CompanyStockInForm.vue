@@ -21,7 +21,8 @@ import { useAuthStore } from '../../stores/auth';
 import { DATE_TIME_PICKER_FORMAT, REQUIRED_RULE_TRIGGER, ROUTE_NAME } from '../../constants/constants';
 import { STOCK_IN_REASON_ICON, STOCK_IN_REASONS } from '../../constants/stockInReasons';
 import type { IStockInLineForm } from '../../interfaces/IStockInLineForm';
-import { formatNumber, isFutureDay } from '../../utils/format';
+import { formatNumber } from '../../utils/format';
+import { appNow, fromPickerDate, isFutureDay, toPickerDate } from '../../utils/appTime';
 import { emptyLine, isLineValid, toLineForm } from '../../utils/stockInLines';
 import { AppLogger } from '../../utils/AppLogger';
 import { useStockReasons } from '../../composables/useStockReasons';
@@ -43,7 +44,7 @@ const isEdit = computed(() => !!props.uuid);
 const formRef = ref<FormInstance>();
 const form = ref({
   reason: StockInReason.PURCHASE as StockInReason,
-  date: new Date(),
+  date: appNow(),
   supplierUuid: '',
   invoiceNumber: '',
   note: '',
@@ -76,7 +77,7 @@ const isDirty = computed(() => snapshotOf() !== savedSnapshot.value);
 
 useUnsavedChanges(isDirty);
 
-const isFuture = (date: Date) => date.getTime() > Date.now();
+const isFuture = (date: Date) => fromPickerDate(date).getTime() > Date.now();
 
 const requiredWhen = (condition: () => boolean, messageKey: string): FormItemRule => ({
   validator: (_rule, value: string, callback) => {
@@ -115,7 +116,7 @@ const load = async () => {
     original.value = doc;
     form.value = {
       reason: doc.reason,
-      date: new Date(doc.date),
+      date: toPickerDate(new Date(doc.date)),
       supplierUuid: doc.supplier?.uuid ?? '',
       invoiceNumber: doc.invoiceNumber ?? '',
       note: doc.note ?? '',
@@ -135,7 +136,7 @@ onMounted(load);
 
 const toPayload = (): IStockInPayload => ({
   reason: form.value.reason,
-  date: form.value.date.toISOString(),
+  date: fromPickerDate(form.value.date).toISOString(),
   supplierUuid: isPurchase.value ? form.value.supplierUuid || null : null,
   invoiceNumber: isPurchase.value ? form.value.invoiceNumber.trim() || null : null,
   note: form.value.note.trim() || null,

@@ -393,13 +393,13 @@ Decisions: decisions.md → "Kitchen balance".
 
 ## Step T — Armenian time everywhere
 
-- [ ] Shared: `APP_TIME_ZONE` (added in Step 9) used by both apps
-- [ ] Frontend: `formatDateTime` / `isFutureDay`, date range shortcuts, `monthStart.ts`
+- [x] Shared: `APP_TIME_ZONE` (added in Step 9) used by both apps
+- [x] Frontend: `formatDateTime` / `isFutureDay`, date range shortcuts, `monthStart.ts`
       and the filters' day → start / end time (one shared helper instead of three copies)
       work in Armenian time
-- [ ] Frontend: stock-in / stock-out form date picker - shown and saved in Armenian time
-- [ ] Backend: document number year from Armenian time, not the server clock
-- [ ] Tests: document number year on 1 Jan 00:00–04:00 Armenian time
+- [x] Frontend: stock-in / stock-out form date picker - shown and saved in Armenian time
+- [x] Backend: document number year from Armenian time, not the server clock
+- [x] Tests: document number year on 1 Jan 00:00–04:00 Armenian time
 - [ ] Checked in browser: dates and "this month" right with the computer set to another
       time zone
 

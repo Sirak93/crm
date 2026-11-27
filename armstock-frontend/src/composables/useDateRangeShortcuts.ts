@@ -1,6 +1,6 @@
 import { computed } from 'vue';
 import { useI18n } from 'vue-i18n';
-import { toPickerDay } from '../utils/monthStart';
+import { appNow, toPickerDay } from '../utils/appTime';
 
 const DAYS_IN_LAST_WEEK = 7;
 
@@ -14,27 +14,27 @@ export const useDateRangeShortcuts = () => {
   const shortcuts = computed(() => [
     {
       text: t('dateRanges.today'),
-      value: () => [new Date(), new Date()],
+      value: () => [appNow(), appNow()],
     },
     {
       text: t('dateRanges.last7Days'),
       value: () => {
-        const start = new Date();
+        const start = appNow();
         start.setDate(start.getDate() - (DAYS_IN_LAST_WEEK - 1));
-        return [start, new Date()];
+        return [start, appNow()];
       },
     },
     {
       text: t('dateRanges.thisMonth'),
       value: () => {
-        const now = new Date();
+        const now = appNow();
         return [new Date(now.getFullYear(), now.getMonth(), 1), now];
       },
     },
     {
       text: t('dateRanges.lastMonth'),
       value: () => {
-        const now = new Date();
+        const now = appNow();
         // Day 0 of this month is the last day of the previous one.
         return [new Date(now.getFullYear(), now.getMonth() - 1, 1), new Date(now.getFullYear(), now.getMonth(), 0)];
       },
@@ -42,14 +42,14 @@ export const useDateRangeShortcuts = () => {
     {
       text: t('dateRanges.thisYear'),
       value: () => {
-        const now = new Date();
+        const now = appNow();
         return [new Date(now.getFullYear(), 0, 1), now];
       },
     },
     {
       text: t('dateRanges.lastYear'),
       value: () => {
-        const year = new Date().getFullYear() - 1;
+        const year = appNow().getFullYear() - 1;
         return [new Date(year, 0, 1), new Date(year, 11, 31)];
       },
     },

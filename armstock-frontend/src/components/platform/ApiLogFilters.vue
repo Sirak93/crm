@@ -3,6 +3,7 @@ import { reactive, watch } from 'vue';
 import { Search } from 'lucide-vue-next';
 import { DATE_PICKER_FORMAT, HTTP_METHODS, SEARCH_DEBOUNCE_MS } from '../../constants/constants';
 import type { IApiLogFilters } from '../../interfaces/IApiLogFilters';
+import { pickerRangeToIso } from '../../utils/appTime';
 
 const emit = defineEmits<{ change: [filters: IApiLogFilters] }>();
 
@@ -24,9 +25,8 @@ const toFilters = (): IApiLogFilters => ({
   ip: form.ip.trim() || undefined,
   success: form.status ? form.status === STATUS.SUCCESS : undefined,
   slow: form.slowOnly || undefined,
-  // Whole days in the browser's time zone.
-  dateFrom: form.dateRange ? new Date(`${form.dateRange[0]}T00:00:00`).toISOString() : undefined,
-  dateTo: form.dateRange ? new Date(`${form.dateRange[1]}T23:59:59.999`).toISOString() : undefined,
+  // Whole days in Armenian time.
+  ...pickerRangeToIso(form.dateRange),
 });
 
 const emitChange = () => emit('change', toFilters());
