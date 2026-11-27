@@ -47,6 +47,7 @@ import {
     exportFileName,
     filtersLines,
     generatedLine,
+    periodFileDates,
     periodLine,
     quantityFormat,
     type ExcelValue,
@@ -82,7 +83,7 @@ export class StockExportService {
         ]);
 
         return {
-            fileName: exportFileName([EXPORT_FILE_NAME.STOCK_MOVEMENT], [query.dateFrom, query.dateTo]),
+            fileName: exportFileName([EXPORT_FILE_NAME.STOCK_MOVEMENT], periodFileDates(query.dateFrom, query.dateTo)),
             content: await buildExcel({
                 sheetName: text.stockMovement,
                 left: [companyName, text.stockMovement, ...StockExportService.productFilters(text, search, categoryName)],
@@ -115,7 +116,7 @@ export class StockExportService {
         const unit = MEASURE_UNITS[product.measureUnit].shortName[lang];
 
         return {
-            fileName: exportFileName([EXPORT_FILE_NAME.PRODUCT_MOVEMENT, product.name], [query.dateFrom, query.dateTo]),
+            fileName: exportFileName([EXPORT_FILE_NAME.PRODUCT_MOVEMENT, product.name], periodFileDates(query.dateFrom, query.dateTo)),
             content: await buildExcel({
                 sheetName: text.productMovement,
                 left: [companyName, text.productMovement, `${text.product}: ${product.name} (${unit})`],
@@ -166,7 +167,7 @@ export class StockExportService {
         const lines = await this.documentLines(StockInLine, "stockInUuid", companyUuid, docs.map((doc) => doc.uuid));
 
         return {
-            fileName: exportFileName([EXPORT_FILE_NAME.STOCK_INS], [query.dateFrom, query.dateTo]),
+            fileName: exportFileName([EXPORT_FILE_NAME.STOCK_INS], periodFileDates(query.dateFrom, query.dateTo)),
             content: await buildExcel({
                 sheetName: text.stockIns,
                 left: [companyName, text.stockIns, ...filtersLines(text, [
@@ -199,7 +200,7 @@ export class StockExportService {
         const lines = await this.documentLines(StockOutLine, "stockOutUuid", companyUuid, docs.map((doc) => doc.uuid));
 
         return {
-            fileName: exportFileName([EXPORT_FILE_NAME.STOCK_OUTS], [query.dateFrom, query.dateTo]),
+            fileName: exportFileName([EXPORT_FILE_NAME.STOCK_OUTS], periodFileDates(query.dateFrom, query.dateTo)),
             content: await buildExcel({
                 sheetName: text.stockOuts,
                 left: [companyName, text.stockOuts, ...filtersLines(text, [

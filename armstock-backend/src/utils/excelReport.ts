@@ -67,6 +67,10 @@ export const filtersLines = (text: ExportTexts, filters: (string | null)[]): str
     return set.length ? [`${text.filters}: ${set.join(" · ")}`] : [];
 };
 
+/** The days a period file is named by - its period, or the export day when no period is set. */
+export const periodFileDates = (dateFrom: string | undefined, dateTo: string | undefined): (string | undefined)[] =>
+    (dateFrom || dateTo ? [dateFrom, dateTo] : [new Date().toISOString()]);
+
 /** e.g. stock-movement_2026-11-01_2026-11-30.xlsx; characters a file name can't have become "-". */
 export const exportFileName = (parts: string[], dates: (string | undefined)[]): string => {
     const days = dates.filter((date): date is string => !!date).map((date) => appIsoDay(new Date(date)));

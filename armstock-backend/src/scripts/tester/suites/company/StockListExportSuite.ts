@@ -115,6 +115,11 @@ export default (context: ICompanySideContext) => defineSuite("Excel exports of t
         matches(rowsOf(sheet, tableRow(sheet) + 1).map((row) => row[0]), [purchase.number, null, null]);
     });
 
+    test("stock-in file without a period: named by the export day", async () => {
+        const { fileName } = await download(PATHS.STOCK_INS, { supplierUuid: supplier.uuid, lang: LOCALE.EN });
+        isTrue(/^stock-in_\d{4}-\d{2}-\d{2}\.xlsx$/.test(fileName ?? ""), "file name with today");
+    });
+
     test("stock-out file: destination is the supplier for a return, the department for an issue", async () => {
         const { fileName, sheet } = await download(PATHS.STOCK_OUTS, { ...range, lang: LOCALE.EN });
         equals(fileName, "stock-out_2019-01-01_2019-01-31.xlsx", "file name");

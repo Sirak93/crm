@@ -570,7 +570,8 @@ Not part of recipes - works for every company.
   - Numbers stored as real numbers with 3 decimals (so they can be summed and filtered).
     Unit in its own column.
   - Fitting column widths.
-  - File name like `stock-movement_2026-11-01_2026-11-30.xlsx`.
+  - File name like `stock-movement_2026-11-01_2026-11-30.xlsx`. Without a period (all
+    time) the export day is used instead: `stock-in_2026-11-27.xlsx` (decided in Step 10).
 - Exact layout of each file - first version built as below, then **reviewed together with
   real files after implementation**. Starting point for the table file:
 
