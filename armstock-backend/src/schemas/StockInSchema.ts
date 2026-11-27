@@ -1,6 +1,6 @@
 import { z } from "zod";
 import { MeasureUnit, PACK_COUNT_MAX, QUANTITY_DECIMALS, QUANTITY_MAX, STOCK_DOCUMENT_MAX_LINES, StockInReason } from "armstock-shared";
-import { optionalText, PaginatedSearchQuerySchema } from "./SharedSchema";
+import { ExportLangSchema, optionalText, PaginatedSearchQuerySchema } from "./SharedSchema";
 import { StockDocumentFiltersSchema, DocumentDateSchema, isNotFuture, LineQuantitySchema } from "./StockDocumentSchema";
 
 const StockInLineSchema = z
@@ -45,7 +45,10 @@ export const StockInFiltersSchema = StockDocumentFiltersSchema.extend({
 
 export const StockInsQuerySchema = PaginatedSearchQuerySchema.omit({ search: true }).extend(StockInFiltersSchema.shape);
 
+export const StockInExportQuerySchema = StockInFiltersSchema.extend(ExportLangSchema.shape);
+
 export type StockInBody = z.infer<typeof StockInBodySchema>;
 export type StockInLineBody = StockInBody["lines"][number];
 export type StockInFilters = z.infer<typeof StockInFiltersSchema>;
 export type StockInsQuery = z.infer<typeof StockInsQuerySchema>;
+export type StockInExportQuery = z.infer<typeof StockInExportQuerySchema>;

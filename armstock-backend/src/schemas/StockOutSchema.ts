@@ -1,6 +1,6 @@
 import { z } from "zod";
 import { QUANTITY_DECIMALS, QUANTITY_MAX, RECIPE_PERSONS_MAX, STOCK_DOCUMENT_MAX_LINES, StockOutDepartment, StockOutReason } from "armstock-shared";
-import { optionalText, PaginatedSearchQuerySchema } from "./SharedSchema";
+import { ExportLangSchema, optionalText, PaginatedSearchQuerySchema } from "./SharedSchema";
 import { StockDocumentFiltersSchema, DocumentDateSchema, hasMaxDecimals, isNotFuture } from "./StockDocumentSchema";
 
 // A total may be 0: listed, but nothing given (the kitchen still has it).
@@ -79,6 +79,9 @@ export const StockOutFiltersSchema = StockDocumentFiltersSchema.extend({
 
 export const StockOutsQuerySchema = PaginatedSearchQuerySchema.omit({ search: true }).extend(StockOutFiltersSchema.shape);
 
+export const StockOutExportQuerySchema = StockOutFiltersSchema.extend(ExportLangSchema.shape);
+
 export type StockOutBody = z.infer<typeof StockOutBodySchema>;
 export type StockOutFilters = z.infer<typeof StockOutFiltersSchema>;
 export type StockOutsQuery = z.infer<typeof StockOutsQuerySchema>;
+export type StockOutExportQuery = z.infer<typeof StockOutExportQuerySchema>;

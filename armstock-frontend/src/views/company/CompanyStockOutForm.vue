@@ -34,7 +34,6 @@ import { useUnsavedChanges } from '../../composables/useUnsavedChanges';
 import { useAuthStore } from '../../stores/auth';
 import { DATE_TIME_PICKER_FORMAT, REQUIRED_RULE_TRIGGER, ROUTE_NAME } from '../../constants/constants';
 import {
-  STOCK_OUT_DEPARTMENT_LABEL,
   STOCK_OUT_DEPARTMENTS,
   STOCK_OUT_REASON_ICON,
   STOCK_OUT_REASONS,
@@ -48,7 +47,7 @@ import { formPanelGroups } from '../../utils/stockOutPanel';
 import { AppLogger } from '../../utils/AppLogger';
 import { useStockReasons } from '../../composables/useStockReasons';
 
-const { stockOutReasonName } = useStockReasons();
+const { stockOutReasonName, departmentName } = useStockReasons();
 
 const props = defineProps<{
   /** Missing = a new document. */
@@ -346,7 +345,7 @@ const save = async () => {
                   <el-option
                     v-for="department in STOCK_OUT_DEPARTMENTS"
                     :key="department"
-                    :label="$t(STOCK_OUT_DEPARTMENT_LABEL[department])"
+                    :label="departmentName(department)"
                     :value="department"
                   />
                 </el-select>

@@ -3,6 +3,7 @@ import { computed, ref } from 'vue';
 import { RECIPE_QUANTITY_DECIMALS, type IPaginationMeta, type IProductCategory, type IStockBalance } from 'armstock-shared';
 import { CookingPot } from 'lucide-vue-next';
 import PageHeader from '../../components/PageHeader.vue';
+import ExportButton from '../../components/ExportButton.vue';
 import AppCard from '../../components/AppCard.vue';
 import LoadError from '../../components/LoadError.vue';
 import StockBalanceFilters from '../../components/company/StockBalanceFilters.vue';
@@ -13,6 +14,7 @@ import { DEFAULT_PAGE_SIZE } from '../../constants/constants';
 import type { IStockBalanceFilters } from '../../interfaces/IStockBalanceFilters';
 import { formatNumber } from '../../utils/format';
 import { AppLogger } from '../../utils/AppLogger';
+import { useExcelExport } from '../../composables/useExcelExport';
 
 /** What the kitchen got but did not need yet - read only, worked out from the stock-outs. */
 const balances = ref<IStockBalance[]>([]);
@@ -22,6 +24,9 @@ const filters = ref<IStockBalanceFilters>({ inStockOnly: true });
 const isLoading = ref(true);
 const hasLoaded = ref(false);
 const hasError = ref(false);
+
+const { isExporting, runExport } = useExcelExport();
+const exportList = () => runExport(() => StockService.exportKitchenBalance(filters.value));
 
 const emptyKey = computed(() => (filters.value.search || filters.value.categoryUuid ? 'kitchenBalance.noResults' : 'kitchenBalance.empty'));
 
@@ -67,7 +72,11 @@ loadCategories();
       :title="$t('kitchenBalance.title')"
       :subtitle="$t('kitchenBalance.subtitle')"
       :badge="hasLoaded ? formatNumber(meta.total) : undefined"
-    />
+    >
+      <template #actions>
+        <ExportButton :loading="isExporting" :disabled="!balances.length" @click="exportList" />
+      </template>
+    </PageHeader>
 
     <StockBalanceFilters :categories="categories" :show-in-stock-only="false" @change="onFiltersChange" />
 

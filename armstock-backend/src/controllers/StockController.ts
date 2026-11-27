@@ -3,9 +3,11 @@ import { AuthRequest } from "../middlewares/AuthMiddleware";
 import { StockService } from "../services/StockService";
 import { StockExportService } from "../services/StockExportService";
 import type {
+    KitchenBalanceExportQuery,
     KitchenBalanceQuery,
     ProductMovementExportQuery,
     ProductMovementQuery,
+    StockBalanceExportQuery,
     StockBalanceFilters,
     StockBalanceQuery,
     StockMovementExportQuery,
@@ -41,6 +43,16 @@ export class StockController {
             req.query as unknown as ProductMovementQuery,
         );
         return AppResponse.send(res, data, meta);
+    };
+
+    balanceExport = async (req: AuthRequest, res: Response) => {
+        const file = await this.exportService.stockBalance(requireCompanyUuid(req), req.query as unknown as StockBalanceExportQuery);
+        return AppResponse.file(res, file.fileName, XLSX_CONTENT_TYPE, file.content);
+    };
+
+    kitchenBalanceExport = async (req: AuthRequest, res: Response) => {
+        const file = await this.exportService.kitchenBalance(requireCompanyUuid(req), req.query as unknown as KitchenBalanceExportQuery);
+        return AppResponse.file(res, file.fileName, XLSX_CONTENT_TYPE, file.content);
     };
 
     movementExport = async (req: AuthRequest, res: Response) => {

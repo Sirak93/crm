@@ -1,5 +1,4 @@
 <script setup lang="ts">
-import { useI18n } from 'vue-i18n';
 import type { IStockOut } from 'armstock-shared';
 import { ChefHat, Pencil, Trash2 } from 'lucide-vue-next';
 import RowActionsMenu from '../RowActionsMenu.vue';
@@ -9,7 +8,7 @@ import { formatDateTimeShort, formatNumber } from '../../utils/format';
 import { ROW_ACTION, type RowAction } from '../../constants/rowActions';
 import { useStockReasons } from '../../composables/useStockReasons';
 
-const { stockOutReasonName } = useStockReasons();
+const { stockOutReasonName, departmentName } = useStockReasons();
 
 defineProps<{
   stockOuts: IStockOut[];
@@ -27,14 +26,12 @@ const emit = defineEmits<{
   delete: [stockOut: IStockOut];
 }>();
 
-const { t } = useI18n();
-
 const onAction = (stockOut: IStockOut, action: RowAction) => {
   if (action === ROW_ACTION.EDIT) emit('edit', stockOut);
   else emit('delete', stockOut);
 };
 
-const destination = (doc: IStockOut): string => stockOutDestination(doc, t);
+const destination = (doc: IStockOut): string => stockOutDestination(doc, departmentName);
 </script>
 
 <template>

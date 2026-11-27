@@ -1,0 +1,115 @@
+import { Workbook, type Worksheet } from "exceljs";
+import { QUANTITY_DECIMALS } from "armstock-shared";
+import type { ExportTexts } from "../constants/ExportTexts";
+import { appIsoDay, formatAppDate, formatAppDateTime } from "./appDate";
+
+export type ExcelValue = string | number | Date | null;
+
+export interface IExcelColumn {
+    title: string;
+    /** Excel number format for this column's numbers or dates. */
+    format?: string;
+}
+
+/** One sheet: a header block, then a table. */
+export interface IExcelReport {
+    sheetName: string;
+    /** From column A: company, report name, then optional lines (product, filters). */
+    left: string[];
+    /** Right-aligned in the last column: period, generated time. */
+    right: string[];
+    columns: IExcelColumn[];
+    rows: ExcelValue[][];
+    /** A totals row at the end. */
+    boldLastRow?: boolean;
+}
+
+export const quantityFormat = (decimals = QUANTITY_DECIMALS): string => `#,##0.${"0".repeat(decimals)}`;
+export const COUNT_FORMAT = "#,##0";
+export const DATE_TIME_FORMAT = "dd/mm/yyyy hh:mm";
+
+const HEADER_FILL = "FFF1F3F5";
+const COLUMN_WIDTH = { MIN: 10, MAX: 60, PADDING: 2 } as const;
+
+export const generatedLine = (text: ExportTexts): string => `${text.generated}: ${formatAppDateTime(new Date())}`;
+
+export const periodLine = (text: ExportTexts, { dateFrom, dateTo }: { dateFrom?: string; dateTo?: string }): string => {
+    const from = dateFrom && formatAppDate(new Date(dateFrom));
+    const to = dateTo && formatAppDate(new Date(dateTo));
+    if (from && to) return `${text.period}: ${from} – ${to}`;
+    if (from) return `${text.period}: ${text.from} ${from}`;
+    if (to) return `${text.period}: ${text.upTo} ${to}`;
+    return `${text.period}: ${text.allTime}`;
+};
+
+/** "Filters: Reason: Purchase · Supplier: X", or nothing when no filter is set. */
+export const filtersLines = (text: ExportTexts, filters: (string | null)[]): string[] => {
+    const set = filters.filter((filter): filter is string => !!filter);
+    return set.length ? [`${text.filters}: ${set.join(" · ")}`] : [];
+};
+
+/** e.g. stock-movement_2026-11-01_2026-11-30.xlsx; characters a file name can't have become "-". */
+export const exportFileName = (parts: string[], dates: (string | undefined)[]): string => {
+    const days = dates.filter((date): date is string => !!date).map((date) => appIsoDay(new Date(date)));
+    return `${[...parts, ...days].join("_").replace(/[\\/:*?"<>|\s]+/g, "-")}.xlsx`;
+};
+
+/** The .xlsx bytes: bold header row that stays in view on scroll, column formats, widths fitting the content. */
+export const buildExcel = async (report: IExcelReport): Promise<Buffer> => {
+    const workbook = new Workbook();
+    const sheet = workbook.addWorksheet(report.sheetName);
+    const headerRow = writeHeader(sheet, report.left, report.right, report.columns.length);
+
+    const header = sheet.getRow(headerRow);
+    header.values = report.columns.map((column) => column.title);
+    header.font = { bold: true };
+    header.eachCell((cell) => {
+        cell.fill = { type: "pattern", pattern: "solid", fgColor: { argb: HEADER_FILL } };
+        cell.border = { bottom: { style: "thin" } };
+    });
+    sheet.views = [{ state: "frozen", ySplit: headerRow }];
+
+    report.rows.forEach((values, index) => {
+        const row = sheet.getRow(headerRow + 1 + index);
+        row.values = values;
+        row.eachCell((cell, column) => {
+            const { format } = report.columns[column - 1];
+            if (format && (typeof cell.value === "number" || cell.value instanceof Date)) cell.numFmt = format;
+        });
+    });
+    if (report.boldLastRow && report.rows.length) sheet.lastRow!.font = { bold: true };
+
+    report.columns.forEach((column, index) => {
+        const lengths = [column.title, ...report.rows.map((values) => displayText(values[index], column.format))].map((text) => text.length);
+        sheet.getColumn(index + 1).width = Math.min(COLUMN_WIDTH.MAX, Math.max(COLUMN_WIDTH.MIN, ...lengths) + COLUMN_WIDTH.PADDING);
+    });
+
+    return Buffer.from(await workbook.xlsx.writeBuffer());
+};
+
+/** `left` from column A, `right` right-aligned in the last column; returns the table's header row. */
+const writeHeader = (sheet: Worksheet, left: string[], right: string[], columnCount: number): number => {
+    left.forEach((line, index) => {
+        const cell = sheet.getCell(index + 1, 1);
+        cell.value = line;
+        if (index < 2) cell.font = { bold: true, size: index === 0 ? 14 : 12 };
+    });
+    right.forEach((line, index) => {
+        const cell = sheet.getCell(index + 1, columnCount);
+        cell.value = line;
+        cell.alignment = { horizontal: "right" };
+    });
+    // One empty row between the header block and the table.
+    return Math.max(left.length, right.length) + 2;
+};
+
+/** Roughly what Excel shows - only to measure column widths. */
+const displayText = (value: ExcelValue, format?: string): string => {
+    if (value === null) return "";
+    if (value instanceof Date) return format ?? "";
+    if (typeof value === "number") {
+        const decimals = format?.split(".")[1]?.length ?? 0;
+        return new Intl.NumberFormat("en-US", { minimumFractionDigits: decimals, maximumFractionDigits: decimals }).format(value);
+    }
+    return value;
+};

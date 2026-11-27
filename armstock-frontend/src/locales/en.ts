@@ -23,6 +23,8 @@ export default {
     connectError: 'Could not connect the scanner. It may be in use in another tab.',
   },
   common: {
+    exportExcel: 'Export to Excel',
+    exportError: 'Could not export the file.',
     fieldLabel: '{label}:',
     logout: 'Log out',
     cancel: 'Cancel',
@@ -616,9 +618,6 @@ export default {
       documents: 'Documents',
       products: 'Products',
     },
-    departments: {
-      kitchen: 'Kitchen',
-    },
     actions: {
       edit: 'Edit',
       delete: 'Delete',
@@ -729,10 +728,6 @@ export default {
     actions: {
       view: 'View',
       export: 'Export',
-    },
-    export: {
-      button: 'Export to Excel',
-      error: 'Could not export the file.',
     },
     popup: {
       range: '{from} – {to}',

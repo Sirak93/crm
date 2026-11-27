@@ -46,6 +46,7 @@ read only once.
 - [x] Step 7 — Stock movement page
 - [ ] Step 8 — Product movement popup
 - [ ] Step 9 — Excel export
+- [ ] Step 9b — Excel export for the lists (stock-in, stock-out, stock balance, kitchen balance)
 - [ ] Step T — Armenian time everywhere
 - [ ] Step 10 — Excel review
 
@@ -366,6 +367,15 @@ Decisions: decisions.md → "Kitchen balance".
       popup; reason names read from shared
 - [x] Tests: both endpoints return a valid .xlsx with the expected rows; permissions
 - [ ] Checked in browser: files open in Excel with Armenian text
+
+## Step 9b — Excel export for the lists
+
+- [x] Shared: stock-out department names as `{ hy, en }` (like reason names)
+- [x] Backend: four .xlsx endpoints - stock-in list, stock-out list, stock balance, kitchen
+      balance; the page's filters, all rows; same header block and formatting as Step 9
+- [x] Frontend: "Export to Excel" button on each of the four pages
+- [x] Tests: each endpoint returns the expected rows; filters; permissions
+- [ ] Checked in browser: the four files open in Excel
 
 ## Step T — Armenian time everywhere
 

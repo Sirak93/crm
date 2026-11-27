@@ -7,6 +7,7 @@ import type {
   IStockOutSummary,
 } from 'armstock-shared';
 import ApiService from './ApiService';
+import { downloadExport } from '../utils/downloadFile';
 import type { IStockOutFilters } from '../interfaces/IStockOutFilters';
 
 /** The logged-in user's company stock-out documents. */
@@ -16,6 +17,11 @@ export const StockOutService = {
       params: { page, pageSize, ...filters },
     });
     return { items: response.data.data!, meta: response.data.meta as IPaginationMeta };
+  },
+
+  /** The list as an .xlsx file, with the page's filters, all documents. */
+  export(filters: IStockOutFilters): Promise<void> {
+    return downloadExport('/stock-outs/export', filters);
   },
 
   async summary(filters: IStockOutFilters): Promise<IStockOutSummary> {

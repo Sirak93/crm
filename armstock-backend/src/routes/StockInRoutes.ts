@@ -5,7 +5,7 @@ import { PermissionMiddleware } from "../middlewares/PermissionMiddleware";
 import { validate } from "../middlewares/Validate";
 import { asyncHandler } from "../utils/asyncHandler";
 import { StockInController } from "../controllers/StockInController";
-import { StockInBodySchema, StockInFiltersSchema, StockInsQuerySchema } from "../schemas/StockInSchema";
+import { StockInBodySchema, StockInExportQuerySchema, StockInFiltersSchema, StockInsQuerySchema } from "../schemas/StockInSchema";
 import { UuidParamsSchema } from "../schemas/SharedSchema";
 
 const router = Router();
@@ -20,6 +20,7 @@ router.use(CompanyMemberMiddleware);
 
 router.get("/", canView, validate(StockInsQuerySchema, "query"), asyncHandler(stockInController.list));
 router.get("/summary", canView, validate(StockInFiltersSchema, "query"), asyncHandler(stockInController.summary));
+router.get("/export", canView, validate(StockInExportQuerySchema, "query"), asyncHandler(stockInController.export));
 router.get("/:uuid", canView, uuidParams, asyncHandler(stockInController.get));
 router.post("/", canCreate, validate(StockInBodySchema), asyncHandler(stockInController.create));
 // The service also checks that the user is the document's creator.

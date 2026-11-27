@@ -1,4 +1,5 @@
 import { StockInReason } from "../enums/StockInReason";
+import { StockOutDepartment } from "../enums/StockOutDepartment";
 import { StockOutReason } from "../enums/StockOutReason";
 import type { ILocalizedText } from "../interfaces/ILocalizedText";
 
@@ -14,4 +15,8 @@ export const STOCK_OUT_REASON_NAMES: Readonly<Record<StockOutReason, ILocalizedT
     [StockOutReason.DAMAGED]: { hy: "Վնասված", en: "Damaged" },
     [StockOutReason.EXPIRED]: { hy: "Ժամկետանց", en: "Expired" },
     [StockOutReason.OTHER]: { hy: "Այլ", en: "Other" },
+};
+
+export const STOCK_OUT_DEPARTMENT_NAMES: Readonly<Record<StockOutDepartment, ILocalizedText>> = {
+    [StockOutDepartment.KITCHEN]: { hy: "Խոհանոց", en: "Kitchen" },
 };

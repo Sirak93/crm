@@ -8,9 +8,7 @@ import {
   type IStockMovement,
 } from 'armstock-shared';
 import ApiService from './ApiService';
-import i18n from '../i18n';
-import { downloadFile } from '../utils/downloadFile';
-import { EXPORT_FALLBACK_FILE_NAME } from '../constants/constants';
+import { downloadExport } from '../utils/downloadFile';
 import type { IStockBalanceFilters } from '../interfaces/IStockBalanceFilters';
 import type { IStockMovementFilters } from '../interfaces/IStockMovementFilters';
 
@@ -61,20 +59,23 @@ export const StockService = {
   },
 
   /** The whole movement table as an .xlsx file, texts in the app language. */
-  async exportMovement(filters: IStockMovementFilters): Promise<void> {
-    const response = await ApiService.get<Blob>('/stock/movement/export', {
-      params: { ...filters, lang: i18n.global.locale.value },
-      responseType: 'blob',
-    });
-    downloadFile(response, EXPORT_FALLBACK_FILE_NAME);
+  exportMovement(filters: IStockMovementFilters): Promise<void> {
+    return downloadExport('/stock/movement/export', filters);
   },
 
   /** One product's movement in the range as an .xlsx file. */
-  async exportProductMovement(uuid: string, range: Pick<IStockMovementFilters, 'dateFrom' | 'dateTo'>): Promise<void> {
-    const response = await ApiService.get<Blob>(`/stock/movement/${uuid}/export`, {
-      params: { dateFrom: range.dateFrom, dateTo: range.dateTo, lang: i18n.global.locale.value },
-      responseType: 'blob',
-    });
-    downloadFile(response, EXPORT_FALLBACK_FILE_NAME);
+  exportProductMovement(uuid: string, range: Pick<IStockMovementFilters, 'dateFrom' | 'dateTo'>): Promise<void> {
+    return downloadExport(`/stock/movement/${uuid}/export`, { dateFrom: range.dateFrom, dateTo: range.dateTo });
+  },
+
+  /** The stock balance as an .xlsx file, with the page's filters. */
+  exportBalance(filters: IStockBalanceFilters): Promise<void> {
+    return downloadExport('/stock/balance/export', filters);
+  },
+
+  /** The kitchen balance as an .xlsx file. */
+  exportKitchenBalance(filters: Omit<IStockBalanceFilters, 'inStockOnly'>): Promise<void> {
+    const { search, categoryUuid } = filters;
+    return downloadExport('/stock/kitchen-balance/export', { search, categoryUuid });
   },
 };

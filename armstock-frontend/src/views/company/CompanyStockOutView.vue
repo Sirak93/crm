@@ -15,14 +15,14 @@ import { StockOutService } from '../../services/StockOutService';
 import { useStockOutDelete } from '../../composables/useStockOutDelete';
 import { useAuthStore } from '../../stores/auth';
 import { ROUTE_NAME } from '../../constants/constants';
-import { STOCK_OUT_DEPARTMENT_LABEL, STOCK_OUT_REASON_ICON } from '../../constants/stockOutReasons';
+import { STOCK_OUT_REASON_ICON } from '../../constants/stockOutReasons';
 import type { IDocFact } from '../../interfaces/IDocFact';
 import { formatDateTimeShort, formatNumber } from '../../utils/format';
 import { docPanelGroups } from '../../utils/stockOutPanel';
 import { AppLogger } from '../../utils/AppLogger';
 import { useStockReasons } from '../../composables/useStockReasons';
 
-const { stockOutReasonName } = useStockReasons();
+const { stockOutReasonName, departmentName } = useStockReasons();
 
 const props = defineProps<{
   uuid: string;
@@ -60,7 +60,7 @@ const parties = computed(() => {
   if (!d) return [];
   return [
     { key: 'createdBy', label: t('stockOut.table.createdBy'), text: d.createdBy.name },
-    ...(d.department ? [{ key: 'department', label: t('stockOut.form.department'), text: t(STOCK_OUT_DEPARTMENT_LABEL[d.department]) }] : []),
+    ...(d.department ? [{ key: 'department', label: t('stockOut.form.department'), text: departmentName(d.department) }] : []),
     ...(d.supplier ? [{ key: 'supplier', label: t('stockOut.form.supplier'), text: d.supplier.name }] : []),
     ...(d.receiver ? [{ key: 'receiver', label: t('stockOut.form.receiver'), text: d.receiver.name }] : []),
   ];

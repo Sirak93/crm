@@ -70,4 +70,9 @@ defineProps<{
   display: flex;
   gap: 0.5rem;
 }
+
+/* The gap spaces the buttons; Element Plus would add its own margin on top. */
+.page-header__actions :deep(.el-button + .el-button) {
+  margin-left: 0;
+}
 </style>

@@ -4,6 +4,7 @@ import { useRouter } from 'vue-router';
 import { Permission, type IPaginationMeta, type IStockIn, type IStockInSummary } from 'armstock-shared';
 import { ArrowDownToLine, Plus } from 'lucide-vue-next';
 import PageHeader from '../../components/PageHeader.vue';
+import ExportButton from '../../components/ExportButton.vue';
 import AppCard from '../../components/AppCard.vue';
 import LoadError from '../../components/LoadError.vue';
 import StockInFilters from '../../components/company/StockInFilters.vue';
@@ -16,10 +17,12 @@ import { DEFAULT_PAGE_SIZE, ROUTE_NAME } from '../../constants/constants';
 import type { IStockInFilters } from '../../interfaces/IStockInFilters';
 import { formatNumber } from '../../utils/format';
 import { AppLogger } from '../../utils/AppLogger';
+import { useExcelExport } from '../../composables/useExcelExport';
 
 const router = useRouter();
 const authStore = useAuthStore();
 const { deleteStockIn } = useStockInDelete();
+const { isExporting, runExport } = useExcelExport();
 
 const canCreate = computed(() => !!authStore.user?.can(Permission.STOCK_IN_CREATE));
 const canEdit = computed(() => !!authStore.user?.can(Permission.STOCK_IN_EDIT));
@@ -34,6 +37,8 @@ const hasError = ref(false);
 const busyUuid = ref<string | null>(null);
 const summary = ref<IStockInSummary | null>(null);
 const isSummaryLoading = ref(false);
+
+const exportList = () => runExport(() => StockInService.export(filters.value));
 
 const hasFilters = computed(() => Object.values(filters.value).some(Boolean));
 
@@ -101,8 +106,9 @@ const onDelete = async (stockIn: IStockIn) => {
       :subtitle="$t('stockIn.subtitle')"
       :badge="hasLoaded ? formatNumber(meta.total) : undefined"
     >
-      <template v-if="canCreate" #actions>
-        <el-button type="primary" @click="router.push({ name: ROUTE_NAME.COMPANY_STOCK_IN_NEW })">
+      <template #actions>
+        <ExportButton :loading="isExporting" :disabled="!stockIns.length" @click="exportList" />
+        <el-button v-if="canCreate" type="primary" @click="router.push({ name: ROUTE_NAME.COMPANY_STOCK_IN_NEW })">
           <Plus :size="16" aria-hidden="true" />
           <span>{{ $t('stockIn.add') }}</span>
         </el-button>

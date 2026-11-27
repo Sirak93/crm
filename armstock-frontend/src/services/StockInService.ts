@@ -1,5 +1,6 @@
 import type { IAppResponse, IPaginationMeta, IStockIn, IStockInDetails, IStockInPayload, IStockInSummary } from 'armstock-shared';
 import ApiService from './ApiService';
+import { downloadExport } from '../utils/downloadFile';
 import type { IStockInFilters } from '../interfaces/IStockInFilters';
 
 /** The logged-in user's company stock-in documents. */
@@ -9,6 +10,11 @@ export const StockInService = {
       params: { page, pageSize, ...filters },
     });
     return { items: response.data.data!, meta: response.data.meta as IPaginationMeta };
+  },
+
+  /** The list as an .xlsx file, with the page's filters, all documents. */
+  export(filters: IStockInFilters): Promise<void> {
+    return downloadExport('/stock-ins/export', filters);
   },
 
   async summary(filters: IStockInFilters): Promise<IStockInSummary> {

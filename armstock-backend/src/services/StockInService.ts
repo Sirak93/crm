@@ -158,6 +158,15 @@ export class StockInService {
         };
     }
 
+    /** Every document for these filters, newest first like the list - the Excel file. */
+    async listAll(companyUuid: string, filters: StockInFilters): Promise<IStockIn[]> {
+        const docs = await this.filtered(companyUuid, filters)
+            .orderBy("doc.date", "DESC")
+            .addOrderBy("doc.createdAt", "DESC")
+            .getMany();
+        return this.toHeaders(docs);
+    }
+
     async list(companyUuid: string, query: StockInsQuery): Promise<{ items: IStockIn[]; meta: IPaginationMeta }> {
         const { page, pageSize } = query;
 

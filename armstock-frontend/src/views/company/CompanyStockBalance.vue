@@ -3,6 +3,7 @@ import { computed, onMounted, ref } from 'vue';
 import type { IPaginationMeta, IProductCategory, IStockBalance, IStockBalanceSummary } from 'armstock-shared';
 import { Scale } from 'lucide-vue-next';
 import PageHeader from '../../components/PageHeader.vue';
+import ExportButton from '../../components/ExportButton.vue';
 import AppCard from '../../components/AppCard.vue';
 import LoadError from '../../components/LoadError.vue';
 import StockBalanceFilters from '../../components/company/StockBalanceFilters.vue';
@@ -14,6 +15,7 @@ import { DEFAULT_PAGE_SIZE } from '../../constants/constants';
 import type { IStockBalanceFilters } from '../../interfaces/IStockBalanceFilters';
 import { formatNumber } from '../../utils/format';
 import { AppLogger } from '../../utils/AppLogger';
+import { useExcelExport } from '../../composables/useExcelExport';
 
 const balances = ref<IStockBalance[]>([]);
 const categories = ref<IProductCategory[]>([]);
@@ -22,6 +24,9 @@ const filters = ref<IStockBalanceFilters>({ inStockOnly: true });
 const isLoading = ref(true);
 const hasLoaded = ref(false);
 const hasError = ref(false);
+
+const { isExporting, runExport } = useExcelExport();
+const exportList = () => runExport(() => StockService.exportBalance(filters.value));
 const summary = ref<IStockBalanceSummary | null>(null);
 const isSummaryLoading = ref(false);
 
@@ -91,7 +96,11 @@ onMounted(loadCategories);
       :title="$t('stockBalance.title')"
       :subtitle="$t('stockBalance.subtitle')"
       :badge="hasLoaded ? formatNumber(meta.total) : undefined"
-    />
+    >
+      <template #actions>
+        <ExportButton :loading="isExporting" :disabled="!balances.length" @click="exportList" />
+      </template>
+    </PageHeader>
 
     <StockBalanceFilters :categories="categories" @change="onFiltersChange" />
 

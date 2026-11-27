@@ -1,8 +1,9 @@
 <script setup lang="ts">
 import { ref } from 'vue';
 import type { IPaginationMeta, IProductCategory, IStockMovement } from 'armstock-shared';
-import { ArrowLeftRight, FileSpreadsheet } from 'lucide-vue-next';
+import { ArrowLeftRight } from 'lucide-vue-next';
 import PageHeader from '../../components/PageHeader.vue';
+import ExportButton from '../../components/ExportButton.vue';
 import AppCard from '../../components/AppCard.vue';
 import LoadError from '../../components/LoadError.vue';
 import StockMovementFilters from '../../components/company/StockMovementFilters.vue';
@@ -13,7 +14,7 @@ import { ProductCategoryService } from '../../services/ProductCategoryService';
 import { DEFAULT_PAGE_SIZE } from '../../constants/constants';
 import type { IStockMovementFilters } from '../../interfaces/IStockMovementFilters';
 import { formatNumber } from '../../utils/format';
-import { useStockMovementExport } from '../../composables/useStockMovementExport';
+import { useExcelExport } from '../../composables/useExcelExport';
 import { AppLogger } from '../../utils/AppLogger';
 
 const rows = ref<IStockMovement[]>([]);
@@ -26,7 +27,7 @@ const hasError = ref(false);
 const viewed = ref<IStockMovement | null>(null);
 const isPopupOpen = ref(false);
 
-const { isExporting, runExport } = useStockMovementExport();
+const { isExporting, runExport } = useExcelExport();
 
 const load = async (page = meta.value.page) => {
   isLoading.value = true;
@@ -81,10 +82,7 @@ loadCategories();
       :badge="hasLoaded ? formatNumber(meta.total) : undefined"
     >
       <template #actions>
-        <el-button :loading="isExporting" :disabled="!rows.length" @click="exportTable">
-          <FileSpreadsheet v-if="!isExporting" :size="16" aria-hidden="true" />
-          <span>{{ $t('stockMovement.export.button') }}</span>
-        </el-button>
+        <ExportButton :loading="isExporting" :disabled="!rows.length" @click="exportTable" />
       </template>
     </PageHeader>
 

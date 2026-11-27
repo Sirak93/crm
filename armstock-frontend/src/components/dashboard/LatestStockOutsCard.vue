@@ -1,5 +1,4 @@
 <script setup lang="ts">
-import { useI18n } from 'vue-i18n';
 import DashboardCard from './DashboardCard.vue';
 import LatestDocumentsList from './LatestDocumentsList.vue';
 import { StockOutService } from '../../services/StockOutService';
@@ -9,16 +8,14 @@ import { LATEST_DOCUMENTS_COUNT } from '../../constants/dashboard';
 import { stockOutDestination } from '../../utils/stockOutDestination';
 import { useStockReasons } from '../../composables/useStockReasons';
 
-const { stockOutReasonName } = useStockReasons();
-
-const { t } = useI18n();
+const { stockOutReasonName, departmentName } = useStockReasons();
 
 const { data, isLoading, hasError, load } = useCardData('latest stock-outs', async () =>
   (await StockOutService.list(1, LATEST_DOCUMENTS_COUNT, {})).items.map((doc) => ({
     uuid: doc.uuid,
     number: doc.number,
     date: doc.date,
-    detail: stockOutDestination(doc, t),
+    detail: stockOutDestination(doc, departmentName),
     value: stockOutReasonName(doc.reason),
   })),
 );

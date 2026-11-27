@@ -98,15 +98,18 @@ export const COMPANY_ROUTES: ICompanyRoute[] = [
     // Stock
     { method: GET, path: () => PATHS.STOCK_BALANCE, permission: P.STOCK_BALANCE_VIEW },
     { method: GET, path: () => `${PATHS.STOCK_BALANCE}/summary`, permission: P.STOCK_BALANCE_VIEW },
+    { method: GET, path: () => `${PATHS.STOCK_BALANCE}/export`, permission: P.STOCK_BALANCE_VIEW, download: true },
     { method: GET, path: () => PATHS.STOCK_MOVEMENT, permission: P.STOCK_BALANCE_VIEW },
     { method: GET, path: (ids) => `${PATHS.STOCK_MOVEMENT}/${ids.uuid}`, permission: P.STOCK_BALANCE_VIEW, target: T.PRODUCT },
     // No target: `lang` is required, so a bare call stops at validation. StockMovementSuite checks other companies' products.
     { method: GET, path: () => `${PATHS.STOCK_MOVEMENT}/export`, permission: P.STOCK_BALANCE_VIEW, download: true },
     { method: GET, path: (ids) => `${PATHS.STOCK_MOVEMENT}/${ids.uuid}/export`, permission: P.STOCK_BALANCE_VIEW, download: true },
     { method: GET, path: () => PATHS.KITCHEN_BALANCE, permission: P.STOCK_BALANCE_VIEW },
+    { method: GET, path: () => `${PATHS.KITCHEN_BALANCE}/export`, permission: P.STOCK_BALANCE_VIEW, download: true },
 
     { method: GET, path: () => PATHS.STOCK_INS, permission: P.STOCK_IN_VIEW },
     { method: GET, path: () => `${PATHS.STOCK_INS}/summary`, permission: P.STOCK_IN_VIEW },
+    { method: GET, path: () => `${PATHS.STOCK_INS}/export`, permission: P.STOCK_IN_VIEW, download: true },
     { method: GET, path: (ids) => `${PATHS.STOCK_INS}/${ids.uuid}`, permission: P.STOCK_IN_VIEW, target: T.STOCK_IN },
     { method: POST, path: () => PATHS.STOCK_INS, permission: P.STOCK_IN_CREATE },
     {
@@ -117,6 +120,7 @@ export const COMPANY_ROUTES: ICompanyRoute[] = [
 
     { method: GET, path: () => PATHS.STOCK_OUTS, permission: P.STOCK_OUT_VIEW },
     { method: GET, path: () => `${PATHS.STOCK_OUTS}/summary`, permission: P.STOCK_OUT_VIEW },
+    { method: GET, path: () => `${PATHS.STOCK_OUTS}/export`, permission: P.STOCK_OUT_VIEW, download: true },
     { method: GET, path: (ids) => `${PATHS.STOCK_OUTS}/${ids.uuid}`, permission: P.STOCK_OUT_VIEW, target: T.STOCK_OUT },
     { method: POST, path: () => PATHS.STOCK_OUTS, permission: P.STOCK_OUT_CREATE },
     {

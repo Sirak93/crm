@@ -20,7 +20,3 @@ export const STOCK_OUT_REASON_ICON: Record<StockOutReason, Component> = {
 };
 
 export const STOCK_OUT_DEPARTMENTS = [StockOutDepartment.KITCHEN];
-
-export const STOCK_OUT_DEPARTMENT_LABEL: Record<StockOutDepartment, string> = {
-  [StockOutDepartment.KITCHEN]: 'stockOut.departments.kitchen',
-};

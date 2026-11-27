@@ -321,6 +321,35 @@ export class StockService {
         return rows.map((row) => ({ productUuid: row.productUuid, quantity: Number(row.quantity) }));
     }
 
+    /** Every row of the stock balance for these filters - the Excel file. */
+    async balanceAll(companyUuid: string, filters: StockBalanceFilters, inStockOnly: boolean): Promise<IStockBalance[]> {
+        return this.allBalances(companyUuid, filters, inStockOnly, StockService.STORE);
+    }
+
+    /** Every product the kitchen still has, for these filters - the Excel file. */
+    async kitchenBalanceAll(companyUuid: string, filters: StockBalanceFilters): Promise<IStockBalance[]> {
+        return this.allBalances(companyUuid, filters, true, StockService.KITCHEN);
+    }
+
+    private async allBalances(companyUuid: string, filters: StockBalanceFilters, inStockOnly: boolean, kind: IStockKind): Promise<IStockBalance[]> {
+        const rows = await StockService.selectBalances(this.balanceQuery(companyUuid, filters, inStockOnly, kind), kind)
+            .getRawMany<IBalanceRow>();
+        return this.toBalances(companyUuid, rows);
+    }
+
+    private static selectBalances(qb: SelectQueryBuilder<Product>, kind: IStockKind): SelectQueryBuilder<Product> {
+        return qb
+            .select("product.uuid", "uuid")
+            .addSelect("product.name", "name")
+            .addSelect("product.code", "code")
+            .addSelect("product.status", "status")
+            .addSelect("product.categoryUuid", "categoryUuid")
+            .addSelect("product.measureUnit", "measureUnit")
+            .addSelect(kind.quantity, "quantity")
+            .orderBy("product.name", "ASC")
+            .addOrderBy("product.uuid", "ASC");
+    }
+
     private async pagedBalances(
         companyUuid: string,
         query: StockBalanceQuery | KitchenBalanceQuery,
@@ -330,16 +359,7 @@ export class StockService {
         const { page, pageSize } = query;
 
         const [rows, total] = await Promise.all([
-            this.balanceQuery(companyUuid, query, inStockOnly, kind)
-                .select("product.uuid", "uuid")
-                .addSelect("product.name", "name")
-                .addSelect("product.code", "code")
-                .addSelect("product.status", "status")
-                .addSelect("product.categoryUuid", "categoryUuid")
-                .addSelect("product.measureUnit", "measureUnit")
-                .addSelect(kind.quantity, "quantity")
-                .orderBy("product.name", "ASC")
-                .addOrderBy("product.uuid", "ASC")
+            StockService.selectBalances(this.balanceQuery(companyUuid, query, inStockOnly, kind), kind)
                 .offset((page - 1) * pageSize)
                 .limit(pageSize)
                 .getRawMany<IBalanceRow>(),

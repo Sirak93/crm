@@ -11,14 +11,15 @@ import {
   type StockInReason,
   type StockOutReason,
 } from 'armstock-shared';
-import { ArrowLeftRight, ChevronRight, FileSpreadsheet } from 'lucide-vue-next';
+import { ArrowLeftRight, ChevronRight } from 'lucide-vue-next';
 import AppDialog from '../AppDialog.vue';
+import ExportButton from '../ExportButton.vue';
 import LoadError from '../LoadError.vue';
 import { StockService } from '../../services/StockService';
 import { useAuthStore } from '../../stores/auth';
 import { useMeasureUnits } from '../../composables/useMeasureUnits';
 import { useStockReasons } from '../../composables/useStockReasons';
-import { useStockMovementExport } from '../../composables/useStockMovementExport';
+import { useExcelExport } from '../../composables/useExcelExport';
 import { ROUTE_NAME } from '../../constants/constants';
 import type { IStockMovementFilters } from '../../interfaces/IStockMovementFilters';
 import { formatDate, formatDateTimeShort, formatNumber, formatQuantity } from '../../utils/format';
@@ -37,7 +38,7 @@ const router = useRouter();
 const authStore = useAuthStore();
 const { unitShortName } = useMeasureUnits();
 const { stockInReasonName, stockOutReasonName } = useStockReasons();
-const { isExporting, runExport } = useStockMovementExport();
+const { isExporting, runExport } = useExcelExport();
 
 const DOCUMENT_TYPES = {
   [StockDocumentType.STOCK_IN]: {
@@ -232,10 +233,7 @@ const quantity = (value: number): string => (value ? formatQuantity(value) : '')
     </div>
 
     <template #footer>
-      <el-button :loading="isExporting" :disabled="!header" @click="exportFile">
-        <FileSpreadsheet v-if="!isExporting" :size="16" aria-hidden="true" />
-        <span>{{ $t('stockMovement.export.button') }}</span>
-      </el-button>
+      <ExportButton :loading="isExporting" :disabled="!header" @click="exportFile" />
       <el-button @click="open = false">{{ $t('common.close') }}</el-button>
     </template>
   </AppDialog>

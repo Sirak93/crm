@@ -1,6 +1,6 @@
 import { z } from "zod";
-import { LOCALE, PRODUCT_MOVEMENT_PAGE_SIZE } from "armstock-shared";
-import { PaginatedSearchQuerySchema } from "./SharedSchema";
+import { PRODUCT_MOVEMENT_PAGE_SIZE } from "armstock-shared";
+import { ExportLangSchema, PaginatedSearchQuerySchema } from "./SharedSchema";
 import { StockDocumentFiltersSchema } from "./StockDocumentSchema";
 
 export const StockBalanceFiltersSchema = z.object({
@@ -14,6 +14,10 @@ export const StockBalanceQuerySchema = PaginatedSearchQuerySchema.extend({
     inStockOnly: z.stringbool().default(true),
 });
 
+export const StockBalanceExportQuerySchema = StockBalanceQuerySchema.omit({ page: true, pageSize: true }).extend(ExportLangSchema.shape);
+
+export const KitchenBalanceExportQuerySchema = StockBalanceFiltersSchema.extend(ExportLangSchema.shape);
+
 // Only products the kitchen still has, so no "in stock only" switch.
 export const KitchenBalanceQuerySchema = PaginatedSearchQuerySchema.extend({
     categoryUuid: z.uuid().optional(),
@@ -26,9 +30,6 @@ export const StockMovementQuerySchema = PaginatedSearchQuerySchema.extend({
     // On also lists products with stock but nothing moved in the range.
     withoutMovement: z.stringbool().default(false),
 });
-
-// The Excel files: all rows, texts in the app language the user has chosen.
-const ExportLangSchema = z.object({ lang: z.enum(LOCALE) });
 
 export const StockMovementExportQuerySchema = StockMovementQuerySchema.omit({ page: true, pageSize: true }).extend(ExportLangSchema.shape);
 
@@ -45,5 +46,7 @@ export type StockBalanceQuery = z.infer<typeof StockBalanceQuerySchema>;
 export type KitchenBalanceQuery = z.infer<typeof KitchenBalanceQuerySchema>;
 export type StockMovementQuery = z.infer<typeof StockMovementQuerySchema>;
 export type ProductMovementQuery = z.infer<typeof ProductMovementQuerySchema>;
+export type StockBalanceExportQuery = z.infer<typeof StockBalanceExportQuerySchema>;
+export type KitchenBalanceExportQuery = z.infer<typeof KitchenBalanceExportQuerySchema>;
 export type StockMovementExportQuery = z.infer<typeof StockMovementExportQuerySchema>;
 export type ProductMovementExportQuery = z.infer<typeof ProductMovementExportQuerySchema>;

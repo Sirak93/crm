@@ -6,9 +6,11 @@ import { validate } from "../middlewares/Validate";
 import { asyncHandler } from "../utils/asyncHandler";
 import { StockController } from "../controllers/StockController";
 import {
+    KitchenBalanceExportQuerySchema,
     KitchenBalanceQuerySchema,
     ProductMovementExportQuerySchema,
     ProductMovementQuerySchema,
+    StockBalanceExportQuerySchema,
     StockBalanceFiltersSchema,
     StockBalanceQuerySchema,
     StockMovementExportQuerySchema,
@@ -22,6 +24,7 @@ const stockController = new StockController();
 router.use(CompanyMemberMiddleware, PermissionMiddleware(Permission.STOCK_BALANCE_VIEW));
 
 router.get("/balance", validate(StockBalanceQuerySchema, "query"), asyncHandler(stockController.balance));
+router.get("/balance/export", validate(StockBalanceExportQuerySchema, "query"), asyncHandler(stockController.balanceExport));
 router.get("/balance/summary", validate(StockBalanceFiltersSchema, "query"), asyncHandler(stockController.balanceSummary));
 router.get("/movement", validate(StockMovementQuerySchema, "query"), asyncHandler(stockController.movement));
 router.get("/movement/export", validate(StockMovementExportQuerySchema, "query"), asyncHandler(stockController.movementExport));
@@ -38,5 +41,10 @@ router.get(
     asyncHandler(stockController.productMovement),
 );
 router.get("/kitchen-balance", validate(KitchenBalanceQuerySchema, "query"), asyncHandler(stockController.kitchenBalance));
+router.get(
+    "/kitchen-balance/export",
+    validate(KitchenBalanceExportQuerySchema, "query"),
+    asyncHandler(stockController.kitchenBalanceExport),
+);
 
 export default router;

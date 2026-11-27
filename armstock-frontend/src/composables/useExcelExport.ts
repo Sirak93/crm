@@ -4,7 +4,7 @@ import { NotificationService } from '../services/NotificationService';
 import { AppLogger } from '../utils/AppLogger';
 
 /** Runs one Excel download at a time and tells the user when it fails. */
-export const useStockMovementExport = () => {
+export const useExcelExport = () => {
   const { t } = useI18n();
   const isExporting = ref(false);
 
@@ -14,8 +14,8 @@ export const useStockMovementExport = () => {
     try {
       await download();
     } catch (error) {
-      AppLogger.error('Failed to export the stock movement:', error);
-      NotificationService.error(t('stockMovement.export.error'));
+      AppLogger.error('Failed to export the Excel file:', error);
+      NotificationService.error(t('common.exportError'));
     } finally {
       isExporting.value = false;
     }

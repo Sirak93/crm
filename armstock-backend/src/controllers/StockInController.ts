@@ -1,13 +1,21 @@
 import { Response } from "express";
 import { AuthRequest } from "../middlewares/AuthMiddleware";
 import { StockInService } from "../services/StockInService";
-import type { StockInBody, StockInFilters, StockInsQuery } from "../schemas/StockInSchema";
+import { StockExportService } from "../services/StockExportService";
+import type { StockInBody, StockInExportQuery, StockInFilters, StockInsQuery } from "../schemas/StockInSchema";
+import { XLSX_CONTENT_TYPE } from "../constants/ExportTexts";
 import { AppResponse } from "../utils/AppResponse";
 import { requireCompanyUuid } from "../utils/requireCompanyUuid";
 
 /** The logged-in user's company stock-in documents. */
 export class StockInController {
     private service = new StockInService();
+    private exportService = new StockExportService();
+
+    export = async (req: AuthRequest, res: Response) => {
+        const file = await this.exportService.stockIns(requireCompanyUuid(req), req.query as unknown as StockInExportQuery);
+        return AppResponse.file(res, file.fileName, XLSX_CONTENT_TYPE, file.content);
+    };
 
     list = async (req: AuthRequest, res: Response) => {
         const { items, meta } = await this.service.list(requireCompanyUuid(req), req.query as unknown as StockInsQuery);

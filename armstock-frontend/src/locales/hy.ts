@@ -23,6 +23,8 @@ const hy: typeof en = {
     connectError: 'Չհաջողվեց միացնել սկաները։ Հնարավոր է՝ այն օգտագործվում է մեկ այլ ներդիրում։',
   },
   common: {
+    exportExcel: 'Արտահանել Excel',
+    exportError: 'Չհաջողվեց արտահանել ֆայլը։',
     fieldLabel: '{label}՝',
     logout: 'Դուրս գալ',
     cancel: 'Չեղարկել',
@@ -616,9 +618,6 @@ const hy: typeof en = {
       documents: 'Փաստաթղթեր',
       products: 'Ապրանքներ',
     },
-    departments: {
-      kitchen: 'Խոհանոց',
-    },
     actions: {
       edit: 'Խմբագրել',
       delete: 'Ջնջել',
@@ -729,10 +728,6 @@ const hy: typeof en = {
     actions: {
       view: 'Դիտել',
       export: 'Արտահանել',
-    },
-    export: {
-      button: 'Արտահանել Excel',
-      error: 'Չհաջողվեց արտահանել ֆայլը։',
     },
     popup: {
       range: '{from} – {to}',

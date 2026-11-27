@@ -589,6 +589,24 @@ Not part of recipes - works for every company.
 - Stock-in / stock-out **reason names** move to shared as `{ hy, en }` (like unit names), so
   the backend file and the frontend use one copy; their keys leave the locale files.
 
+### Excel export for the lists (Step 9b)
+
+- "Export to Excel" on the stock-in list, stock-out list, stock balance and kitchen balance
+  pages. Same look as the movement files; the page's current filters; all rows.
+- Columns:
+  - Stock-in: number, date, reason, supplier, products count, created by.
+  - Stock-out: number, date, reason ("(by recipe)" added when made with recipes),
+    destination (supplier, or department · receiver), products count, created by.
+  - Stock balance: product, code, category, unit, quantity.
+  - Kitchen balance: product, category, unit, quantity (up to 6 decimals, like the page).
+- Header: stock-in / stock-out have period and generated time on the right; the balances
+  only the generated time (they show stock now). Filters line only for filters that are
+  set (reason, supplier, receiver / search, category); switches like "in stock only" are
+  not written.
+- Permissions: the page's own view permission (`STOCK_IN_VIEW`, `STOCK_OUT_VIEW`,
+  `STOCK_BALANCE_VIEW`).
+- Stock-out **department names** move to shared as `{ hy, en }`, like the reason names.
+
 ## Armenian time everywhere
 
 - The whole app shows and picks dates in **Armenian time** (`Asia/Yerevan`), not the
