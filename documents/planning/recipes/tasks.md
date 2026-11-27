@@ -405,5 +405,7 @@ Decisions: decisions.md → "Kitchen balance".
 
 ## Step 10 — Excel review
 
-- [ ] Review both files together with real data; adjust layout
+- [ ] Review all 8 files together with real data (stock movement, product movement,
+      stock-in list, stock-out list, stock balance, kitchen balance, single stock-in,
+      single stock-out); adjust layout so they all match
 - [ ] Decisions.md updated with the final layout

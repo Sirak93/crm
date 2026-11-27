@@ -1,17 +1,13 @@
-import { DefaultRole, MeasureUnit, ProductReceivedAs } from "armstock-shared";
+import { DefaultRole } from "armstock-shared";
 import { AppDataSource } from "../config/database";
 import { Company } from "../models/Company";
-import { ProductCategory } from "../models/ProductCategory";
 import { Role } from "../models/Role";
 import { User } from "../models/User";
 import { DEFAULT_ROLE_NAMES } from "../constants/DefaultRoles";
 import { requireEnv } from "../utils/requireEnv";
 import { PlatformCompaniesService } from "../services/platform/PlatformCompaniesService";
 import { CompanyUsersService } from "../services/CompanyUsersService";
-import { ProductService } from "../services/ProductService";
-import { SupplierService } from "../services/SupplierService";
-import products from "./data/products.json";
-import suppliers from "./data/suppliers.json";
+import { findByName, seedSampleProducts, seedSampleSuppliers } from "./SampleCatalog";
 
 const DEMO_COMPANY_NAME = "Armstock Demo";
 
@@ -22,12 +18,6 @@ const ENV = {
     ACCOUNTANT_EMAIL: "DEV_SEED_ACCOUNTANT_EMAIL",
     CHEF_EMAIL: "DEV_SEED_CHEF_EMAIL",
 } as const;
-
-const findByName = <T extends { name: string; uuid: string }>(items: T[], name: string): string => {
-    const item = items.find((i) => i.name === name);
-    if (!item) throw new Error(`Seed data names "${name}", which does not exist in the demo company`);
-    return item.uuid;
-};
 
 /** A demo company for local development: its Owner, one user per default role, a user without login, and sample data. */
 export const seedDevCompany = async () => {
@@ -72,29 +62,9 @@ export const seedDevCompany = async () => {
     await member("Արմեն", "Ավետիսյան", "Շեֆ-խոհարար", DEFAULT_ROLE_NAMES[DefaultRole.CHEF], env("CHEF_EMAIL"));
     await member("Կարեն", "Գրիգորյան", "Խոհարար", DEFAULT_ROLE_NAMES[DefaultRole.STAFF], null);
 
-    const categories = await AppDataSource.getRepository(ProductCategory).find({ where: { companyUuid } });
-    const productService = new ProductService();
-    for (const product of products) {
-        await productService.create(companyUuid, {
-            name: product.name,
-            code: null,
-            barcode: null,
-            measureUnit: MeasureUnit[product.unit as keyof typeof MeasureUnit],
-            receivedAs: product.receivedAs
-                ? ProductReceivedAs[product.receivedAs as keyof typeof ProductReceivedAs]
-                : ProductReceivedAs.LOOSE,
-            categoryUuid: findByName(categories, product.category),
-        });
-    }
-
-    const supplierService = new SupplierService();
-    for (const supplier of suppliers) {
-        const saved = await supplierService.create(companyUuid, { name: supplier.name, taxId: null, note: null });
-        for (const contact of supplier.contacts) {
-            await supplierService.addContact(companyUuid, saved.uuid, { ...contact, note: null });
-        }
-    }
+    const productCount = await seedSampleProducts(companyUuid);
+    const supplierCount = await seedSampleSuppliers(companyUuid);
 
     const userCount = await AppDataSource.getRepository(User).count({ where: { companyUuid } });
-    console.log(`"${DEMO_COMPANY_NAME}" created: ${userCount} users, ${products.length} products, ${suppliers.length} suppliers`);
+    console.log(`"${DEMO_COMPANY_NAME}" created: ${userCount} users, ${productCount} products, ${supplierCount} suppliers`);
 };

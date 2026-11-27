@@ -9,6 +9,7 @@
     "start": "node dist/server.js",
     "seed": "npm run build:shared && ts-node src/seeders/seed.ts",
     "seed:dev": "npm run build:shared && ts-node src/seeders/seedDev.ts",
+    "seed:company-data": "npm run build:shared && ts-node --transpile-only src/seeders/seedCompanyData.ts",
     "lint": "tsc --noEmit",
     "test": "npm run build:shared && ts-node --transpile-only src/scripts/tester/Run.ts",
     "test:company": "npm run build:shared && ts-node --transpile-only src/scripts/tester/Run.ts company",

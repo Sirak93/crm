@@ -654,6 +654,17 @@ Not part of recipes - works for every company.
   - Stock-out table: product, unit, quantity; by-recipe documents get each product's
     recipes nested under it (name × persons, amount).
 
+### Excel review (Step 10)
+
+- The review covers **all 8 files** together (not only the 2 movement files), so they
+  share one layout: stock movement, product movement, the 4 list files, and the 2
+  single-document files.
+- Real data comes from a dev-only script, `npm run seed:company-data -- <companyUuid> [months]`
+  (default 6). It goes through the services, so every rule applies. It adds the sample
+  products, suppliers and about 16 recipes the company is missing, then day by day: about
+  2–3 purchases and 6–8 stock-outs (mostly by recipe, plus manual issues, write-offs,
+  "other", and a few supplier returns). Used for the Excel review and API speed tests.
+
 ## Armenian time everywhere
 
 - The whole app shows and picks dates in **Armenian time** (`Asia/Yerevan`), not the
