@@ -11,14 +11,6 @@ export const STOCK_OUT_REASONS = [
   StockOutReason.OTHER,
 ];
 
-export const STOCK_OUT_REASON_LABEL: Record<StockOutReason, string> = {
-  [StockOutReason.RETURNED]: 'stockOut.reasons.returned',
-  [StockOutReason.ISSUED]: 'stockOut.reasons.issued',
-  [StockOutReason.DAMAGED]: 'stockOut.reasons.damaged',
-  [StockOutReason.EXPIRED]: 'stockOut.reasons.expired',
-  [StockOutReason.OTHER]: 'stockOut.reasons.other',
-};
-
 export const STOCK_OUT_REASON_ICON: Record<StockOutReason, Component> = {
   [StockOutReason.ISSUED]: HandPlatter,
   [StockOutReason.RETURNED]: Undo2,

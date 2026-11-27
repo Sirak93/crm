@@ -3,11 +3,14 @@ import { onMounted, reactive, watch } from 'vue';
 import type { StockInReason } from 'armstock-shared';
 import SupplierSelect from './SupplierSelect.vue';
 import { DATE_PICKER_FORMAT } from '../../constants/constants';
-import { STOCK_IN_REASON_LABEL, STOCK_IN_REASONS } from '../../constants/stockInReasons';
+import { STOCK_IN_REASONS } from '../../constants/stockInReasons';
 import type { IStockInFilters } from '../../interfaces/IStockInFilters';
 import { isFutureDay } from '../../utils/format';
 import { thisMonthRange } from '../../utils/monthStart';
 import { useDateRangeShortcuts } from '../../composables/useDateRangeShortcuts';
+import { useStockReasons } from '../../composables/useStockReasons';
+
+const { stockInReasonName } = useStockReasons();
 
 const emit = defineEmits<{ change: [filters: IStockInFilters] }>();
 
@@ -58,7 +61,7 @@ onMounted(emitChange);
       clearable
       class="stock-in-filters__select"
     >
-      <el-option v-for="reason in STOCK_IN_REASONS" :key="reason" :label="$t(STOCK_IN_REASON_LABEL[reason])" :value="reason" />
+      <el-option v-for="reason in STOCK_IN_REASONS" :key="reason" :label="stockInReasonName(reason)" :value="reason" />
     </el-select>
 
     <SupplierSelect v-model="form.supplierUuid" :placeholder="$t('stockIn.filters.supplier')" class="stock-in-filters__select" />

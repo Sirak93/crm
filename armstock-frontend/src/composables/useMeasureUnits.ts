@@ -1,8 +1,7 @@
 import { useI18n } from 'vue-i18n';
-import { convertQuantity, MEASURE_UNITS, RECIPE_QUANTITY_DECIMALS, type MeasureUnit } from 'armstock-shared';
+import { convertQuantity, MEASURE_UNITS, RECIPE_QUANTITY_DECIMALS, type Locale, type MeasureUnit } from 'armstock-shared';
 import { formatQuantity } from '../utils/format';
 import { recipeUnit } from '../utils/recipeUnit';
-import type { Locale } from '../constants/constants';
 
 /** Unit names in the current language, from the fixed unit list. */
 export const useMeasureUnits = () => {

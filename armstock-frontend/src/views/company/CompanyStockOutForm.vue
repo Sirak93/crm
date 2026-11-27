@@ -37,7 +37,6 @@ import {
   STOCK_OUT_DEPARTMENT_LABEL,
   STOCK_OUT_DEPARTMENTS,
   STOCK_OUT_REASON_ICON,
-  STOCK_OUT_REASON_LABEL,
   STOCK_OUT_REASONS,
 } from '../../constants/stockOutReasons';
 import type { IStockOutLineForm } from '../../interfaces/IStockOutLineForm';
@@ -47,6 +46,9 @@ import { emptyOutLine } from '../../utils/stockOutLines';
 import { buildTotals, emptyRecipeRow, extraOf, toSavedRecipeOption } from '../../utils/stockOutTotals';
 import { formPanelGroups } from '../../utils/stockOutPanel';
 import { AppLogger } from '../../utils/AppLogger';
+import { useStockReasons } from '../../composables/useStockReasons';
+
+const { stockOutReasonName } = useStockReasons();
 
 const props = defineProps<{
   /** Missing = a new document. */
@@ -92,7 +94,7 @@ const hoveredProduct = ref<string | null>(null);
 
 const reasonOptions = computed(() => STOCK_OUT_REASONS.map((reason) => ({
   value: reason,
-  label: t(STOCK_OUT_REASON_LABEL[reason]),
+  label: stockOutReasonName(reason),
   icon: STOCK_OUT_REASON_ICON[reason],
 })));
 

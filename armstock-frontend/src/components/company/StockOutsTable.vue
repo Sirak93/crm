@@ -4,10 +4,12 @@ import type { IStockOut } from 'armstock-shared';
 import { ChefHat, Pencil, Trash2 } from 'lucide-vue-next';
 import RowActionsMenu from '../RowActionsMenu.vue';
 import { ROUTE_NAME } from '../../constants/constants';
-import { STOCK_OUT_REASON_LABEL } from '../../constants/stockOutReasons';
 import { stockOutDestination } from '../../utils/stockOutDestination';
 import { formatDateTimeShort, formatNumber } from '../../utils/format';
 import { ROW_ACTION, type RowAction } from '../../constants/rowActions';
+import { useStockReasons } from '../../composables/useStockReasons';
+
+const { stockOutReasonName } = useStockReasons();
 
 defineProps<{
   stockOuts: IStockOut[];
@@ -53,7 +55,7 @@ const destination = (doc: IStockOut): string => stockOutDestination(doc, t);
     </el-table-column>
     <el-table-column :label="$t('stockOut.table.reason')" min-width="160">
       <template #default="{ row }">
-        <span class="cell-text">{{ $t(STOCK_OUT_REASON_LABEL[(row as IStockOut).reason]) }}</span>
+        <span class="cell-text">{{ stockOutReasonName((row as IStockOut).reason) }}</span>
         <el-tooltip v-if="row.hasRecipes" :content="$t('stockOut.byRecipe')" placement="top">
           <span class="stock-outs-table__recipe" role="img" :aria-label="$t('stockOut.byRecipe')">
             <ChefHat :size="14" aria-hidden="true" />

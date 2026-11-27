@@ -1,14 +1,19 @@
 <script setup lang="ts">
 import { ProductStatus, type IStockMovement } from 'armstock-shared';
-import { Eye } from 'lucide-vue-next';
+import { Eye, FileSpreadsheet } from 'lucide-vue-next';
 import RowActionsMenu from '../RowActionsMenu.vue';
-import { ROW_ACTION } from '../../constants/rowActions';
+import { ROW_ACTION, type RowAction } from '../../constants/rowActions';
 import { formatQuantity } from '../../utils/format';
 import { useMeasureUnits } from '../../composables/useMeasureUnits';
 
 defineProps<{ rows: IStockMovement[] }>();
 
-const emit = defineEmits<{ view: [row: IStockMovement] }>();
+const emit = defineEmits<{ view: [row: IStockMovement]; export: [row: IStockMovement] }>();
+
+const onAction = (row: IStockMovement, action: RowAction) => {
+  if (action === ROW_ACTION.EXPORT) emit('export', row);
+  else emit('view', row);
+};
 
 const { unitShortName } = useMeasureUnits();
 
@@ -39,10 +44,14 @@ const COLUMNS = [
     <el-table-column min-width="70" align="center">
       <template #default="{ row }">
         <div @click.stop>
-          <RowActionsMenu :label="$t('stockMovement.actionsFor', { name: row.name })" @command="emit('view', row as IStockMovement)">
+          <RowActionsMenu :label="$t('stockMovement.actionsFor', { name: row.name })" @command="onAction(row as IStockMovement, $event as RowAction)">
             <el-dropdown-item :command="ROW_ACTION.VIEW">
               <Eye :size="16" aria-hidden="true" />
               <span>{{ $t('stockMovement.actions.view') }}</span>
+            </el-dropdown-item>
+            <el-dropdown-item :command="ROW_ACTION.EXPORT">
+              <FileSpreadsheet :size="16" aria-hidden="true" />
+              <span>{{ $t('stockMovement.actions.export') }}</span>
             </el-dropdown-item>
           </RowActionsMenu>
         </div>

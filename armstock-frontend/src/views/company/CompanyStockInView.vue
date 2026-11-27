@@ -14,10 +14,13 @@ import { StockInService } from '../../services/StockInService';
 import { useStockInDelete } from '../../composables/useStockInDelete';
 import { useAuthStore } from '../../stores/auth';
 import { ROUTE_NAME } from '../../constants/constants';
-import { STOCK_IN_REASON_ICON, STOCK_IN_REASON_LABEL } from '../../constants/stockInReasons';
+import { STOCK_IN_REASON_ICON } from '../../constants/stockInReasons';
 import type { IDocFact } from '../../interfaces/IDocFact';
 import { formatDateTimeShort, formatNumber } from '../../utils/format';
 import { AppLogger } from '../../utils/AppLogger';
+import { useStockReasons } from '../../composables/useStockReasons';
+
+const { stockInReasonName } = useStockReasons();
 
 const props = defineProps<{
   uuid: string;
@@ -42,7 +45,7 @@ const facts = computed((): IDocFact[] => {
   const d = doc.value;
   if (!d) return [];
   return [
-    { key: 'reason', icon: STOCK_IN_REASON_ICON[d.reason], label: t('stockIn.form.reason'), text: t(STOCK_IN_REASON_LABEL[d.reason]), primary: true },
+    { key: 'reason', icon: STOCK_IN_REASON_ICON[d.reason], label: t('stockIn.form.reason'), text: stockInReasonName(d.reason), primary: true },
     { key: 'date', icon: CalendarDays, label: t('stockIn.form.date'), text: formatDateTimeShort(d.date) },
     ...(d.invoiceNumber ? [{ key: 'invoice', icon: Receipt, label: t('stockIn.form.invoiceNumber'), text: d.invoiceNumber }] : []),
   ];

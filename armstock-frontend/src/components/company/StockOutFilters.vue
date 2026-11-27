@@ -4,11 +4,14 @@ import { StockOutReason } from 'armstock-shared';
 import SupplierSelect from './SupplierSelect.vue';
 import ReceiverSelect from './ReceiverSelect.vue';
 import { DATE_PICKER_FORMAT } from '../../constants/constants';
-import { STOCK_OUT_REASON_LABEL, STOCK_OUT_REASONS } from '../../constants/stockOutReasons';
+import { STOCK_OUT_REASONS } from '../../constants/stockOutReasons';
 import type { IStockOutFilters } from '../../interfaces/IStockOutFilters';
 import { isFutureDay } from '../../utils/format';
 import { thisMonthRange } from '../../utils/monthStart';
 import { useDateRangeShortcuts } from '../../composables/useDateRangeShortcuts';
+import { useStockReasons } from '../../composables/useStockReasons';
+
+const { stockOutReasonName } = useStockReasons();
 
 const emit = defineEmits<{ change: [filters: IStockOutFilters] }>();
 
@@ -71,7 +74,7 @@ onMounted(emitChange);
       clearable
       class="stock-out-filters__select"
     >
-      <el-option v-for="reason in STOCK_OUT_REASONS" :key="reason" :label="$t(STOCK_OUT_REASON_LABEL[reason])" :value="reason" />
+      <el-option v-for="reason in STOCK_OUT_REASONS" :key="reason" :label="stockOutReasonName(reason)" :value="reason" />
     </el-select>
 
     <SupplierSelect

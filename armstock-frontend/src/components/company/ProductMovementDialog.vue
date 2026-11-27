@@ -11,15 +11,15 @@ import {
   type StockInReason,
   type StockOutReason,
 } from 'armstock-shared';
-import { ArrowLeftRight, ChevronRight } from 'lucide-vue-next';
+import { ArrowLeftRight, ChevronRight, FileSpreadsheet } from 'lucide-vue-next';
 import AppDialog from '../AppDialog.vue';
 import LoadError from '../LoadError.vue';
 import { StockService } from '../../services/StockService';
 import { useAuthStore } from '../../stores/auth';
 import { useMeasureUnits } from '../../composables/useMeasureUnits';
+import { useStockReasons } from '../../composables/useStockReasons';
+import { useStockMovementExport } from '../../composables/useStockMovementExport';
 import { ROUTE_NAME } from '../../constants/constants';
-import { STOCK_IN_REASON_LABEL } from '../../constants/stockInReasons';
-import { STOCK_OUT_REASON_LABEL } from '../../constants/stockOutReasons';
 import type { IStockMovementFilters } from '../../interfaces/IStockMovementFilters';
 import { formatDate, formatDateTimeShort, formatNumber, formatQuantity } from '../../utils/format';
 import { AppLogger } from '../../utils/AppLogger';
@@ -36,17 +36,19 @@ const { t } = useI18n();
 const router = useRouter();
 const authStore = useAuthStore();
 const { unitShortName } = useMeasureUnits();
+const { stockInReasonName, stockOutReasonName } = useStockReasons();
+const { isExporting, runExport } = useStockMovementExport();
 
 const DOCUMENT_TYPES = {
   [StockDocumentType.STOCK_IN]: {
     route: ROUTE_NAME.COMPANY_STOCK_IN,
     permission: Permission.STOCK_IN_VIEW,
-    reason: (reason: number) => STOCK_IN_REASON_LABEL[reason as StockInReason],
+    reason: (reason: number) => stockInReasonName(reason as StockInReason),
   },
   [StockDocumentType.STOCK_OUT]: {
     route: ROUTE_NAME.COMPANY_STOCK_OUT,
     permission: Permission.STOCK_OUT_VIEW,
-    reason: (reason: number) => STOCK_OUT_REASON_LABEL[reason as StockOutReason],
+    reason: (reason: number) => stockOutReasonName(reason as StockOutReason),
   },
 };
 
@@ -133,6 +135,10 @@ const toggleRow = (doc: IStockMovementDocument) => {
   openRows.value = { ...openRows.value, [doc.uuid]: !openRows.value[doc.uuid] };
 };
 
+const exportFile = () => {
+  if (props.product) runExport(() => StockService.exportProductMovement(props.product!.uuid, props.range));
+};
+
 const quantity = (value: number): string => (value ? formatQuantity(value) : '');
 </script>
 
@@ -190,10 +196,10 @@ const quantity = (value: number): string => (value ? formatQuantity(value) : '')
                 aria-hidden="true"
                 :class="['product-movement__chevron', { 'product-movement__chevron--open': openRows[row.uuid] }]"
               />
-              <span>{{ $t(DOCUMENT_TYPES[(row as IStockMovementDocument).type].reason(row.reason)) }}</span>
+              <span>{{ DOCUMENT_TYPES[(row as IStockMovementDocument).type].reason(row.reason) }}</span>
               <span class="product-movement__badge">{{ $t('stockMovement.popup.byRecipe') }}</span>
             </button>
-            <span v-else class="cell-text">{{ $t(DOCUMENT_TYPES[(row as IStockMovementDocument).type].reason(row.reason)) }}</span>
+            <span v-else class="cell-text">{{ DOCUMENT_TYPES[(row as IStockMovementDocument).type].reason(row.reason) }}</span>
             <ul v-if="openRows[row.uuid]" class="product-movement__recipes product-movement__recipes--names">
               <li v-for="(recipe, index) in row.recipes" :key="index">
                 {{ $t('stockMovement.popup.recipe', { name: recipe.name, persons: formatNumber(recipe.persons) }) }}
@@ -226,6 +232,10 @@ const quantity = (value: number): string => (value ? formatQuantity(value) : '')
     </div>
 
     <template #footer>
+      <el-button :loading="isExporting" :disabled="!header" @click="exportFile">
+        <FileSpreadsheet v-if="!isExporting" :size="16" aria-hidden="true" />
+        <span>{{ $t('stockMovement.export.button') }}</span>
+      </el-button>
       <el-button @click="open = false">{{ $t('common.close') }}</el-button>
     </template>
   </AppDialog>

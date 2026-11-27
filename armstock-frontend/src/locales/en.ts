@@ -532,11 +532,6 @@ export default {
       documents: 'Documents',
       products: 'Products',
     },
-    reasons: {
-      purchase: 'Purchase',
-      initialStock: 'Initial stock',
-      other: 'Other',
-    },
     actions: {
       edit: 'Edit',
       delete: 'Delete',
@@ -620,13 +615,6 @@ export default {
     summary: {
       documents: 'Documents',
       products: 'Products',
-    },
-    reasons: {
-      returned: 'Returned',
-      issued: 'Issued',
-      damaged: 'Damaged',
-      expired: 'Expired',
-      other: 'Other',
     },
     departments: {
       kitchen: 'Kitchen',
@@ -740,6 +728,11 @@ export default {
     actionsFor: 'Actions for {name}',
     actions: {
       view: 'View',
+      export: 'Export',
+    },
+    export: {
+      button: 'Export to Excel',
+      error: 'Could not export the file.',
     },
     popup: {
       range: '{from} – {to}',

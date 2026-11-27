@@ -19,11 +19,14 @@ import { STOCK_SHORTAGE_TEXT, useApiErrorMessage } from '../../composables/useAp
 import { useUnsavedChanges } from '../../composables/useUnsavedChanges';
 import { useAuthStore } from '../../stores/auth';
 import { DATE_TIME_PICKER_FORMAT, REQUIRED_RULE_TRIGGER, ROUTE_NAME } from '../../constants/constants';
-import { STOCK_IN_REASON_ICON, STOCK_IN_REASON_LABEL, STOCK_IN_REASONS } from '../../constants/stockInReasons';
+import { STOCK_IN_REASON_ICON, STOCK_IN_REASONS } from '../../constants/stockInReasons';
 import type { IStockInLineForm } from '../../interfaces/IStockInLineForm';
 import { formatNumber, isFutureDay } from '../../utils/format';
 import { emptyLine, isLineValid, toLineForm } from '../../utils/stockInLines';
 import { AppLogger } from '../../utils/AppLogger';
+import { useStockReasons } from '../../composables/useStockReasons';
+
+const { stockInReasonName } = useStockReasons();
 
 const props = defineProps<{
   /** Missing = a new document. */
@@ -56,7 +59,7 @@ const showLineErrors = ref(false);
 
 const reasonOptions = computed(() => STOCK_IN_REASONS.map((reason) => ({
   value: reason,
-  label: t(STOCK_IN_REASON_LABEL[reason]),
+  label: stockInReasonName(reason),
   icon: STOCK_IN_REASON_ICON[reason],
 })));
 

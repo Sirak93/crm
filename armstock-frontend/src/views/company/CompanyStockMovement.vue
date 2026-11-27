@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { ref } from 'vue';
 import type { IPaginationMeta, IProductCategory, IStockMovement } from 'armstock-shared';
-import { ArrowLeftRight } from 'lucide-vue-next';
+import { ArrowLeftRight, FileSpreadsheet } from 'lucide-vue-next';
 import PageHeader from '../../components/PageHeader.vue';
 import AppCard from '../../components/AppCard.vue';
 import LoadError from '../../components/LoadError.vue';
@@ -13,6 +13,7 @@ import { ProductCategoryService } from '../../services/ProductCategoryService';
 import { DEFAULT_PAGE_SIZE } from '../../constants/constants';
 import type { IStockMovementFilters } from '../../interfaces/IStockMovementFilters';
 import { formatNumber } from '../../utils/format';
+import { useStockMovementExport } from '../../composables/useStockMovementExport';
 import { AppLogger } from '../../utils/AppLogger';
 
 const rows = ref<IStockMovement[]>([]);
@@ -24,6 +25,8 @@ const hasLoaded = ref(false);
 const hasError = ref(false);
 const viewed = ref<IStockMovement | null>(null);
 const isPopupOpen = ref(false);
+
+const { isExporting, runExport } = useStockMovementExport();
 
 const load = async (page = meta.value.page) => {
   isLoading.value = true;
@@ -61,6 +64,10 @@ const view = (row: IStockMovement) => {
   isPopupOpen.value = true;
 };
 
+const exportTable = () => runExport(() => StockService.exportMovement(filters.value));
+
+const exportRow = (row: IStockMovement) => runExport(() => StockService.exportProductMovement(row.uuid, filters.value));
+
 const retry = () => Promise.all([loadCategories(), load()]);
 
 loadCategories();
@@ -72,7 +79,14 @@ loadCategories();
       :title="$t('stockMovement.title')"
       :subtitle="$t('stockMovement.subtitle')"
       :badge="hasLoaded ? formatNumber(meta.total) : undefined"
-    />
+    >
+      <template #actions>
+        <el-button :loading="isExporting" :disabled="!rows.length" @click="exportTable">
+          <FileSpreadsheet v-if="!isExporting" :size="16" aria-hidden="true" />
+          <span>{{ $t('stockMovement.export.button') }}</span>
+        </el-button>
+      </template>
+    </PageHeader>
 
     <StockMovementFilters :categories="categories" @change="onFiltersChange" />
 
@@ -85,7 +99,7 @@ loadCategories();
         <template #image><ArrowLeftRight :size="40" aria-hidden="true" /></template>
       </el-empty>
 
-      <StockMovementTable v-else v-loading="isLoading" :rows="rows" @view="view" />
+      <StockMovementTable v-else v-loading="isLoading" :rows="rows" @view="view" @export="exportRow" />
     </AppCard>
 
     <el-pagination

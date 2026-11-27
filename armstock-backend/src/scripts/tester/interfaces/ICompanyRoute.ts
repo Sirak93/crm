@@ -14,4 +14,6 @@ export interface ICompanyRoute {
     target?: RouteTarget;
     /** A valid body, so a call gets past validation and reaches the record lookup. */
     body?: (refs: IOwnRefs) => unknown;
+    /** An Excel file, not JSON - left out of the "lists never show company B" check. */
+    download?: true;
 }

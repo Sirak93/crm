@@ -580,6 +580,22 @@ Not part of recipes - works for every company.
   ```
 
   Texts in the user's chosen app language (hy / en).
+- The frontend sends the app language as a `lang` query value (hy / en) - the backend does not
+  store it.
+- Dates in the file (period, generated, file name) are in **Armenian time** (`Asia/Yerevan`,
+  shared `APP_TIME_ZONE`), shown as `DD/MM/YYYY` like on screen.
+- File texts (report name, period, column headers) live in the backend with `hy` / `en`.
+- Stock-in / stock-out **reason names** move to shared as `{ hy, en }` (like unit names), so
+  the backend file and the frontend use one copy; their keys leave the locale files.
+
+## Armenian time everywhere
+
+- The whole app shows and picks dates in **Armenian time** (`Asia/Yerevan`), not the
+  browser's time zone - same numbers for users abroad and in the Excel file.
+- Armenia is always UTC+4 (no summer time), so no new package is needed.
+- Document number year also comes from Armenian time (today from the server clock, so a doc
+  saved on 1 Jan 00:00–04:00 gets last year's number).
+- Done in Step T, right after the Excel export.
 
 ### Date on lines
 

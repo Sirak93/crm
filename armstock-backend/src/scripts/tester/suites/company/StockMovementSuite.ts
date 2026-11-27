@@ -1,5 +1,7 @@
 import {
     ErrorCodes,
+    LOCALE,
+    MEASURE_UNITS,
     PRODUCT_MOVEMENT_PAGE_SIZE,
     ProductStatus,
     StockDocumentType,
@@ -17,6 +19,7 @@ import { createCategory, createProduct, createRecipe, createStockIn, createStock
 import { PATHS } from "../../shared/Paths";
 import { randomUuid, uniqueName } from "../../shared/Random";
 import { stockOf } from "../../shared/Stock";
+import { readSheet, rowsOf } from "../../shared/Excel";
 import type { ICompanySideContext } from "../../interfaces/ICompanySideContext";
 
 type Key = "apple" | "bean" | "corn" | "date" | "egg" | "fig";
@@ -273,5 +276,118 @@ export default (context: ICompanySideContext) => defineSuite("Stock movement", (
     test("product popup: the default page has 50 rows", async () => {
         const { meta } = await productMovement(products.apple);
         equals(meta.pageSize, PRODUCT_MOVEMENT_PAGE_SIZE, "pageSize");
+    });
+    // Whole days in Armenian time (UTC+4), as the frontend sends them.
+    const ARMENIA_OFFSET_MS = 4 * 60 * 60 * 1000;
+    const armFrom = (month: number) => new Date(Date.UTC(2021, month - 1, 1) - ARMENIA_OFFSET_MS).toISOString();
+    const armTo = (month: number) => new Date(Date.UTC(2021, month, 1) - ARMENIA_OFFSET_MS - 1).toISOString();
+    const XLSX = "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet";
+    const TABLE_HEADER_ROW = 7;
+    const exportPath = (path: string, params: Record<string, string | undefined>) => {
+        const query = new URLSearchParams();
+        for (const [key, value] of Object.entries(params)) if (value !== undefined) query.set(key, value);
+        return `${path}?${query}`;
+    };
+    const unitOf = (key: Key) => MEASURE_UNITS[products[key].measureUnit].shortName.en;
+
+    test("Excel table file: header block, every row for the filters (no paging), real numbers, frozen bold header", async () => {
+        const file = await storekeeper.api.download(exportPath(`${PATHS.STOCK_MOVEMENT}/export`, {
+            search: tag, dateFrom: armFrom(3), dateTo: armTo(3), lang: LOCALE.EN,
+        }));
+        equals(file.contentType, XLSX, "content type");
+        equals(file.fileName, "stock-movement_2021-03-01_2021-03-31.xlsx", "file name");
+
+        const sheet = await readSheet(file.content);
+        const [company, title, period, generated, filters] = rowsOf(sheet).slice(0, 5).map((row) => row[0]);
+        matches([company, title, period], [companyA.name, "Stock movement", "Period: 01/03/2021 – 31/03/2021"]);
+        matches(String(generated).startsWith("Generated: "), true, "generated line");
+        equals(filters, `Filters: Search: ${tag} · Products without movement: no`, "filters line");
+        matches(rowsOf(sheet, TABLE_HEADER_ROW), [
+            ["Product", "Unit", "Initial", "In", "Out", "Final"],
+            [nameOf("apple"), unitOf("apple"), 0, 100, 30, 70],
+            [nameOf("date"), unitOf("date"), 0, 5, 5, 0],
+            [`${nameOf("egg")} (archived)`, unitOf("egg"), 0, 4, 0, 4],
+            [nameOf("fig"), unitOf("fig"), 10, 0, 5, 5],
+        ]);
+        equals(sheet.getRow(TABLE_HEADER_ROW).font?.bold, true, "bold header");
+        matches(sheet.views[0], { state: "frozen", ySplit: TABLE_HEADER_ROW });
+        equals(sheet.getCell(TABLE_HEADER_ROW + 1, 3).numFmt, "#,##0.000", "quantity format");
+    });
+
+    test("Excel table file: category and checkbox filters, Armenian texts", async () => {
+        const file = await storekeeper.api.download(exportPath(`${PATHS.STOCK_MOVEMENT}/export`, {
+            categoryUuid: ownCategory.uuid, withoutMovement: "true", dateFrom: armFrom(4), lang: LOCALE.HY,
+        }));
+        equals(file.fileName, "stock-movement_2021-04-01.xlsx", "file name");
+        const sheet = await readSheet(file.content);
+        const rows = rowsOf(sheet);
+        matches(rows.slice(1, 3).map((row) => row[0]), ["Ապրանքների շարժ", "Ժամանակահատված: Սկսած 01/04/2021"]);
+        equals(rows[4][0], `Ֆիլտրեր: Կատեգորիա: ${ownCategory.name} · Առանց շարժի ապրանքները: այո`, "filters line");
+        matches(rows.slice(TABLE_HEADER_ROW - 1).map((row) => row[0]), ["Ապրանք", nameOf("bean")]);
+    });
+
+    test("Excel product file: initial stock row, documents in Armenian time, total row", async () => {
+        const file = await storekeeper.api.download(exportPath(`${PATHS.STOCK_MOVEMENT}/${products.apple.uuid}/export`, {
+            dateFrom: armFrom(4), lang: LOCALE.EN,
+        }));
+        equals(file.contentType, XLSX, "content type");
+        equals(file.fileName, `product-movement_${nameOf("apple").replace(" ", "-")}_2021-04-01.xlsx`, "file name");
+
+        const sheet = await readSheet(file.content);
+        matches(rowsOf(sheet).slice(1, 4).map((row) => row[0]), [
+            "Product movement",
+            `Product: ${nameOf("apple")} (${unitOf("apple")})`,
+            "Period: From 01/04/2021",
+        ]);
+        // Documents are at 12:00 UTC, so 16:00 in Armenia.
+        matches(rowsOf(sheet, TABLE_HEADER_ROW), [
+            ["Date", "Document", "Reason", "In", "Out", "Stock after"],
+            [null, null, "Initial stock", null, null, 70],
+            ["2021-04-10T16:00:00.000Z", appleDocs[2].number, "Initial stock", 10, null, 80],
+            ["2021-05-02T16:00:00.000Z", appleDocs[3].number, "Issued", null, 5, 75],
+            [null, null, "Total", 10, 5, 75],
+        ]);
+        equals(sheet.getCell(TABLE_HEADER_ROW + 2, 1).numFmt, "dd/mm/yyyy hh:mm", "date format");
+    });
+
+    test("Excel product file: a by-recipe stock-out is marked; every document, not only the first page", async () => {
+        const fig = await readSheet((await storekeeper.api.download(exportPath(`${PATHS.STOCK_MOVEMENT}/${products.fig.uuid}/export`, {
+            dateFrom: armFrom(4), dateTo: armTo(4), lang: LOCALE.EN,
+        }))).content);
+        equals(rowsOf(fig, TABLE_HEADER_ROW + 2)[0][2], "Issued (by recipe)", "by-recipe reason");
+
+        const many = await createProduct(storekeeper, { body: { name: `${tag} many` } });
+        const count = PRODUCT_MOVEMENT_PAGE_SIZE + 1;
+        await Promise.all(Array.from({ length: count }, () => createStockIn(storekeeper, [lineOf(many, 1)], { date: day(1, 10) })));
+        const sheet = await readSheet((await storekeeper.api.download(exportPath(`${PATHS.STOCK_MOVEMENT}/${many.uuid}/export`, {
+            lang: LOCALE.EN,
+        }))).content);
+        // Header, initial stock, the documents, total.
+        equals(sheet.rowCount, TABLE_HEADER_ROW + 1 + count + 1, "rows");
+        matches(rowsOf(sheet, sheet.rowCount)[0].slice(2), ["Total", count, 0, count]);
+    });
+
+    test("Excel: language required, bad query and unknown or other company's product refused", async () => {
+        const table = `${PATHS.STOCK_MOVEMENT}/export`;
+        const product = `${PATHS.STOCK_MOVEMENT}/${products.apple.uuid}/export`;
+        for (const path of [table, product]) {
+            await storekeeper.api.rejectsField("GET", path, "lang");
+            await storekeeper.api.rejectsField("GET", `${path}?lang=fr`, "lang");
+            await storekeeper.api.rejectsField("GET", `${path}?lang=en&dateFrom=nope`, "dateFrom");
+        }
+        await storekeeper.api.rejectsField("GET", `${table}?lang=en&categoryUuid=nope`, "categoryUuid");
+        await storekeeper.api.rejectsField("GET", `${PATHS.STOCK_MOVEMENT}/nope/export?lang=en`, "uuid");
+        await storekeeper.api.rejects("GET", `${PATHS.STOCK_MOVEMENT}/${randomUuid()}/export?lang=en`, ErrorCodes.PRODUCT.NOT_FOUND);
+        const theirs = await createProduct(companyB.owner, { body: { name: `${tag} theirs` } });
+        await storekeeper.api.rejects("GET", `${PATHS.STOCK_MOVEMENT}/${theirs.uuid}/export?lang=en`, ErrorCodes.PRODUCT.NOT_FOUND);
+    });
+
+    test("Excel: Accountant can export; Staff, no token and the Platform Owner can't", async () => {
+        const paths = [`${PATHS.STOCK_MOVEMENT}/export?lang=en`, `${PATHS.STOCK_MOVEMENT}/${products.apple.uuid}/export?lang=en`];
+        for (const path of paths) {
+            await companyA.accountant.api.download(path);
+            for (const user of [companyA.staff, context.platformOwner]) await user.api.rejects("GET", path, ErrorCodes.AUTH.FORBIDDEN);
+            await anonymous.rejects("GET", path, ErrorCodes.AUTH.UNAUTHORIZED);
+        }
     });
 });

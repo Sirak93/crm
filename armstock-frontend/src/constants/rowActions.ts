@@ -8,6 +8,7 @@ export const ROW_ACTION = {
   BLOCK: 'block',
   ACTIVATE: 'activate',
   USERS: 'users',
+  EXPORT: 'export',
 } as const;
 
 export type RowAction = typeof ROW_ACTION[keyof typeof ROW_ACTION];

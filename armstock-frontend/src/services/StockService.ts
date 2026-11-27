@@ -8,6 +8,9 @@ import {
   type IStockMovement,
 } from 'armstock-shared';
 import ApiService from './ApiService';
+import i18n from '../i18n';
+import { downloadFile } from '../utils/downloadFile';
+import { EXPORT_FALLBACK_FILE_NAME } from '../constants/constants';
 import type { IStockBalanceFilters } from '../interfaces/IStockBalanceFilters';
 import type { IStockMovementFilters } from '../interfaces/IStockMovementFilters';
 
@@ -55,5 +58,23 @@ export const StockService = {
       params: { page, pageSize: PRODUCT_MOVEMENT_PAGE_SIZE, dateFrom: range.dateFrom, dateTo: range.dateTo },
     });
     return { data: response.data.data!, meta: response.data.meta as IPaginationMeta };
+  },
+
+  /** The whole movement table as an .xlsx file, texts in the app language. */
+  async exportMovement(filters: IStockMovementFilters): Promise<void> {
+    const response = await ApiService.get<Blob>('/stock/movement/export', {
+      params: { ...filters, lang: i18n.global.locale.value },
+      responseType: 'blob',
+    });
+    downloadFile(response, EXPORT_FALLBACK_FILE_NAME);
+  },
+
+  /** One product's movement in the range as an .xlsx file. */
+  async exportProductMovement(uuid: string, range: Pick<IStockMovementFilters, 'dateFrom' | 'dateTo'>): Promise<void> {
+    const response = await ApiService.get<Blob>(`/stock/movement/${uuid}/export`, {
+      params: { dateFrom: range.dateFrom, dateTo: range.dateTo, lang: i18n.global.locale.value },
+      responseType: 'blob',
+    });
+    downloadFile(response, EXPORT_FALLBACK_FILE_NAME);
   },
 };

@@ -46,6 +46,7 @@ read only once.
 - [x] Step 7 — Stock movement page
 - [ ] Step 8 — Product movement popup
 - [ ] Step 9 — Excel export
+- [ ] Step T — Armenian time everywhere
 - [ ] Step 10 — Excel review
 
 ---
@@ -356,15 +357,27 @@ Decisions: decisions.md → "Kitchen balance".
 
 ## Step 9 — Excel export
 
-- [ ] **New dependency:** `exceljs` in the backend (approved)
-- [ ] Backend: two .xlsx endpoints - movement table and one product's movement; same
+- [x] **New dependency:** `exceljs` in the backend (approved)
+- [x] Backend: two .xlsx endpoints - movement table and one product's movement; same
       filters as the screen, all rows; header block, bold frozen header, real numbers
       with 3 decimals, unit column, column widths, file name with the period; texts in the
-      user's language
-- [ ] Frontend: "Export to Excel" above the table, "Export" in row actions, button in the
-      popup
-- [ ] Tests: both endpoints return a valid .xlsx with the expected rows; permissions
+      user's language (`lang` query value), dates in Armenian time (`APP_TIME_ZONE`)
+- [x] Frontend: "Export to Excel" above the table, "Export" in row actions, button in the
+      popup; reason names read from shared
+- [x] Tests: both endpoints return a valid .xlsx with the expected rows; permissions
 - [ ] Checked in browser: files open in Excel with Armenian text
+
+## Step T — Armenian time everywhere
+
+- [ ] Shared: `APP_TIME_ZONE` (added in Step 9) used by both apps
+- [ ] Frontend: `formatDateTime` / `isFutureDay`, date range shortcuts, `monthStart.ts`
+      and the filters' day → start / end time (one shared helper instead of three copies)
+      work in Armenian time
+- [ ] Frontend: stock-in / stock-out form date picker - shown and saved in Armenian time
+- [ ] Backend: document number year from Armenian time, not the server clock
+- [ ] Tests: document number year on 1 Jan 00:00–04:00 Armenian time
+- [ ] Checked in browser: dates and "this month" right with the computer set to another
+      time zone
 
 ## Step 10 — Excel review
 

@@ -3,9 +3,11 @@ import type { IStockIn } from 'armstock-shared';
 import { Pencil, Trash2 } from 'lucide-vue-next';
 import RowActionsMenu from '../RowActionsMenu.vue';
 import { ROUTE_NAME } from '../../constants/constants';
-import { STOCK_IN_REASON_LABEL } from '../../constants/stockInReasons';
 import { formatDateTimeShort, formatNumber } from '../../utils/format';
 import { ROW_ACTION, type RowAction } from '../../constants/rowActions';
+import { useStockReasons } from '../../composables/useStockReasons';
+
+const { stockInReasonName } = useStockReasons();
 
 defineProps<{
   stockIns: IStockIn[];
@@ -46,7 +48,7 @@ const onAction = (stockIn: IStockIn, action: RowAction) => {
       <template #default="{ row }"><span class="cell-text">{{ formatDateTimeShort(row.date) }}</span></template>
     </el-table-column>
     <el-table-column :label="$t('stockIn.table.reason')" min-width="120">
-      <template #default="{ row }"><span class="cell-text">{{ $t(STOCK_IN_REASON_LABEL[(row as IStockIn).reason]) }}</span></template>
+      <template #default="{ row }"><span class="cell-text">{{ stockInReasonName((row as IStockIn).reason) }}</span></template>
     </el-table-column>
     <el-table-column :label="$t('stockIn.table.supplier')" min-width="180" show-overflow-tooltip>
       <template #default="{ row }">

@@ -532,11 +532,6 @@ const hy: typeof en = {
       documents: 'Փաստաթղթեր',
       products: 'Ապրանքներ',
     },
-    reasons: {
-      purchase: 'Գնում',
-      initialStock: 'Սկզբնական մնացորդ',
-      other: 'Այլ',
-    },
     actions: {
       edit: 'Խմբագրել',
       delete: 'Ջնջել',
@@ -620,13 +615,6 @@ const hy: typeof en = {
     summary: {
       documents: 'Փաստաթղթեր',
       products: 'Ապրանքներ',
-    },
-    reasons: {
-      returned: 'Վերադարձ',
-      issued: 'Տրամադրում',
-      damaged: 'Վնասված',
-      expired: 'Ժամկետանց',
-      other: 'Այլ',
     },
     departments: {
       kitchen: 'Խոհանոց',
@@ -740,6 +728,11 @@ const hy: typeof en = {
     actionsFor: '{name}-ի գործողություններ',
     actions: {
       view: 'Դիտել',
+      export: 'Արտահանել',
+    },
+    export: {
+      button: 'Արտահանել Excel',
+      error: 'Չհաջողվեց արտահանել ֆայլը։',
     },
     popup: {
       range: '{from} – {to}',

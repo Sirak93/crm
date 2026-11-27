@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { useI18n } from 'vue-i18n';
 import { Check, Languages } from 'lucide-vue-next';
-import { LOCALE, type Locale } from '../constants/constants';
+import { LOCALE, type Locale } from 'armstock-shared';
 import { setLocale } from '../i18n';
 
 const { locale } = useI18n();

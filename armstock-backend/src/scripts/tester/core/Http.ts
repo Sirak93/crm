@@ -1,6 +1,7 @@
 import { ErrorCodes } from "armstock-shared";
 import { AssertionError } from "./Assert";
 import type { IApiResponse } from "../interfaces/IApiResponse";
+import type { IFileResponse } from "../interfaces/IFileResponse";
 import type { IRequestInfo } from "../interfaces/IRequestInfo";
 
 interface IErrorDef {
@@ -59,6 +60,26 @@ export class Http {
         if (verbose) process.stdout.write(`    → ${method} ${path} ${response.status} ${durationMs}ms\n`);
 
         return { status: response.status, body: parsed, data: parsed?.data, meta: parsed?.meta };
+    }
+
+    /** Asserts a 2xx file download and returns its bytes and name. */
+    async download(path: string): Promise<IFileResponse> {
+        const headers: Record<string, string> = {};
+        if (this.token) headers.authorization = `Bearer ${this.token}`;
+
+        const startedAt = Date.now();
+        const response = await fetch(`${this.baseUrl}${path}`, { headers });
+        lastRequest = { method: "GET", path, status: response.status, durationMs: Date.now() - startedAt };
+        if (response.status >= 400) {
+            throw new AssertionError(`GET ${path} failed with ${response.status}`, "a 2xx response", await response.text());
+        }
+
+        const encoded = /filename\*=UTF-8''([^;]+)/i.exec(response.headers.get("content-disposition") ?? "")?.[1];
+        return {
+            contentType: response.headers.get("content-type"),
+            fileName: encoded ? decodeURIComponent(encoded) : null,
+            content: Buffer.from(await response.arrayBuffer()),
+        };
     }
 
     /** Asserts a 2xx and returns the response - for a step that must succeed. */

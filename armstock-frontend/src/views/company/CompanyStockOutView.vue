@@ -15,11 +15,14 @@ import { StockOutService } from '../../services/StockOutService';
 import { useStockOutDelete } from '../../composables/useStockOutDelete';
 import { useAuthStore } from '../../stores/auth';
 import { ROUTE_NAME } from '../../constants/constants';
-import { STOCK_OUT_DEPARTMENT_LABEL, STOCK_OUT_REASON_ICON, STOCK_OUT_REASON_LABEL } from '../../constants/stockOutReasons';
+import { STOCK_OUT_DEPARTMENT_LABEL, STOCK_OUT_REASON_ICON } from '../../constants/stockOutReasons';
 import type { IDocFact } from '../../interfaces/IDocFact';
 import { formatDateTimeShort, formatNumber } from '../../utils/format';
 import { docPanelGroups } from '../../utils/stockOutPanel';
 import { AppLogger } from '../../utils/AppLogger';
+import { useStockReasons } from '../../composables/useStockReasons';
+
+const { stockOutReasonName } = useStockReasons();
 
 const props = defineProps<{
   uuid: string;
@@ -46,7 +49,7 @@ const facts = computed((): IDocFact[] => {
   const d = doc.value;
   if (!d) return [];
   return [
-    { key: 'reason', icon: STOCK_OUT_REASON_ICON[d.reason], label: t('stockOut.form.reason'), text: t(STOCK_OUT_REASON_LABEL[d.reason]), primary: true },
+    { key: 'reason', icon: STOCK_OUT_REASON_ICON[d.reason], label: t('stockOut.form.reason'), text: stockOutReasonName(d.reason), primary: true },
     { key: 'date', icon: CalendarDays, label: t('stockOut.form.date'), text: formatDateTimeShort(d.date) },
   ];
 });

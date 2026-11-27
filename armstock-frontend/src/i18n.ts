@@ -1,7 +1,8 @@
 import { createI18n } from 'vue-i18n';
 import en from './locales/en';
 import hy from './locales/hy';
-import { DEFAULT_LOCALE, FALLBACK_LOCALE, LOCALE, LOCALE_STORAGE_KEY, type Locale } from './constants/constants';
+import { LOCALE, type Locale } from 'armstock-shared';
+import { DEFAULT_LOCALE, FALLBACK_LOCALE, LOCALE_STORAGE_KEY } from './constants/constants';
 
 const LOCALES: readonly string[] = Object.values(LOCALE);
 

@@ -6,8 +6,10 @@ import { StockOutService } from '../../services/StockOutService';
 import { useCardData } from '../../composables/useCardData';
 import { ROUTE_NAME } from '../../constants/constants';
 import { LATEST_DOCUMENTS_COUNT } from '../../constants/dashboard';
-import { STOCK_OUT_REASON_LABEL } from '../../constants/stockOutReasons';
 import { stockOutDestination } from '../../utils/stockOutDestination';
+import { useStockReasons } from '../../composables/useStockReasons';
+
+const { stockOutReasonName } = useStockReasons();
 
 const { t } = useI18n();
 
@@ -17,7 +19,7 @@ const { data, isLoading, hasError, load } = useCardData('latest stock-outs', asy
     number: doc.number,
     date: doc.date,
     detail: stockOutDestination(doc, t),
-    value: t(STOCK_OUT_REASON_LABEL[doc.reason]),
+    value: stockOutReasonName(doc.reason),
   })),
 );
 </script>

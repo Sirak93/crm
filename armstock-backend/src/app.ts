@@ -35,6 +35,8 @@ app.use(cors({
         }
     },
     methods: ["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"],
+    // The frontend reads the Excel file name from it.
+    exposedHeaders: ["Content-Disposition"],
     allowedHeaders: [
         "Content-Type",
         "Authorization",

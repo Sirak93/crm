@@ -1,9 +1,4 @@
-export const LOCALE = {
-  HY: 'hy',
-  EN: 'en',
-} as const;
-
-export type Locale = typeof LOCALE[keyof typeof LOCALE];
+import { LOCALE, type Locale } from 'armstock-shared';
 
 export const DEFAULT_LOCALE: Locale = LOCALE.HY;
 /** Shown when a key is missing in the active language, so the user never sees a raw key. */
@@ -61,6 +56,9 @@ export const REQUIRED_RULE_TRIGGER = ['blur', 'change'];
 
 /** Wait after the last keystroke before a search request. */
 export const SEARCH_DEBOUNCE_MS = 400;
+
+/** Used only if the backend's file name can't be read. */
+export const EXPORT_FALLBACK_FILE_NAME = 'export.xlsx';
 
 /** Element Plus date picker display format - matches formatDateTime. */
 export const DATE_PICKER_FORMAT = 'DD/MM/YYYY';

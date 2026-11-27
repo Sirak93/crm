@@ -102,7 +102,7 @@ export default (context: ICompanySideContext) => defineSuite("Company isolation"
     // --- Lists never show company B ---
 
     test("no list or picker shows anything of company B", async () => {
-        for (const route of COMPANY_ROUTES.filter((r) => r.method === HttpMethod.GET && r.target === undefined)) {
+        for (const route of COMPANY_ROUTES.filter((r) => r.method === HttpMethod.GET && r.target === undefined && !r.download)) {
             const { body } = await ownerA.api.ok(HttpMethod.GET, `${route.path({ uuid: "", contactUuid: "" })}?pageSize=100`);
             const text = JSON.stringify(body);
             const leaked = uuidsOfB.filter((uuid) => text.includes(uuid));
