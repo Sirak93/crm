@@ -78,6 +78,8 @@ const isLoading = ref(true);
 const hasError = ref(false);
 const isSaving = ref(false);
 const showLineErrors = ref(false);
+// Hovering a product in one panel marks it in the other too.
+const hoveredProduct = ref<string | null>(null);
 
 const isReturned = computed(() => form.value.reason === StockOutReason.RETURNED);
 const isIssued = computed(() => form.value.reason === StockOutReason.ISSUED);
@@ -355,6 +357,8 @@ const save = async () => {
           :groups="panelGroups"
           :recipe-count="panelGroups.filter((group) => group.persons).length"
           :product-count="totalRows.length"
+          :highlighted="hoveredProduct"
+          @hover="hoveredProduct = $event"
         />
 
         <StockOutTotalsPanel
@@ -362,7 +366,9 @@ const save = async () => {
           :rows="totalRows"
           :totals="totals"
           :show-errors="showLineErrors"
+          :highlighted="hoveredProduct"
           @update="setTotal"
+          @hover="hoveredProduct = $event"
         >
           <template #footer>
             <div class="out-actions">

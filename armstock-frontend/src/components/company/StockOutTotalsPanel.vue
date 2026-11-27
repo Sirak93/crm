@@ -17,9 +17,14 @@ const props = defineProps<{
   totals: Record<string, number | undefined>;
   /** Highlight empty totals - set after a failed save. */
   showErrors: boolean;
+  /** The product hovered here or in the summary panel. */
+  highlighted?: string | null;
 }>();
 
-const emit = defineEmits<{ update: [productUuid: string, value: number | undefined] }>();
+const emit = defineEmits<{
+  update: [productUuid: string, value: number | undefined];
+  hover: [productUuid: string | null];
+}>();
 
 const { unitShortName } = useMeasureUnits();
 
@@ -77,7 +82,13 @@ const setRowRef = (uuid: string, el: unknown) => {
         v-for="row in rows"
         :key="row.product.uuid"
         :ref="(el: unknown) => setRowRef(row.product.uuid, el)"
-        :class="['totals-panel__row', { 'is-open': isOpen(row), 'is-invalid': showErrors && isEmpty(row) }]"
+        :class="['totals-panel__row', {
+          'is-open': isOpen(row),
+          'is-invalid': showErrors && isEmpty(row),
+          'is-highlighted': row.product.uuid === highlighted,
+        }]"
+        @mouseenter="emit('hover', row.product.uuid)"
+        @mouseleave="emit('hover', null)"
       >
         <button
           type="button"
@@ -148,10 +159,16 @@ const setRowRef = (uuid: string, el: unknown) => {
 .totals-panel__row {
   margin: 0 -0.5rem;
   border-radius: var(--radius);
+  transition: background-color 0.15s ease;
 }
 
 .totals-panel__row.is-open {
   background-color: var(--bg-app);
+}
+
+.totals-panel__row.is-highlighted,
+.totals-panel__row.is-highlighted .totals-panel__view:hover {
+  background-color: var(--primary-light);
 }
 
 .totals-panel__view {

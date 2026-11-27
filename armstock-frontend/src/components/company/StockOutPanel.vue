@@ -9,7 +9,11 @@ defineProps<{
   groups: IStockOutPanelGroup[];
   recipeCount: number;
   productCount: number;
+  /** The product hovered here or in the totals panel - marked on every line it is on. */
+  highlighted?: string | null;
 }>();
+
+const emit = defineEmits<{ hover: [productUuid: string | null] }>();
 
 const { unitShortName, formatRecipeAmount } = useMeasureUnits();
 
@@ -37,7 +41,13 @@ const amountOf = (group: IStockOutPanelGroup, line: IStockOutPanelGroup['lines']
         </span>
       </div>
       <ul class="out-group__lines">
-        <li v-for="line in group.lines" :key="line.key" class="out-group__line">
+        <li
+          v-for="line in group.lines"
+          :key="line.key"
+          :class="['out-group__line', { 'is-highlighted': line.product.uuid === highlighted }]"
+          @mouseenter="emit('hover', line.product.uuid)"
+          @mouseleave="emit('hover', null)"
+        >
           <span class="out-group__product">{{ line.product.name }}</span>
           <span class="out-group__leader" aria-hidden="true" />
           <span class="out-group__amount">{{ amountOf(group, line) }}</span>
@@ -125,8 +135,15 @@ const amountOf = (group: IStockOutPanelGroup, line: IStockOutPanelGroup['lines']
   display: flex;
   align-items: baseline;
   gap: 0.375rem;
-  padding: 0.25rem 0;
+  margin: 0 -0.5rem;
+  padding: 0.25rem 0.5rem;
+  border-radius: var(--radius);
   font-size: var(--text-sm);
+  transition: background-color 0.15s ease;
+}
+
+.out-group__line.is-highlighted {
+  background-color: var(--primary-light);
 }
 
 .out-group__product {
