@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { useI18n } from 'vue-i18n';
 import type { IStockOut } from 'armstock-shared';
-import { Pencil, Trash2 } from 'lucide-vue-next';
+import { ChefHat, Pencil, Trash2 } from 'lucide-vue-next';
 import RowActionsMenu from '../RowActionsMenu.vue';
 import { ROUTE_NAME } from '../../constants/constants';
 import { STOCK_OUT_REASON_LABEL } from '../../constants/stockOutReasons';
@@ -51,10 +51,14 @@ const destination = (doc: IStockOut): string => stockOutDestination(doc, t);
     <el-table-column :label="$t('stockOut.table.date')" min-width="140">
       <template #default="{ row }"><span class="cell-text">{{ formatDateTimeShort(row.date) }}</span></template>
     </el-table-column>
-    <el-table-column :label="$t('stockOut.table.reason')" min-width="190">
+    <el-table-column :label="$t('stockOut.table.reason')" min-width="160">
       <template #default="{ row }">
         <span class="cell-text">{{ $t(STOCK_OUT_REASON_LABEL[(row as IStockOut).reason]) }}</span>
-        <el-tag v-if="row.hasRecipes" size="small" round class="stock-outs-table__tag">{{ $t('stockOut.byRecipe') }}</el-tag>
+        <el-tooltip v-if="row.hasRecipes" :content="$t('stockOut.byRecipe')" placement="top">
+          <span class="stock-outs-table__recipe" role="img" :aria-label="$t('stockOut.byRecipe')">
+            <ChefHat :size="14" aria-hidden="true" />
+          </span>
+        </el-tooltip>
       </template>
     </el-table-column>
     <el-table-column :label="$t('stockOut.table.destination')" min-width="200" show-overflow-tooltip>
@@ -106,8 +110,17 @@ const destination = (doc: IStockOut): string => stockOutDestination(doc, t);
   text-decoration: underline;
 }
 
-.stock-outs-table__tag {
+.stock-outs-table__recipe {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 1.5rem;
+  height: 1.5rem;
   margin-left: 0.5rem;
+  vertical-align: middle;
+  border-radius: 50%;
+  color: var(--primary-dark);
+  background-color: var(--primary-light);
 }
 
 .stock-outs-table__link:focus-visible {
