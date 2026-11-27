@@ -275,13 +275,13 @@ Needs Steps U3 (fixed units) and U4 (converter component). Decisions: decisions.
 
 ## Step 5 — Stock-out with recipes: edit and delete
 
-- [ ] Backend
-  - [ ] Edit (`STOCK_OUT_EDIT`, creator only): recipe rows already in the doc use their saved
+- [x] Backend
+  - [x] Edit (`STOCK_OUT_EDIT`, creator only): recipe rows already in the doc use their saved
         copy (even if the recipe was archived); new rows use the current active recipe
-  - [ ] Delete works as for any stock-out
-- [ ] Frontend: "Edit" opens the same form rebuilt from the doc (recipes, extras from
+  - [x] Delete works as for any stock-out
+- [x] Frontend: "Edit" opens the same form rebuilt from the doc (recipes, extras from
       `extra_quantity`, totals)
-- [ ] Tests: edit uses the copy (recipe changed in between), archived recipe kept on edit, new
+- [x] Tests: edit uses the copy (recipe changed in between), archived recipe kept on edit, new
       row uses current recipe, extras kept, delete works
 - [ ] Checked in browser: edit people counts of an old doc after changing its recipe
 

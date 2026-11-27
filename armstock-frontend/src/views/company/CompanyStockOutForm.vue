@@ -37,7 +37,7 @@ import type { IStockOutLineForm } from '../../interfaces/IStockOutLineForm';
 import type { IStockOutRecipeForm } from '../../interfaces/IStockOutRecipeForm';
 import { formatNumber, isFutureDay } from '../../utils/format';
 import { emptyOutLine, isOutLineValid, toOutLineForm } from '../../utils/stockOutLines';
-import { buildTotals, isBlankOutLine } from '../../utils/stockOutTotals';
+import { buildTotals, emptyRecipeRow, isBlankOutLine, toSavedRecipeOption } from '../../utils/stockOutTotals';
 import { AppLogger } from '../../utils/AppLogger';
 
 const props = defineProps<{
@@ -149,8 +149,8 @@ const load = async () => {
       OptionsService.recipes(),
       props.uuid ? StockOutService.get(props.uuid) : null,
     ]);
-    recipeOptions.value = recipes;
     if (!doc) {
+      recipeOptions.value = recipes;
       savedSnapshot.value = snapshotOf();
       return;
     }
@@ -170,8 +170,21 @@ const load = async () => {
     };
     selectedSupplier.value = doc.supplier;
     selectedReceiver.value = doc.receiver;
-    // Recipe rows and extra parts come back with stock-out edit (Step 5); until then each line is all extra.
-    lines.value = doc.lines.map(toOutLineForm);
+    // A recipe the doc already has works from its saved copy - even if it was changed or archived since.
+    const savedRecipes = doc.recipes.map(toSavedRecipeOption);
+    const savedUuids = new Set(savedRecipes.map((recipe) => recipe.uuid));
+    recipeOptions.value = [...savedRecipes, ...recipes.filter((recipe) => !savedUuids.has(recipe.uuid))];
+    recipeRows.value = doc.recipes.map((row) => ({ ...emptyRecipeRow(row.persons), recipeUuid: row.recipe.uuid }));
+    // A line with no recipe part and no extra (sent so by the API) still loads, as an extra of its total.
+    const extras = doc.lines
+      .filter((line) => line.extraQuantity > 0 || !line.neededQuantity)
+      .map((line) => toOutLineForm({ ...line, quantity: line.extraQuantity || line.quantity }));
+    lines.value = extras.length ? extras : [emptyOutLine()];
+    // Totals typed by hand stay; set the prefills first, so the watch above keeps them.
+    lastPrefills = new Map(totalRows.value.map((row) => [row.product.uuid, row.prefill]));
+    totalOverrides.value = Object.fromEntries(doc.lines
+      .filter((line) => line.quantity !== lastPrefills.get(line.product.uuid))
+      .map((line) => [line.product.uuid, line.quantity]));
     savedSnapshot.value = snapshotOf();
   } catch (error) {
     AppLogger.error('Failed to load the stock-out document:', error);

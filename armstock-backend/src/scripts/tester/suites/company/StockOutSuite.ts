@@ -552,6 +552,57 @@ export default (context: ICompanySideContext) => defineSuite("Stock-out", (test)
         equals(data.recipes[0].lines.length, 2, "soup lines kept");
     });
 
+    test("edit works from the saved copy: new persons use the old amounts, an archived recipe stays, extras are kept", async () => {
+        // Soup now has only salt and omelette is archived (test above); the doc still has their old amounts.
+        await storekeeper.api.rejects("PUT", path(byRecipe.uuid), ErrorCodes.STOCK_OUT.RECIPE_PRODUCT_MISSING,
+            recipeBody([recipeRow(soup, 20), recipeRow(omelette, 3)], [total(egg, 22), total(salt, 0.002)]));
+
+        const { data } = await storekeeper.api.ok<IStockOutDetails>("PUT", path(byRecipe.uuid), recipeBody(
+            [recipeRow(soup, 20), recipeRow(omelette, 3)],
+            [total(oil, 1.3, 0.3), total(egg, 22), total(salt, 0.002)],
+        ));
+        matches(data, {
+            recipes: [
+                {
+                    recipe: { uuid: soup.uuid },
+                    persons: 20,
+                    lines: [
+                        { product: { uuid: oil.uuid }, quantity: 0.05, neededQuantity: 1 },
+                        { product: { uuid: egg.uuid }, quantity: 1, neededQuantity: 20 },
+                    ],
+                },
+                expectedRecipeDetails().recipes[1],
+            ],
+            lines: [
+                { product: { uuid: oil.uuid }, quantity: 1.3, extraQuantity: 0.3, neededQuantity: 1 },
+                { product: { uuid: egg.uuid }, quantity: 22, extraQuantity: 0, neededQuantity: 21.5 },
+                { product: { uuid: salt.uuid }, quantity: 0.002, extraQuantity: 0, neededQuantity: 0.0012 },
+            ],
+        });
+        equals(data.recipes[0].lines.length, 2, "soup copy kept");
+        await expectStock(db, oil.uuid, 8.7);
+        await expectStock(db, egg.uuid, 74);
+    });
+
+    test("a row added on edit uses the current recipe; an archived recipe the doc didn't have is refused", async () => {
+        const stew = await createRecipe(chef, [lineOf(oil, 0.1)]);
+        const { data: doc } = await storekeeper.api.ok<IStockOutDetails>("POST", PATHS.STOCK_OUTS,
+            recipeBody([recipeRow(stew, 1)], [total(oil, 0.1)]));
+
+        await storekeeper.api.rejects("PUT", path(doc.uuid), ErrorCodes.RECIPE.ARCHIVED,
+            recipeBody([recipeRow(stew, 1), recipeRow(omelette, 1)], [total(oil, 0.1), total(egg, 1), total(salt, 0.001)]));
+
+        const { data } = await storekeeper.api.ok<IStockOutDetails>("PUT", path(doc.uuid),
+            recipeBody([recipeRow(stew, 1), recipeRow(soup, 2)], [total(oil, 0.1), total(salt, 0.02)]));
+        matches(data.recipes, [
+            { recipe: { uuid: stew.uuid }, lines: [{ product: { uuid: oil.uuid }, quantity: 0.1, neededQuantity: 0.1 }] },
+            { recipe: { uuid: soup.uuid }, persons: 2, lines: [{ product: { uuid: salt.uuid }, quantity: 0.01, neededQuantity: 0.02 }] },
+        ]);
+
+        await storekeeper.api.ok("DELETE", path(doc.uuid));
+        await expectStock(db, oil.uuid, 8.7);
+    });
+
     test("a member without stock-out permissions can't save a doc with recipes", async () => {
         await chef.api.rejects("POST", PATHS.STOCK_OUTS, ErrorCodes.AUTH.FORBIDDEN, recipeBody([recipeRow(soup, 1)], [total(oil, 1), total(egg, 1)]));
     });

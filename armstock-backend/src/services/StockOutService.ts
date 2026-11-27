@@ -32,8 +32,8 @@ import type { StockOutBody, StockOutFilters, StockOutsQuery } from "../schemas/S
 
 const NUMBER_PREFIX = "OUT";
 
-/** Each picked recipe's current lines, by recipe uuid - copied into the document on save. */
-type RecipeLinesMap = Map<string, RecipeLine[]>;
+/** The lines a recipe row is copied from - its current recipe lines, or the doc's own saved copy. */
+type RecipeLinesMap = Map<string, Pick<RecipeLine, "productUuid" | "position" | "quantity">[]>;
 
 export class StockOutService {
     private repo = AppDataSource.getRepository(StockOut);
@@ -63,11 +63,17 @@ export class StockOutService {
     /**
      * Products, recipes, supplier and receiver must be the company's. Archived products need no check here:
      * one at 0 fails the stock check. The supplier must be active unless the document already had it.
-     * Recipes must be active, and each of their products needs a line in the totals.
+     * Recipes must be active, and each of their products needs a line in the totals. A recipe the document
+     * already had keeps its saved copy, so it may be archived or changed since.
      */
-    private async assertReferences(companyUuid: string, body: StockOutBody, existingSupplierUuid: string | null): Promise<RecipeLinesMap> {
+    private async assertReferences(
+        companyUuid: string,
+        body: StockOutBody,
+        existingSupplierUuid: string | null,
+        savedLines: RecipeLinesMap = new Map(),
+    ): Promise<RecipeLinesMap> {
         const productUuids = body.lines.map((line) => line.productUuid);
-        const recipeUuids = body.recipes.map((row) => row.recipeUuid);
+        const recipeUuids = body.recipes.map((row) => row.recipeUuid).filter((uuid) => !savedLines.has(uuid));
         const [products, recipes, recipeLines, supplier, receiverExists] = await Promise.all([
             this.productRepo.find({ where: { uuid: In(productUuids), companyUuid } }),
             recipeUuids.length ? this.recipeRepo.find({ where: { uuid: In(recipeUuids), companyUuid } }) : [],
@@ -93,7 +99,10 @@ export class StockOutService {
             if (recipe.status === RecipeStatus.ARCHIVED) throw new AppError(ErrorCodes.RECIPE.ARCHIVED, undefined, undefined, { uuid });
         }
 
-        const missing = recipeLines.filter((line) => !productMap.has(line.productUuid));
+        const linesByRecipe: RecipeLinesMap = new Map(body.recipes.map((row) => [row.recipeUuid, savedLines.get(row.recipeUuid) ?? []]));
+        for (const line of recipeLines) linesByRecipe.get(line.recipeUuid)!.push(line);
+
+        const missing = [...linesByRecipe.values()].flat().filter((line) => !productMap.has(line.productUuid));
         if (missing.length) {
             throw new AppError(ErrorCodes.STOCK_OUT.RECIPE_PRODUCT_MISSING, undefined, undefined, {
                 productUuids: [...new Set(missing.map((line) => line.productUuid))],
@@ -109,8 +118,6 @@ export class StockOutService {
 
         if (!receiverExists) throw new AppError(ErrorCodes.USER.NOT_FOUND, undefined, undefined, { uuid: body.receiverUuid, companyUuid });
 
-        const linesByRecipe: RecipeLinesMap = new Map(recipeUuids.map((uuid) => [uuid, []]));
-        for (const line of recipeLines) linesByRecipe.get(line.recipeUuid)!.push(line);
         return linesByRecipe;
     }
 
@@ -125,7 +132,7 @@ export class StockOutService {
         };
     }
 
-    /** The recipe rows, each with a copy of its recipe's lines as they are today (needed = per person × persons). */
+    /** The recipe rows, each with a copy of its lines (needed = per person × persons). */
     private static async saveRecipes(manager: EntityManager, doc: StockOut, body: StockOutBody, linesByRecipe: RecipeLinesMap): Promise<void> {
         if (!body.recipes.length) return;
         const rows = await manager.save(body.recipes.map((row, index) => manager.create(StockOutRecipe, {
@@ -328,13 +335,21 @@ export class StockOutService {
         return this.get(companyUuid, uuid);
     }
 
+    /** Each recipe row of the document with its saved per-person lines, by recipe uuid. */
+    private async savedRecipeLines(stockOutUuid: string): Promise<RecipeLinesMap> {
+        const rows = await this.outRecipeRepo.find({ where: { stockOutUuid } });
+        if (!rows.length) return new Map();
+        const lines = await this.outRecipeLineRepo.find({ where: { stockOutRecipeUuid: In(rows.map((r) => r.uuid)) }, order: { position: "ASC" } });
+        return new Map(rows.map((row) => [row.recipeUuid, lines.filter((line) => line.stockOutRecipeUuid === row.uuid)]));
+    }
+
     /**
      * Lines and recipe rows are replaced as a whole. Only the new lines' products need the check - the old ones only get stock back.
-     * Recipe rows are copied from the current recipes for now; keeping a row's saved copy comes with stock-out edit (Step 5).
+     * Recipe rows already in the document are rebuilt from their saved copy; new rows copy the current recipe.
      */
     async update(companyUuid: string, userUuid: string, uuid: string, body: StockOutBody): Promise<IStockOutDetails> {
         const doc = await this.findOwnOrFail(companyUuid, uuid, userUuid);
-        const linesByRecipe = await this.assertReferences(companyUuid, body, doc.supplierUuid);
+        const linesByRecipe = await this.assertReferences(companyUuid, body, doc.supplierUuid, await this.savedRecipeLines(doc.uuid));
 
         await AppDataSource.transaction(async (manager) => {
             Object.assign(doc, StockOutService.headerFields(body));

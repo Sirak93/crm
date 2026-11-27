@@ -4,6 +4,7 @@ import {
   RECIPE_QUANTITY_DECIMALS,
   type IRecipeOption,
   type IStockLineProduct,
+  type IStockOutRecipe,
 } from 'armstock-shared';
 import type { IStockOutLineForm } from '../interfaces/IStockOutLineForm';
 import type { IStockOutRecipeForm } from '../interfaces/IStockOutRecipeForm';
@@ -27,6 +28,13 @@ export const roundUpTotal = (value: number, product: IStockLineProduct): number 
 };
 
 export const emptyRecipeRow = (persons?: number): IStockOutRecipeForm => ({ key: nextLineKey(), recipeUuid: '', persons });
+
+/** A doc's recipe row as a picker option, working from the doc's saved copy instead of the current recipe. */
+export const toSavedRecipeOption = (row: IStockOutRecipe): IRecipeOption => ({
+  uuid: row.recipe.uuid,
+  name: row.recipe.name,
+  lines: row.lines.map(({ uuid, product, quantity }) => ({ uuid, product, quantity })),
+});
 
 /** An extras row nothing was typed in yet - left out of the document. */
 export const isBlankOutLine = (line: IStockOutLineForm): boolean => !line.productUuid && line.quantity === undefined;

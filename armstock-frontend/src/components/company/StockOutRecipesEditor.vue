@@ -7,7 +7,7 @@ import type { IStockOutRecipeForm } from '../../interfaces/IStockOutRecipeForm';
 import { emptyRecipeRow, neededQuantity } from '../../utils/stockOutTotals';
 
 const props = defineProps<{
-  /** Active recipes to pick from. */
+  /** Active recipes to pick from, plus those the document already has. */
   recipes: IRecipeOption[];
   recipeMap: ReadonlyMap<string, IRecipeOption>;
   /** Recipes are for reason Issued only. */
