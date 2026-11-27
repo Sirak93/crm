@@ -69,6 +69,7 @@ const setRecipeRef = (key: number, el: unknown) => {
             :ref="(el: unknown) => setRecipeRef(row.key, el)"
             v-model="row.recipeUuid"
             filterable
+            automatic-dropdown
             :disabled="disabled"
             :placeholder="$t('stockOut.recipes.recipePlaceholder')"
             :no-data-text="$t('stockOut.recipes.noRecipes')"

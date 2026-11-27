@@ -97,6 +97,8 @@ const setProductRef = (key: number, el: unknown) => {
             :selected="row.product"
             :placeholder="$t('stockOut.lines.productPlaceholder')"
             for-stock-out
+            automatic-dropdown
+            remote-show-suffix
             :supplied-by="suppliedBy"
             :exclude-uuids="excludeUuids"
             class="lines-editor__product"
