@@ -47,6 +47,7 @@ read only once.
 - [ ] Step 8 — Product movement popup
 - [ ] Step 9 — Excel export
 - [ ] Step 9b — Excel export for the lists (stock-in, stock-out, stock balance, kitchen balance)
+- [ ] Step 9c — Excel: row limit, recipes in the product file, single-document export
 - [ ] Step T — Armenian time everywhere
 - [ ] Step 10 — Excel review
 
@@ -376,6 +377,19 @@ Decisions: decisions.md → "Kitchen balance".
 - [x] Frontend: "Export to Excel" button on each of the four pages
 - [x] Tests: each endpoint returns the expected rows; filters; permissions
 - [ ] Checked in browser: the four files open in Excel
+
+## Step 9c — Excel: row limit, recipes in the product file, single-document export
+
+- [x] Backend: row limit on every export (`EXPORT_MAX_ROWS` = 20,000) - counted before
+      loading, refused with `EXPORT_TOO_MANY_ROWS`; frontend shows its message
+- [x] Backend: product movement file - by-recipe stock-outs get their recipes nested under
+      them (name × persons, exact amount)
+- [x] Backend: `GET /stock-ins/:uuid/export` and `GET /stock-outs/:uuid/export` - one
+      document with its lines; stock-out lines get their recipes nested
+- [x] Frontend: "Export to Excel" on the stock-in and stock-out view pages
+- [x] Tests: limit refused; recipe rows; both document files; permissions; other company's
+      document not found
+- [ ] Checked in browser: the files open in Excel
 
 ## Step T — Armenian time everywhere
 

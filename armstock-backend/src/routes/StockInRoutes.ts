@@ -6,7 +6,7 @@ import { validate } from "../middlewares/Validate";
 import { asyncHandler } from "../utils/asyncHandler";
 import { StockInController } from "../controllers/StockInController";
 import { StockInBodySchema, StockInExportQuerySchema, StockInFiltersSchema, StockInsQuerySchema } from "../schemas/StockInSchema";
-import { UuidParamsSchema } from "../schemas/SharedSchema";
+import { ExportLangSchema, UuidParamsSchema } from "../schemas/SharedSchema";
 
 const router = Router();
 const stockInController = new StockInController();
@@ -22,6 +22,7 @@ router.get("/", canView, validate(StockInsQuerySchema, "query"), asyncHandler(st
 router.get("/summary", canView, validate(StockInFiltersSchema, "query"), asyncHandler(stockInController.summary));
 router.get("/export", canView, validate(StockInExportQuerySchema, "query"), asyncHandler(stockInController.export));
 router.get("/:uuid", canView, uuidParams, asyncHandler(stockInController.get));
+router.get("/:uuid/export", canView, uuidParams, validate(ExportLangSchema, "query"), asyncHandler(stockInController.exportOne));
 router.post("/", canCreate, validate(StockInBodySchema), asyncHandler(stockInController.create));
 // The service also checks that the user is the document's creator.
 router.put("/:uuid", canEdit, uuidParams, validate(StockInBodySchema), asyncHandler(stockInController.update));

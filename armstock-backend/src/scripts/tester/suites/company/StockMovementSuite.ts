@@ -366,7 +366,13 @@ export default (context: ICompanySideContext) => defineSuite("Stock movement", (
         const fig = await readSheet((await storekeeper.api.download(exportPath(`${PATHS.STOCK_MOVEMENT}/${products.fig.uuid}/export`, {
             dateFrom: armFrom(4), dateTo: armTo(4), lang: LOCALE.EN,
         }))).content);
-        equals(rowsOf(fig, TABLE_HEADER_ROW + 2)[0][2], "Issued (by recipe)", "by-recipe reason");
+        // The recipe amount is from the saved copy: 1 per person × 2, though the recipe was edited later.
+        matches(rowsOf(fig, TABLE_HEADER_ROW + 2).slice(0, 2), [
+            [anyString, anyString, "Issued (by recipe)", null, null, 5],
+            [null, null, `${figRecipe.name} × 2 persons`, null, 2, null],
+        ]);
+        const recipeRow = fig.getRow(TABLE_HEADER_ROW + 3);
+        matches([fig.getRow(TABLE_HEADER_ROW + 2).font?.bold, recipeRow.outlineLevel, recipeRow.getCell(5).numFmt], [true, 1, "#,##0.000000"]);
 
         const many = await createProduct(storekeeper, { body: { name: `${tag} many` } });
         const count = PRODUCT_MOVEMENT_PAGE_SIZE + 1;

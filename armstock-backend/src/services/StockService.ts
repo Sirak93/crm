@@ -30,6 +30,7 @@ import { StockOutRecipe } from "../models/StockOutRecipe";
 import { StockOutRecipeLine } from "../models/StockOutRecipeLine";
 import { AppError, type ErrorDef } from "../utils/AppError";
 import { formatDocumentNumber, STOCK_IN_NUMBER_PREFIX, STOCK_OUT_NUMBER_PREFIX } from "../utils/documentNumber";
+import { assertExportRows } from "../utils/excelReport";
 import type {
     KitchenBalanceQuery,
     ProductMovementExportQuery,
@@ -332,6 +333,7 @@ export class StockService {
     }
 
     private async allBalances(companyUuid: string, filters: StockBalanceFilters, inStockOnly: boolean, kind: IStockKind): Promise<IStockBalance[]> {
+        assertExportRows(await this.balanceQuery(companyUuid, filters, inStockOnly, kind).getCount());
         const rows = await StockService.selectBalances(this.balanceQuery(companyUuid, filters, inStockOnly, kind), kind)
             .getRawMany<IBalanceRow>();
         return this.toBalances(companyUuid, rows);
@@ -394,6 +396,7 @@ export class StockService {
 
     /** Every row of the movement table for these filters - the Excel file. */
     async movementAll(companyUuid: string, filters: StockMovementExportQuery): Promise<IStockMovement[]> {
+        assertExportRows(await this.movementQuery(companyUuid, filters).getCount());
         const rows = await StockService.selectMovement(this.movementQuery(companyUuid, filters))
             .orderBy("product.name", "ASC")
             .addOrderBy("product.uuid", "ASC")
@@ -439,7 +442,7 @@ export class StockService {
 
     /** All of a product's movement in the range - the Excel file. */
     async productMovementAll(companyUuid: string, productUuid: string, range: ProductMovementExportQuery): Promise<IProductMovement> {
-        return (await this.productMovementData(companyUuid, productUuid, range)).data;
+        return (await this.productMovementData(companyUuid, productUuid, range, undefined, true)).data;
     }
 
     /**
@@ -451,6 +454,7 @@ export class StockService {
         productUuid: string,
         range: MovementRange,
         paging?: { page: number; pageSize: number },
+        isExport = false,
     ): Promise<{ data: IProductMovement; total: number }> {
         const { dateFrom, dateTo } = range;
 
@@ -471,6 +475,8 @@ export class StockService {
             FROM stock_out_lines line JOIN stock_outs doc ON doc.uuid = line.stock_out_uuid
             WHERE line.company_uuid = $1 AND line.product_uuid = $2${rangeSql}`;
         const order = "date, created_at, uuid";
+        const countSql = `SELECT COUNT(*) AS total FROM (${documents}) documents`;
+        if (isExport) assertExportRows(Number((await AppDataSource.query<{ total: string }[]>(countSql, params))[0].total));
         const pageSql = paging ? ` OFFSET $${params.length + 1} LIMIT $${params.length + 2}` : "";
         const pageParams = paging ? [(paging.page - 1) * paging.pageSize, paging.pageSize] : [];
 
@@ -484,7 +490,7 @@ export class StockService {
                 SELECT *, SUM(incoming - outgoing) OVER (ORDER BY ${order} ROWS UNBOUNDED PRECEDING) AS change
                 FROM (${documents}) documents
                 ORDER BY ${order}${pageSql}`, [...params, ...pageParams]),
-            paging ? AppDataSource.query<{ total: string }[]>(`SELECT COUNT(*) AS total FROM (${documents}) documents`, params) : null,
+            paging ? AppDataSource.query<{ total: string }[]>(countSql, params) : null,
         ]);
         if (!header) throw new AppError(ErrorCodes.PRODUCT.NOT_FOUND, undefined, undefined, { uuid: productUuid });
 

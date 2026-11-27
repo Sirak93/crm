@@ -1,6 +1,9 @@
 import {
+    ErrorCodes,
     LOCALE,
     MEASURE_UNITS,
+    MeasureUnit,
+    ProductStatus,
     StockInReason,
     StockOutReason,
     type IProduct,
@@ -12,7 +15,7 @@ import {
 import type { Worksheet } from "exceljs";
 import { defineSuite } from "../../core/Suite";
 import { anyString, equals, isTrue, matches } from "../../core/Assert";
-import { createProduct, createStockIn, createStockOut, createSupplier, findCategory, lineOf } from "../../shared/Builders";
+import { createProduct, createRecipe, createStockIn, createStockOut, createSupplier, findCategory, lineOf } from "../../shared/Builders";
 import { PATHS } from "../../shared/Paths";
 import { uniqueName } from "../../shared/Random";
 import { readSheet, rowsOf } from "../../shared/Excel";
@@ -23,7 +26,7 @@ import type { ICompanySideContext } from "../../interfaces/ICompanySideContext";
  * so the range holds only this suite's documents; balance cases search by this suite's name tag.
  */
 export default (context: ICompanySideContext) => defineSuite("Excel exports of the lists", (test) => {
-    const { companyA, companyB } = context;
+    const { companyA, companyB, db } = context;
     const storekeeper = companyA.storekeeper;
     const tag = uniqueName("ListExport").replace(" ", "");
 
@@ -159,6 +162,84 @@ export default (context: ICompanySideContext) => defineSuite("Excel exports of t
             [apple.name, category.name, unit(apple), 4],
         ]);
         equals(sheet.getCell(tableRow(sheet) + 1, 4).numFmt, "#,##0.000000", "quantity format");
+    });
+
+    test("one stock-in: details in the header, its lines with packs as typed", async () => {
+        const flour = await createProduct(storekeeper, { allowsDecimals: true, body: { name: `${tag} flour` } });
+        const doc = await createStockIn(storekeeper, [], {
+            supplierUuid: supplier.uuid,
+            invoiceNumber: "INV-7",
+            note: "Back door",
+            date: day(9),
+            lines: [
+                { productUuid: flour.uuid, pack: { quantity: 0.5, unit: MeasureUnit.GRAM, count: 2 } },
+                { productUuid: apple.uuid, pack: { quantity: 2, unit: apple.measureUnit, count: 1 } },
+            ],
+        });
+        const file = await storekeeper.api.download(`${PATHS.STOCK_INS}/${doc.uuid}/export?lang=en`);
+        equals(file.fileName, `stock-in_${doc.number}.xlsx`, "file name");
+        const sheet = await readSheet(file.content);
+        matches(rowsOf(sheet).slice(0, 4).map((row) => row[0]), [
+            companyA.name,
+            `Stock in ${doc.number}`,
+            `Date: 09/01/2019 16:00 · Reason: Purchase · Supplier: ${supplier.name} · Supplier's invoice №: INV-7`,
+            `Created by: ${doc.createdBy.name} · Note: Back door`,
+        ]);
+        isTrue(String(rowsOf(sheet)[0][3]).startsWith("Generated: "), "generated on the right");
+        matches(rowsOf(sheet, tableRow(sheet)), [
+            ["Product", "Unit", "Package", "Quantity"],
+            [flour.name, unit(flour), "2 × 500 g", 1],
+            [apple.name, unit(apple), null, 2],
+        ]);
+    });
+
+    test("one by-recipe stock-out: each product's recipes nested under it", async () => {
+        const recipe = await createRecipe(companyA.owner, [lineOf(apple, 1)]);
+        const doc = await createStockOut(storekeeper, [], {
+            date: day(10),
+            recipes: [{ recipeUuid: recipe.uuid, persons: 2 }],
+            lines: [{ productUuid: apple.uuid, quantity: 3, extraQuantity: 1 }],
+        });
+        const file = await storekeeper.api.download(`${PATHS.STOCK_OUTS}/${doc.uuid}/export?lang=en`);
+        equals(file.fileName, `stock-out_${doc.number}.xlsx`, "file name");
+        const sheet = await readSheet(file.content);
+        matches(rowsOf(sheet).slice(1, 3).map((row) => row[0]), [
+            `Stock out ${doc.number}`,
+            "Date: 10/01/2019 16:00 · Reason: Issued (by recipe) · Where to: Kitchen",
+        ]);
+        matches(rowsOf(sheet, tableRow(sheet)), [
+            ["Product", "Unit", "Quantity"],
+            [apple.name, unit(apple), 3],
+            [`${recipe.name} × 2 persons`, null, 2],
+        ]);
+        const productRow = sheet.getRow(tableRow(sheet) + 1);
+        const recipeRow = sheet.getRow(tableRow(sheet) + 2);
+        matches([productRow.font?.bold, recipeRow.outlineLevel, recipeRow.getCell(3).numFmt], [true, 1, "#,##0.000000"]);
+    });
+
+    test("one document: language required; unknown or other company's document not found", async () => {
+        const theirs = await createStockIn(companyB.owner, [lineOf(await createProduct(companyB.owner), 1)]);
+        const theirOut = await createStockOut(companyB.owner, [lineOf(theirs.lines[0].product, 1)]);
+        await storekeeper.api.rejectsField("GET", `${PATHS.STOCK_INS}/${purchase.uuid}/export`, "lang");
+        await storekeeper.api.rejectsField("GET", `${PATHS.STOCK_OUTS}/nope/export?lang=en`, "uuid");
+        await storekeeper.api.rejects("GET", `${PATHS.STOCK_INS}/${theirs.uuid}/export?lang=en`, ErrorCodes.STOCK_IN.NOT_FOUND);
+        await storekeeper.api.rejects("GET", `${PATHS.STOCK_OUTS}/${theirOut.uuid}/export?lang=en`, ErrorCodes.STOCK_OUT.NOT_FOUND);
+    });
+
+    test("a file over 20,000 rows is refused with the limit, before anything is built", async () => {
+        const many = uniqueName("TooMany").replace(" ", "");
+        await db.query(
+            `INSERT INTO products (company_uuid, name, measure_unit, category_uuid, status)
+             SELECT $1, $2 || ' ' || n, $3, $4, $5 FROM generate_series(1, 20001) AS n`,
+            [companyA.uuid, many, MeasureUnit.PIECE, category.uuid, ProductStatus.ACTIVE],
+        );
+        try {
+            const response = await storekeeper.api.rejects("GET",
+                `${PATHS.STOCK_BALANCE}/export?lang=en&inStockOnly=false&search=${encodeURIComponent(many)}`, ErrorCodes.EXPORT.TOO_MANY_ROWS);
+            matches(response.body.error.meta, { max: 20_000 });
+        } finally {
+            await db.query("DELETE FROM products WHERE company_uuid = $1 AND name LIKE $2", [companyA.uuid, `${many} %`]);
+        }
     });
 
     test("every list file needs a language and refuses a bad filter", async () => {

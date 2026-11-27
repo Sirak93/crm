@@ -12,6 +12,7 @@ export const PaginatedSearchQuerySchema = z.object({
 
 /** Excel files: all rows, texts in the app language the user has chosen. */
 export const ExportLangSchema = z.object({ lang: z.enum(LOCALE) });
+export type ExportLang = z.infer<typeof ExportLangSchema>;
 
 /** Exact barcode match (a scan), not a text search. */
 export const BarcodeQuerySchema = z.string().trim().min(1).max(BARCODE_MAX_LENGTH).optional();

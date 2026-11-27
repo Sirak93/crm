@@ -6,6 +6,7 @@ import { Permission, type IStockOutDetails } from 'armstock-shared';
 import { CalendarDays, Pencil, Trash2 } from 'lucide-vue-next';
 import BackLink from '../../components/BackLink.vue';
 import PageHeader from '../../components/PageHeader.vue';
+import ExportButton from '../../components/ExportButton.vue';
 import AppCard from '../../components/AppCard.vue';
 import DocFacts from '../../components/DocFacts.vue';
 import LoadError from '../../components/LoadError.vue';
@@ -20,6 +21,7 @@ import type { IDocFact } from '../../interfaces/IDocFact';
 import { formatDateTimeShort, formatNumber } from '../../utils/format';
 import { docPanelGroups } from '../../utils/stockOutPanel';
 import { AppLogger } from '../../utils/AppLogger';
+import { useExcelExport } from '../../composables/useExcelExport';
 import { useStockReasons } from '../../composables/useStockReasons';
 
 const { stockOutReasonName, departmentName } = useStockReasons();
@@ -34,6 +36,11 @@ const authStore = useAuthStore();
 const { deleteStockOut } = useStockOutDelete();
 
 const doc = ref<IStockOutDetails | null>(null);
+
+const { isExporting, runExport } = useExcelExport();
+const exportDocument = () => {
+  if (doc.value) runExport(() => StockOutService.exportOne(doc.value!.uuid));
+};
 const isLoading = ref(true);
 const hasError = ref(false);
 const isDeleting = ref(false);
@@ -106,7 +113,8 @@ const onDelete = async () => {
 
     <template v-else>
       <PageHeader :title="doc.number">
-        <template v-if="canEdit || canDelete" #actions>
+        <template #actions>
+          <ExportButton :loading="isExporting" @click="exportDocument" />
           <el-button v-if="canEdit" @click="router.push({ name: ROUTE_NAME.COMPANY_STOCK_OUT_EDIT, params: { uuid: doc.uuid } })">
             <Pencil :size="16" aria-hidden="true" />
             <span>{{ $t('stockOut.actions.edit') }}</span>

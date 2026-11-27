@@ -1,6 +1,7 @@
 import { Workbook, type Worksheet } from "exceljs";
-import { QUANTITY_DECIMALS } from "armstock-shared";
-import type { ExportTexts } from "../constants/ExportTexts";
+import { ErrorCodes, QUANTITY_DECIMALS } from "armstock-shared";
+import { EXPORT_MAX_ROWS, type ExportTexts } from "../constants/ExportTexts";
+import { AppError } from "./AppError";
 import { appIsoDay, formatAppDate, formatAppDateTime } from "./appDate";
 
 export type ExcelValue = string | number | Date | null;
@@ -11,6 +12,8 @@ export interface IExcelRow {
     bold?: boolean;
     /** 1 = nested under the row above it (a document's product line), with Excel's +/- to close the group. */
     level?: 1;
+    /** Number format for this row instead of the column's (recipe amounts have 6 decimals). */
+    format?: string;
 }
 
 export interface IExcelColumn {
@@ -37,6 +40,13 @@ export const DATE_TIME_FORMAT = "dd/mm/yyyy hh:mm";
 
 const HEADER_FILL = "FFF1F3F5";
 const COLUMN_WIDTH = { MIN: 10, MAX: 60, PADDING: 2 } as const;
+
+/** Called with the row count before anything is loaded. */
+export const assertExportRows = (count: number): void => {
+    if (count > EXPORT_MAX_ROWS) {
+        throw new AppError(ErrorCodes.EXPORT.TOO_MANY_ROWS, undefined, undefined, { count }, { max: EXPORT_MAX_ROWS });
+    }
+};
 
 export const generatedLine = (text: ExportTexts): string => `${text.generated}: ${formatAppDateTime(new Date())}`;
 
@@ -78,20 +88,21 @@ export const buildExcel = async (report: IExcelReport): Promise<Buffer> => {
     });
     sheet.views = [{ state: "frozen", ySplit: headerRow }];
 
-    rows.forEach(({ values, bold, level }, index) => {
+    rows.forEach(({ values, bold, level, format: rowFormat }, index) => {
         const row = sheet.getRow(headerRow + 1 + index);
         row.values = values;
         if (bold) row.font = { bold: true };
         if (level) row.outlineLevel = level;
         row.eachCell((cell, column) => {
-            const { format } = report.columns[column - 1];
+            const format = rowFormat ?? report.columns[column - 1].format;
             if (format && (typeof cell.value === "number" || cell.value instanceof Date)) cell.numFmt = format;
         });
     });
     if (report.boldLastRow && rows.length) sheet.lastRow!.font = { bold: true };
 
     report.columns.forEach((column, index) => {
-        const lengths = [column.title, ...rows.map(({ values }) => displayText(values[index] ?? null, column.format))].map((text) => text.length);
+        const lengths = [column.title, ...rows.map((row) => displayText(row.values[index] ?? null, row.format ?? column.format))]
+            .map((text) => text.length);
         sheet.getColumn(index + 1).width = Math.min(COLUMN_WIDTH.MAX, Math.max(COLUMN_WIDTH.MIN, ...lengths) + COLUMN_WIDTH.PADDING);
     });
 

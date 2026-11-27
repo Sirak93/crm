@@ -31,6 +31,7 @@ import { userName } from "../utils/userName";
 import { StockService } from "./StockService";
 import { SupplierReturnService } from "./SupplierReturnService";
 import type { StockOutBody, StockOutFilters, StockOutsQuery } from "../schemas/StockOutSchema";
+import { assertExportRows } from "../utils/excelReport";
 
 /** The lines a recipe row is copied from - its current recipe lines, or the doc's own saved copy. */
 type RecipeLinesMap = Map<string, Pick<RecipeLine, "productUuid" | "position" | "quantity">[]>;
@@ -280,6 +281,7 @@ export class StockOutService {
 
     /** Every document for these filters, newest first like the list - the Excel file. */
     async listAll(companyUuid: string, filters: StockOutFilters): Promise<IStockOut[]> {
+        assertExportRows(await this.filtered(companyUuid, filters).getCount());
         const docs = await this.filtered(companyUuid, filters)
             .orderBy("doc.date", "DESC")
             .addOrderBy("doc.createdAt", "DESC")

@@ -19,6 +19,11 @@ export const StockOutService = {
     return { items: response.data.data!, meta: response.data.meta as IPaginationMeta };
   },
 
+  /** One document with its lines as an .xlsx file. */
+  exportOne(uuid: string): Promise<void> {
+    return downloadExport(`/stock-outs/${uuid}/export`, {});
+  },
+
   /** The list as an .xlsx file, with the page's filters, all documents. */
   export(filters: IStockOutFilters): Promise<void> {
     return downloadExport('/stock-outs/export', filters);

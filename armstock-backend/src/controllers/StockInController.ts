@@ -4,6 +4,7 @@ import { StockInService } from "../services/StockInService";
 import { StockExportService } from "../services/StockExportService";
 import type { StockInBody, StockInExportQuery, StockInFilters, StockInsQuery } from "../schemas/StockInSchema";
 import { XLSX_CONTENT_TYPE } from "../constants/ExportTexts";
+import type { ExportLang } from "../schemas/SharedSchema";
 import { AppResponse } from "../utils/AppResponse";
 import { requireCompanyUuid } from "../utils/requireCompanyUuid";
 
@@ -14,6 +15,12 @@ export class StockInController {
 
     export = async (req: AuthRequest, res: Response) => {
         const file = await this.exportService.stockIns(requireCompanyUuid(req), req.query as unknown as StockInExportQuery);
+        return AppResponse.file(res, file.fileName, XLSX_CONTENT_TYPE, file.content);
+    };
+
+    exportOne = async (req: AuthRequest, res: Response) => {
+        const { lang } = req.query as unknown as ExportLang;
+        const file = await this.exportService.stockIn(requireCompanyUuid(req), req.params.uuid as string, lang);
         return AppResponse.file(res, file.fileName, XLSX_CONTENT_TYPE, file.content);
     };
 

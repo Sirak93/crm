@@ -214,6 +214,13 @@ export const ErrorCodes = {
             STATUS: 404,
         },
     },
+    EXPORT: {
+        /** `meta.max` = the most rows one file may have. */
+        TOO_MANY_ROWS: {
+            CODE: "EXPORT_TOO_MANY_ROWS",
+            STATUS: 422,
+        },
+    },
     RATE_LIMIT: {
         TOO_MANY_REQUESTS: {
             CODE: "RATE_LIMIT_TOO_MANY_REQUESTS",

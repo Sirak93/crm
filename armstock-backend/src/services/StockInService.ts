@@ -22,6 +22,7 @@ import { userName } from "../utils/userName";
 import { StockService } from "./StockService";
 import { SupplierReturnService } from "./SupplierReturnService";
 import type { StockInBody, StockInFilters, StockInsQuery } from "../schemas/StockInSchema";
+import { assertExportRows } from "../utils/excelReport";
 
 /** What the document had before an edit - archived products and supplier may stay. */
 interface IExistingRefs {
@@ -160,6 +161,7 @@ export class StockInService {
 
     /** Every document for these filters, newest first like the list - the Excel file. */
     async listAll(companyUuid: string, filters: StockInFilters): Promise<IStockIn[]> {
+        assertExportRows(await this.filtered(companyUuid, filters).getCount());
         const docs = await this.filtered(companyUuid, filters)
             .orderBy("doc.date", "DESC")
             .addOrderBy("doc.createdAt", "DESC")

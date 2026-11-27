@@ -15,6 +15,10 @@ export const EXPORT_TEXTS = {
     createdBy: { hy: "Ստեղծող", en: "Created by" },
     code: { hy: "Կոդ", en: "Code" },
     quantity: { hy: "Քանակ", en: "Quantity" },
+    persons: { hy: "անձ", en: "persons" },
+    pack: { hy: "Փաթեթ", en: "Package" },
+    invoice: { hy: "Մատակարարի հաշիվ-ապրանքագրի №", en: "Supplier's invoice №" },
+    note: { hy: "Նշում", en: "Note" },
     product: { hy: "Ապրանք", en: "Product" },
     unit: { hy: "Միավոր", en: "Unit" },
     initial: { hy: "Սկզբնական", en: "Initial" },
@@ -44,6 +48,9 @@ export type ExportTexts = { [K in keyof typeof EXPORT_TEXTS]: string };
 /** All file texts in one language. */
 export const exportTexts = (lang: Locale): ExportTexts =>
     Object.fromEntries(Object.entries(EXPORT_TEXTS).map(([key, value]) => [key, value[lang]])) as ExportTexts;
+
+/** Most main rows (products or documents) one file may have - keeps memory and `IN (...)` lists bounded. */
+export const EXPORT_MAX_ROWS = 20_000;
 
 export const XLSX_CONTENT_TYPE = "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet";
 

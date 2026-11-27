@@ -110,6 +110,8 @@ export const COMPANY_ROUTES: ICompanyRoute[] = [
     { method: GET, path: () => PATHS.STOCK_INS, permission: P.STOCK_IN_VIEW },
     { method: GET, path: () => `${PATHS.STOCK_INS}/summary`, permission: P.STOCK_IN_VIEW },
     { method: GET, path: () => `${PATHS.STOCK_INS}/export`, permission: P.STOCK_IN_VIEW, download: true },
+    // No target: `lang` is required, so a bare call stops at validation. StockListExportSuite checks other companies' documents.
+    { method: GET, path: (ids) => `${PATHS.STOCK_INS}/${ids.uuid}/export`, permission: P.STOCK_IN_VIEW, download: true },
     { method: GET, path: (ids) => `${PATHS.STOCK_INS}/${ids.uuid}`, permission: P.STOCK_IN_VIEW, target: T.STOCK_IN },
     { method: POST, path: () => PATHS.STOCK_INS, permission: P.STOCK_IN_CREATE },
     {
@@ -121,6 +123,7 @@ export const COMPANY_ROUTES: ICompanyRoute[] = [
     { method: GET, path: () => PATHS.STOCK_OUTS, permission: P.STOCK_OUT_VIEW },
     { method: GET, path: () => `${PATHS.STOCK_OUTS}/summary`, permission: P.STOCK_OUT_VIEW },
     { method: GET, path: () => `${PATHS.STOCK_OUTS}/export`, permission: P.STOCK_OUT_VIEW, download: true },
+    { method: GET, path: (ids) => `${PATHS.STOCK_OUTS}/${ids.uuid}/export`, permission: P.STOCK_OUT_VIEW, download: true },
     { method: GET, path: (ids) => `${PATHS.STOCK_OUTS}/${ids.uuid}`, permission: P.STOCK_OUT_VIEW, target: T.STOCK_OUT },
     { method: POST, path: () => PATHS.STOCK_OUTS, permission: P.STOCK_OUT_CREATE },
     {

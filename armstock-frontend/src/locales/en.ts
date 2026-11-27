@@ -979,6 +979,7 @@ export default {
     returned: 'returned {quantity} {unit}',
   },
   errors: {
+    EXPORT_TOO_MANY_ROWS: 'Too many rows for one file (more than {max}). Choose a shorter period or more filters.',
     SERVER_INTERNAL_ERROR: 'Something went wrong on the server. Please try again.',
     VALIDATION_ERROR: 'Some data is not filled in correctly. Check it and try again.',
     AUTH_INVALID_CREDENTIALS: 'Wrong email or password.',

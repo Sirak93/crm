@@ -4,6 +4,7 @@ import { StockOutService } from "../services/StockOutService";
 import { StockExportService } from "../services/StockExportService";
 import type { StockOutBody, StockOutExportQuery, StockOutFilters, StockOutsQuery } from "../schemas/StockOutSchema";
 import { XLSX_CONTENT_TYPE } from "../constants/ExportTexts";
+import type { ExportLang } from "../schemas/SharedSchema";
 import { AppResponse } from "../utils/AppResponse";
 import { requireCompanyUuid } from "../utils/requireCompanyUuid";
 
@@ -14,6 +15,12 @@ export class StockOutController {
 
     export = async (req: AuthRequest, res: Response) => {
         const file = await this.exportService.stockOuts(requireCompanyUuid(req), req.query as unknown as StockOutExportQuery);
+        return AppResponse.file(res, file.fileName, XLSX_CONTENT_TYPE, file.content);
+    };
+
+    exportOne = async (req: AuthRequest, res: Response) => {
+        const { lang } = req.query as unknown as ExportLang;
+        const file = await this.exportService.stockOut(requireCompanyUuid(req), req.params.uuid as string, lang);
         return AppResponse.file(res, file.fileName, XLSX_CONTENT_TYPE, file.content);
     };
 

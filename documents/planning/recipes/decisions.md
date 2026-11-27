@@ -620,6 +620,31 @@ Not part of recipes - works for every company.
   `STOCK_BALANCE_VIEW`).
 - Stock-out **department names** move to shared as `{ hy, en }`, like the reason names.
 
+### Excel: row limit, recipes, single document (Step 9c)
+
+- **Row limit:** at most **20,000** main rows per file (products, or documents) -
+  `EXPORT_MAX_ROWS`. Counted before anything is loaded; above it the request is refused
+  (`EXPORT_TOO_MANY_ROWS`) and the user sees "choose a shorter period or more filters".
+  Keeps the server safe and stays under Postgres' limit on `IN (...)` lists.
+- **Product movement file:** a by-recipe stock-out row gets its recipes nested under it
+  (open group), like the popup: "Dish A × 11 persons" and the exact recipe amount in the
+  Out column (up to 6 decimals). The Total row is not changed by them.
+
+  ```
+  Date              Document       Reason               Out     Stock after
+  05/11/2026 10:30  OUT-2026-0015  Issued (by recipe)   2.000   138.000    ← bold
+                                   Dish A × 11 persons  1.100
+  ```
+
+- **Single document:** "Export to Excel" on the stock-in and stock-out view pages; the
+  document's view permission.
+  - Header block: company, "Stock in IN-…" / "Stock out OUT-…", a details line (date,
+    reason, supplier / where to, invoice), a line with created by and note; generated time
+    on the right.
+  - Stock-in table: product, unit, pack (e.g. "2 × 5 kg", empty for one pack), quantity.
+  - Stock-out table: product, unit, quantity; by-recipe documents get each product's
+    recipes nested under it (name × persons, amount).
+
 ## Armenian time everywhere
 
 - The whole app shows and picks dates in **Armenian time** (`Asia/Yerevan`), not the
