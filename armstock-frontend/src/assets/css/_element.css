@@ -232,8 +232,40 @@
     white-space: nowrap;
 }
 
+/* Shortcuts: Element's 110px sidebar wrapped every Armenian label onto two lines. */
+.el-picker-panel {
+    --picker-sidebar-width: 150px;
+}
+
+.el-picker-panel__sidebar {
+    width: var(--picker-sidebar-width);
+    padding: 0.5rem;
+}
+
+.el-picker-panel__sidebar + .el-picker-panel__body {
+    margin-left: var(--picker-sidebar-width) !important;
+}
+
+/* Element's own width (646px + 110px sidebar), with the wider sidebar. */
+.el-date-range-picker.has-sidebar {
+    width: calc(646px + var(--picker-sidebar-width));
+}
+
 .el-picker-panel__shortcut {
-    font-size: var(--text-base) !important;
+    padding: 0.375rem 0.625rem;
+    border-radius: 8px;
+    font-size: var(--text-sm) !important;
+    line-height: 1.4;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    transition: background-color 0.15s, color 0.15s;
+}
+
+.el-picker-panel__shortcut:hover,
+.el-picker-panel__shortcut:focus-visible {
+    background-color: var(--primary-light);
+    color: var(--primary-dark);
 }
 
 /* Phones: two months side by side plus shortcuts (~650px) don't fit - stack them, shortcuts on top. */
