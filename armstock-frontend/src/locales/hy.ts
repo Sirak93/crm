@@ -108,7 +108,7 @@ const hy: typeof en = {
     stock: 'Պահեստ',
     stockIn: 'Մուտք',
     stockOut: 'Ելք',
-    stockBalance: 'Մնացորդ',
+    stockBalance: 'Պահեստի մնացորդ',
     stockMovement: 'Ապրանքների շարժ',
     kitchenBalance: 'Խոհանոցի մնացորդ',
     productCategories: 'Ապրանքի կատեգորիաներ',

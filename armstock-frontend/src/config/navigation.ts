@@ -76,18 +76,18 @@ export const NAV_ITEMS: (INavItem | INavGroup)[] = [
         icon: Scale,
         routeName: ROUTE_NAME.COMPANY_STOCK_BALANCE,
       },
-      {
-        id: 'company-stock-movement',
-        labelKey: 'nav.stockMovement',
-        icon: ArrowLeftRight,
-        routeName: ROUTE_NAME.COMPANY_STOCK_MOVEMENT,
-      },
       ...(KITCHEN_BALANCE_ENABLED ? [{
         id: 'company-kitchen-balance',
         labelKey: 'nav.kitchenBalance',
         icon: CookingPot,
         routeName: ROUTE_NAME.COMPANY_KITCHEN_BALANCE,
       }] : []),
+      {
+        id: 'company-stock-movement',
+        labelKey: 'nav.stockMovement',
+        icon: ArrowLeftRight,
+        routeName: ROUTE_NAME.COMPANY_STOCK_MOVEMENT,
+      },
     ],
   },
   {

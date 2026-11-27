@@ -108,7 +108,7 @@ export default {
     stock: 'Stock',
     stockIn: 'In',
     stockOut: 'Out',
-    stockBalance: 'Balance',
+    stockBalance: 'Stock balance',
     stockMovement: 'Stock movement',
     kitchenBalance: 'Kitchen balance',
     productCategories: 'Product categories',
