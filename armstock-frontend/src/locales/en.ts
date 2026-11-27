@@ -507,6 +507,12 @@ export default {
     },
   },
   stockIn: {
+    sections: {
+      details: 'Details',
+      detailsHint: 'Reason, date and supplier',
+      products: 'Products',
+      productsHint: 'One row for each product received',
+    },
     title: 'Stock in',
     subtitle: 'Goods that came into stock: purchases, starting balance, and more.',
     add: 'New stock-in',
@@ -590,6 +596,10 @@ export default {
     },
   },
   stockOut: {
+    sections: {
+      details: 'Details',
+      detailsHint: 'Reason, date and who receives it',
+    },
     title: 'Stock out',
     subtitle: 'Goods that left stock: issued, returned, or written off.',
     add: 'New stock-out',

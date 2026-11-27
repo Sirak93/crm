@@ -2,10 +2,12 @@
 import { computed, onMounted, ref } from 'vue';
 import { useRouter } from 'vue-router';
 import { useI18n } from 'vue-i18n';
+import { FileText, PackagePlus } from 'lucide-vue-next';
 import type { FormInstance, FormItemRule, FormRules } from 'element-plus';
 import { StockInReason, type INamedRef, type IStockInDetails, type IStockInPayload } from 'armstock-shared';
 import BackLink from '../../components/BackLink.vue';
 import ReasonSelect from '../../components/ReasonSelect.vue';
+import SectionHeader from '../../components/SectionHeader.vue';
 import PageHeader from '../../components/PageHeader.vue';
 import AppCard from '../../components/AppCard.vue';
 import LoadError from '../../components/LoadError.vue';
@@ -180,6 +182,9 @@ const save = async () => {
 
     <template v-else>
       <AppCard>
+        <SectionHeader :title="$t('stockIn.sections.details')" :hint="$t('stockIn.sections.detailsHint')">
+          <template #icon><FileText :size="18" /></template>
+        </SectionHeader>
         <el-form ref="formRef" :model="form" :rules="rules" label-position="top" :disabled="isSaving" @submit.prevent="save">
           <div class="form-row">
             <el-form-item :label="$t('stockIn.form.reason')" prop="reason">
@@ -227,6 +232,9 @@ const save = async () => {
       </AppCard>
 
       <AppCard class="lines-card">
+        <SectionHeader :title="$t('stockIn.sections.products')" :hint="$t('stockIn.sections.productsHint')" inset>
+          <template #icon><PackagePlus :size="18" /></template>
+        </SectionHeader>
         <StockInLinesEditor v-model="lines" :show-errors="showLineErrors" />
       </AppCard>
 

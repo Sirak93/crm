@@ -2,7 +2,8 @@
 import { nextTick, ref } from 'vue';
 import { useI18n } from 'vue-i18n';
 import type { IStockLineProduct } from 'armstock-shared';
-import { Plus, Trash2 } from 'lucide-vue-next';
+import { Package, Plus, Trash2 } from 'lucide-vue-next';
+import SectionHeader from '../SectionHeader.vue';
 import ProductSelect from './ProductSelect.vue';
 import type { IStockOutLineForm } from '../../interfaces/IStockOutLineForm';
 import { emptyOutLine } from '../../utils/stockOutLines';
@@ -77,10 +78,9 @@ const setProductRef = (key: number, el: unknown) => {
 
 <template>
   <div class="lines-editor">
-    <div class="lines-editor__head">
-      <h2 class="lines-editor__title">{{ $t('stockOut.lines.title') }}</h2>
-      <p class="lines-editor__hint">{{ $t('stockOut.lines.hint') }}</p>
-    </div>
+    <SectionHeader :title="$t('stockOut.lines.title')" :hint="$t('stockOut.lines.hint')" inset>
+      <template #icon><Package :size="18" /></template>
+    </SectionHeader>
 
     <el-table v-if="lines.length" :data="lines" class="app-table lines-editor__table" row-key="key">
       <el-table-column type="index" label="#" width="48" align="center" />
@@ -123,23 +123,6 @@ const setProductRef = (key: number, el: unknown) => {
 </template>
 
 <style scoped>
-.lines-editor__head {
-  padding: 0.875rem clamp(0.75rem, 2vw, 1.25rem) 0.5rem;
-}
-
-.lines-editor__title {
-  margin: 0;
-  font-size: var(--text-base);
-  font-weight: 600;
-  color: var(--text-main);
-}
-
-.lines-editor__hint {
-  margin: 0.25rem 0 0;
-  font-size: var(--text-sm);
-  color: var(--text-muted);
-}
-
 .lines-editor__product {
   width: 100%;
 }

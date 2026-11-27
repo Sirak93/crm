@@ -1,14 +1,16 @@
 <script setup lang="ts">
 import { nextTick } from 'vue';
 import { RECIPE_PERSONS_MAX, type IRecipeOption } from 'armstock-shared';
-import { Plus, Trash2 } from 'lucide-vue-next';
+import { ChefHat, Plus, Trash2 } from 'lucide-vue-next';
+import SectionHeader from '../SectionHeader.vue';
 import type { IStockOutRecipeForm } from '../../interfaces/IStockOutRecipeForm';
 import { emptyRecipeRow } from '../../utils/stockOutTotals';
 
 const props = defineProps<{
   /** Active recipes to pick from, plus those the document already has. */
   recipes: IRecipeOption[];
-  /** Recipes are for reason Issued only. */
+  /** Recipes are for reason Issued only - for any other reason only a short note shows. */
+  available: boolean;
   disabled: boolean;
   /** Highlight rows that are not filled in correctly - set after a failed save. */
   showErrors: boolean;
@@ -46,12 +48,15 @@ const setRecipeRef = (key: number, el: unknown) => {
 
 <template>
   <div class="recipes-editor">
-    <div class="recipes-editor__head">
-      <h2 class="recipes-editor__title">{{ $t('stockOut.recipes.title') }}</h2>
-      <p class="recipes-editor__hint">{{ $t(disabled ? 'stockOut.recipes.issuedOnly' : 'stockOut.recipes.hint') }}</p>
-    </div>
+    <SectionHeader
+      :title="$t('stockOut.recipes.title')"
+      :hint="$t(available ? 'stockOut.recipes.hint' : 'stockOut.recipes.issuedOnly')"
+      inset
+    >
+      <template #icon><ChefHat :size="18" /></template>
+    </SectionHeader>
 
-    <el-table v-if="rows.length" :data="rows" class="app-table" row-key="key">
+    <el-table v-if="available && rows.length" :data="rows" class="app-table" row-key="key">
       <el-table-column type="index" label="#" width="48" align="center" />
       <el-table-column :label="$t('stockOut.recipes.recipe')" min-width="220">
         <template #default="{ row }">
@@ -70,7 +75,7 @@ const setRecipeRef = (key: number, el: unknown) => {
           </el-select>
         </template>
       </el-table-column>
-      <el-table-column :label="$t('stockOut.recipes.persons')" min-width="110">
+      <el-table-column :label="$t('stockOut.recipes.persons')" width="120">
         <template #default="{ row }">
           <el-input-number
             v-model="row.persons"
@@ -100,7 +105,7 @@ const setRecipeRef = (key: number, el: unknown) => {
       </el-table-column>
     </el-table>
 
-    <div class="recipes-editor__footer">
+    <div v-if="available" class="recipes-editor__footer">
       <el-button :disabled="disabled" @click="addRow">
         <Plus :size="16" aria-hidden="true" />
         <span>{{ $t('stockOut.recipes.add') }}</span>
@@ -110,23 +115,6 @@ const setRecipeRef = (key: number, el: unknown) => {
 </template>
 
 <style scoped>
-.recipes-editor__head {
-  padding: 0.875rem clamp(0.75rem, 2vw, 1.25rem) 0.5rem;
-}
-
-.recipes-editor__title {
-  margin: 0;
-  font-size: var(--text-base);
-  font-weight: 600;
-  color: var(--text-main);
-}
-
-.recipes-editor__hint {
-  margin: 0.25rem 0 0;
-  font-size: var(--text-sm);
-  color: var(--text-muted);
-}
-
 .recipes-editor__field {
   width: 100%;
 }
