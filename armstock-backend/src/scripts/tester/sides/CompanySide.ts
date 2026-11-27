@@ -17,7 +17,6 @@ import optionsSuite from "../suites/company/OptionsSuite";
 import recipeTablesSuite from "../suites/company/RecipeTablesSuite";
 import recipesSuite from "../suites/company/RecipesSuite";
 import uniqueNamesSuite from "../suites/company/UniqueNamesSuite";
-import companyProfileSuite from "../suites/company/CompanyProfileSuite";
 import type { ICompanySideContext } from "../interfaces/ICompanySideContext";
 import type { ITestSide } from "../interfaces/ITestSide";
 
@@ -47,6 +46,5 @@ export const companySide: ITestSide<ICompanySideContext> = {
         recipeTablesSuite,
         recipesSuite,
         uniqueNamesSuite,
-        companyProfileSuite,
     ],
 };

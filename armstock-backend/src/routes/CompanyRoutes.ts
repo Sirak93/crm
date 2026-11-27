@@ -4,9 +4,7 @@ import { CompanyMemberMiddleware } from "../middlewares/CompanyMemberMiddleware"
 import { PermissionMiddleware } from "../middlewares/PermissionMiddleware";
 import { validate } from "../middlewares/Validate";
 import { asyncHandler } from "../utils/asyncHandler";
-import { CompanyController } from "../controllers/company/CompanyController";
 import { CompanyUsersController } from "../controllers/company/CompanyUsersController";
-import { CompanyBodySchema } from "../schemas/CompanySchema";
 import { UuidParamsSchema } from "../schemas/SharedSchema";
 import {
     CompanyUserCreateSchema,
@@ -17,16 +15,11 @@ import {
 } from "../schemas/CompanyUserSchema";
 
 const router = Router();
-const companyController = new CompanyController();
 const usersController = new CompanyUsersController();
-const canEditCompany = PermissionMiddleware(Permission.COMPANY_EDIT);
 const canEditUser = PermissionMiddleware(Permission.USER_EDIT);
 const uuidParams = validate(UuidParamsSchema, "params");
 
 router.use(CompanyMemberMiddleware);
-
-router.get("/", canEditCompany, asyncHandler(companyController.get));
-router.put("/", canEditCompany, validate(CompanyBodySchema), asyncHandler(companyController.update));
 
 router.get(
     "/users",

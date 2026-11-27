@@ -2,7 +2,6 @@ import {
   ArrowDownToLine,
   ArrowUpFromLine,
   Boxes,
-  Building,
   Building2,
   ChefHat,
   Database,
@@ -112,12 +111,6 @@ export const NAV_ITEMS: (INavItem | INavGroup)[] = [
     labelKey: 'nav.roles',
     icon: ShieldCheck,
     routeName: ROUTE_NAME.COMPANY_ROLES,
-  },
-  {
-    id: 'company-profile',
-    labelKey: 'nav.company',
-    icon: Building,
-    routeName: ROUTE_NAME.COMPANY_PROFILE,
   },
 ];
 

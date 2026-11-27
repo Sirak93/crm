@@ -48,7 +48,6 @@ export const ROUTE_NAME = {
   COMPANY_PRODUCT_CATEGORIES: 'company-product-categories',
   COMPANY_USERS: 'company-users',
   COMPANY_ROLES: 'company-roles',
-  COMPANY_PROFILE: 'company-profile',
 } as const;
 
 export const HTTP_METHODS = ['GET', 'POST', 'PUT', 'PATCH', 'DELETE'] as const;

@@ -10,7 +10,6 @@ export const PATHS = {
     PLATFORM_STORAGE: `${API_PATH}/platform/database/storage`,
     PLATFORM_LOGS: `${API_PATH}/platform/logs`,
     HEALTH: `${API_PATH}/health`,
-    COMPANY: `${API_PATH}/company`,
     COMPANY_USERS: `${API_PATH}/company/users`,
     OPTIONS: `${API_PATH}/options`,
     ROLES: `${API_PATH}/roles`,

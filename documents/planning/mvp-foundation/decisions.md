@@ -105,13 +105,14 @@ company role:
 - **Without `MANAGE_USER_PERMISSIONS` the permission panel is hidden** (e.g. HR with only
   `USER_ADD`): they pick a role and the server copies its set; any list they send is ignored.
 
+- **No company profile page on the company side** (removed): `/company` page, `GET`/`PUT /api/company` and `COMPANY_EDIT` are gone. Only the Platform Owner edits a company's details. Old saved `10` values in roles/users are cleaned by hand later.
+
 **Permission list and default roles** (`✓` = on in that role's template). Every action is
 its own permission; the panel groups them, with a group switch, but each one can be turned
 on or off separately.
 
 | Group | Permission | Storekeeper | Accountant | HR |
 | --- | --- | :-: | :-: | :-: |
-| Company | `COMPANY_EDIT` | | | |
 | Users | `USER_VIEW` | | | ✓ |
 | | `USER_ADD` | | | ✓ |
 | | `USER_EDIT` (incl. email, password, login) | | | |

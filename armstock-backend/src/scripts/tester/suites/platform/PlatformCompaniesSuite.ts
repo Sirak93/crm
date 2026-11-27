@@ -128,7 +128,7 @@ export default (context: ITestContext) => defineSuite("Platform: companies and t
         const password = randomPassword();
         const { data } = await api.ok<ICompanyUser>("POST", usersPath(company.uuid), {
             firstName: "Platform", lastName: "User", canLogIn: true, email, password,
-            roleUuid: company.roles[DefaultRole.ACCOUNTANT], permissions: [Permission.COMPANY_EDIT],
+            roleUuid: company.roles[DefaultRole.ACCOUNTANT], permissions: [Permission.RECIPE_ADD],
         });
         matches({ ...data, permissions: [...data.permissions].sort((a, b) => a - b) }, {
             accountType: AccountType.COMPANY_MEMBER,

@@ -112,7 +112,6 @@ export default {
     productCategories: 'Product categories',
     users: 'Users',
     roles: 'Roles',
-    company: 'Company',
     database: 'Database',
     logs: 'Logs',
   },
@@ -273,15 +272,6 @@ export default {
       clearConfirmText: 'Every log row will be deleted. This cannot be undone.',
       cleared: 'All logs cleared.',
       clearError: 'Could not clear the logs.',
-    },
-  },
-  company: {
-    profile: {
-      title: 'Company',
-      subtitle: 'Your company details.',
-      loadError: 'Could not load the company details.',
-      saveError: 'Could not save the company details.',
-      saved: 'Company details saved.',
     },
   },
   roles: {
@@ -873,7 +863,6 @@ export default {
     ownAccountHint: 'You can\'t change your own permissions.',
     ownerOnlyHint: 'Only the company owner can change this',
     groups: {
-      company: 'Company',
       users: 'Users',
       productCategories: 'Categories',
       products: 'Products',
@@ -883,7 +872,6 @@ export default {
       recipes: 'Recipes',
     },
     items: {
-      companyEdit: 'Edit company info',
       userView: 'View users',
       userAdd: 'Add users',
       userEdit: 'Edit users, logins, and status',

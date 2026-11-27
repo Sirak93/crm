@@ -123,11 +123,11 @@ export default (context: ICompanySideContext) => defineSuite("Company users", (t
     });
 
     test("someone who can't manage permissions adds a user: the role's permissions are copied, the sent ones ignored", async () => {
-        const user = await create(adder, { roleUuid: storekeeperRole, permissions: [Permission.COMPANY_EDIT] });
+        const user = await create(adder, { roleUuid: storekeeperRole, permissions: [Permission.RECIPE_ADD] });
         const { data: roles } = await owner.api.ok<IRole[]>("GET", PATHS.ROLES);
         const role = roles.find((r) => r.uuid === storekeeperRole)!;
         matches([...user.permissions].sort(), [...role.permissions].sort());
-        isTrue(!user.permissions.includes(Permission.COMPANY_EDIT), "the sent permission was not given");
+        isTrue(!user.permissions.includes(Permission.RECIPE_ADD), "the sent permission was not given");
     });
 
     // --- Owner-only permission ---
@@ -172,7 +172,7 @@ export default (context: ICompanySideContext) => defineSuite("Company users", (t
         const { data } = await owner.api.ok<ICompanyUser>("PUT", path(user.uuid), {
             ...editBody(user, { firstName: "Edited", lastName: "Name", position: null, email }),
             roleUuid: staffRole,
-            permissions: [Permission.COMPANY_EDIT],
+            permissions: [Permission.RECIPE_ADD],
         });
         matches(data, {
             firstName: "Edited",
@@ -227,7 +227,7 @@ export default (context: ICompanySideContext) => defineSuite("Company users", (t
             .find((u) => u.uuid === manager.uuid)!;
         await manager.api.rejects("PUT", path(manager.uuid), ErrorCodes.USER.OWN_ACCOUNT, editBody(self, { canLogIn: false }));
         await manager.api.rejects("PUT", `${path(manager.uuid)}/access`, ErrorCodes.USER.OWN_ACCOUNT,
-            { roleUuid: staffRole, permissions: [Permission.COMPANY_EDIT] });
+            { roleUuid: staffRole, permissions: [Permission.RECIPE_ADD] });
         await manager.api.rejects("PATCH", `${path(manager.uuid)}/status`, ErrorCodes.USER.OWN_ACCOUNT, { status: UserStatus.BLOCKED });
         await manager.api.ok("PUT", path(manager.uuid), editBody(self, { position: "Own name is fine" }));
     });

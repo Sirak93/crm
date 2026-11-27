@@ -1,7 +1,5 @@
 /** Stored as numbers in `roles.permissions` and `users.permissions` - never change a value. */
 export enum Permission {
-    COMPANY_EDIT = 10,
-
     USER_VIEW = 20,
     USER_ADD = 30,
     USER_EDIT = 40,

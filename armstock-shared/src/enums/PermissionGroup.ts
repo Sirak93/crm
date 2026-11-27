@@ -1,6 +1,5 @@
 /** Sections of the permission panel. */
 export enum PermissionGroup {
-    COMPANY = 10,
     USERS = 20,
     PRODUCT_CATEGORIES = 40,
     PRODUCTS = 50,

@@ -19,10 +19,6 @@ const NAME = "Tester name";
 const line = (refs: IOwnRefs) => [{ productUuid: refs.productUuid, measureUnit: refs.productUnit, quantity: 1 }];
 
 export const COMPANY_ROUTES: ICompanyRoute[] = [
-    // Company profile
-    { method: GET, path: () => PATHS.COMPANY, permission: P.COMPANY_EDIT },
-    { method: PUT, path: () => PATHS.COMPANY, permission: P.COMPANY_EDIT },
-
     // Company users
     { method: GET, path: () => PATHS.COMPANY_USERS, permission: P.USER_VIEW },
     { method: GET, path: () => `${PATHS.COMPANY_USERS}/summary`, permission: P.USER_VIEW },

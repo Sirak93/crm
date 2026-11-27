@@ -4,7 +4,6 @@ import { DefaultRole } from "../enums/DefaultRole";
 
 /** Panel order: each group with its permissions. */
 export const PERMISSION_GROUPS: ReadonlyArray<{ group: PermissionGroup; permissions: readonly Permission[] }> = [
-    { group: PermissionGroup.COMPANY, permissions: [Permission.COMPANY_EDIT] },
     {
         group: PermissionGroup.USERS,
         permissions: [Permission.USER_VIEW, Permission.USER_ADD, Permission.USER_EDIT, Permission.MANAGE_USER_PERMISSIONS],
