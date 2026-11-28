@@ -163,13 +163,13 @@ const routes: RouteRecordRaw[] = [
         path: 'stock/movement',
         name: ROUTE_NAME.COMPANY_STOCK_MOVEMENT,
         component: () => import('../views/company/CompanyStockMovement.vue'),
-        meta: { accountTypes: COMPANY_ACCOUNT_TYPES, permissions: [Permission.STOCK_BALANCE_VIEW] },
+        meta: { accountTypes: COMPANY_ACCOUNT_TYPES, permissions: [Permission.STOCK_MOVEMENT_VIEW] },
       },
       ...(KITCHEN_BALANCE_ENABLED ? [{
         path: 'stock/kitchen-balance',
         name: ROUTE_NAME.COMPANY_KITCHEN_BALANCE,
         component: () => import('../views/company/CompanyKitchenBalance.vue'),
-        meta: { accountTypes: COMPANY_ACCOUNT_TYPES, permissions: [Permission.STOCK_BALANCE_VIEW] },
+        meta: { accountTypes: COMPANY_ACCOUNT_TYPES, permissions: [Permission.KITCHEN_BALANCE_VIEW] },
       }] : []),
       {
         path: 'product-categories',

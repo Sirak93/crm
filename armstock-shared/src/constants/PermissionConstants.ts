@@ -1,6 +1,7 @@
 import { Permission } from "../enums/Permission";
 import { PermissionGroup } from "../enums/PermissionGroup";
 import { DefaultRole } from "../enums/DefaultRole";
+import { KITCHEN_BALANCE_ENABLED } from "./StockConstants";
 
 /** Panel order: each group with its permissions. */
 export const PERMISSION_GROUPS: ReadonlyArray<{ group: PermissionGroup; permissions: readonly Permission[] }> = [
@@ -48,6 +49,8 @@ export const PERMISSION_GROUPS: ReadonlyArray<{ group: PermissionGroup; permissi
         group: PermissionGroup.STOCK,
         permissions: [
             Permission.STOCK_BALANCE_VIEW,
+            ...(KITCHEN_BALANCE_ENABLED ? [Permission.KITCHEN_BALANCE_VIEW] : []),
+            Permission.STOCK_MOVEMENT_VIEW,
             Permission.STOCK_IN_VIEW,
             Permission.STOCK_IN_CREATE,
             Permission.STOCK_IN_EDIT,
@@ -86,6 +89,8 @@ export const DEFAULT_ROLE_PERMISSIONS: Readonly<Record<DefaultRole, readonly Per
         Permission.SUPPLIER_CONTACT_EDIT,
         Permission.SUPPLIER_CONTACT_DELETE,
         Permission.STOCK_BALANCE_VIEW,
+        Permission.KITCHEN_BALANCE_VIEW,
+        Permission.STOCK_MOVEMENT_VIEW,
         Permission.STOCK_IN_VIEW,
         Permission.STOCK_IN_CREATE,
         Permission.STOCK_IN_EDIT,
@@ -107,11 +112,14 @@ export const DEFAULT_ROLE_PERMISSIONS: Readonly<Record<DefaultRole, readonly Per
         Permission.SUPPLIER_CONTACT_EDIT,
         Permission.SUPPLIER_CONTACT_DELETE,
         Permission.STOCK_BALANCE_VIEW,
+        Permission.KITCHEN_BALANCE_VIEW,
+        Permission.STOCK_MOVEMENT_VIEW,
         Permission.STOCK_IN_VIEW,
         Permission.STOCK_OUT_VIEW,
     ],
     [DefaultRole.STAFF]: [],
     [DefaultRole.CHEF]: [
+        Permission.KITCHEN_BALANCE_VIEW,
         Permission.RECIPE_VIEW,
         Permission.RECIPE_ADD,
         Permission.RECIPE_EDIT,

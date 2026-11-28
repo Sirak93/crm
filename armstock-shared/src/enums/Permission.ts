@@ -41,4 +41,7 @@ export enum Permission {
     RECIPE_EDIT = 360,
     RECIPE_ARCHIVE = 370,
     RECIPE_DELETE = 380,
+
+    KITCHEN_BALANCE_VIEW = 390,
+    STOCK_MOVEMENT_VIEW = 400,
 }

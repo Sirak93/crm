@@ -36,6 +36,16 @@ To keep adding the module later cheap:
 - Chef needs no `PRODUCT_VIEW`: the product picker uses `/options/products`, which is open
   to every company member.
 - New `/options/recipes` (active recipes only), open to every company member.
+- **Separate view permissions (decided 2026-11-28).** Kitchen balance and stock movement no
+  longer use `STOCK_BALANCE_VIEW`; each has its own permission in the "Stock" group, right
+  after the balance one:
+  - `KITCHEN_BALANCE_VIEW` (390) - the kitchen balance page and `/stock/kitchen-balance`
+    (+ export). Default: Chef, Storekeeper, Accountant. So a chef sees the kitchen, not the
+    store. Hidden from the permission panel when `KITCHEN_BALANCE_ENABLED` is off.
+    `/options/kitchen-balance` (form picker) stays open to every member.
+  - `STOCK_MOVEMENT_VIEW` (400) - the stock movement page and all `/stock/movement` routes
+    (+ exports). Default: Storekeeper, Accountant.
+  - No update for existing companies' roles - none exist yet; the dev DB is reset.
 - Stock-out with recipes has **no new permission**: it is the normal stock-out (`STOCK_OUT_CREATE`,
   `STOCK_OUT_EDIT`, same "only the creator edits" rule).
 
@@ -354,7 +364,7 @@ without recipes is a normal stock-out, like today.
   - One code switch **`KITCHEN_BALANCE_ENABLED`** (like `SCANNER_ENABLED`). Off → no Kitchen
     balance page, no switch / hints in the form, no K checks. Docs and data stay.
 - **Kitchen balance page** (Խոհանոցի մնացորդ): read-only table, no actions. In the menu right
-  under "Stock balance", same permission (`STOCK_BALANCE_VIEW`).
+  under "Stock balance", own permission `KITCHEN_BALANCE_VIEW` (see Permissions).
 - **Built (Step K, 2026-11-27):**
   - Page: `GET /stock/kitchen-balance` - products with K above 0 (archived too), search, category,
     paging. Same row shape as the stock balance (`IStockBalance`), so the table is reused.
@@ -474,8 +484,8 @@ below needed + extra is allowed (only K + total ≥ recipe needs); the Note expl
 
 Not part of recipes - works for every company.
 
-- A **separate page**, right under "Stock balance" in the menu. Same permission
-  (`STOCK_BALANCE_VIEW`). The balance page stays as it is (stock **now**).
+- A **separate page**, right under "Stock balance" in the menu. Own permission
+  `STOCK_MOVEMENT_VIEW` (see Permissions). The balance page stays as it is (stock **now**).
 - Columns:
 
   | Product | Initial | In | Out | Final |
@@ -541,7 +551,7 @@ Not part of recipes - works for every company.
   "By recipe" text badge.
 - **One scroll only:** the table has no height of its own; the popup body is the only
   scroll (the next page still loads when the end scrolls into view).
-- Endpoint: `GET /stock/movement/:uuid` (`STOCK_BALANCE_VIEW`), same range as the table.
+- Endpoint: `GET /stock/movement/:uuid` (`STOCK_MOVEMENT_VIEW`), same range as the table.
   Each page also sends the header numbers (the product's movement row). A stock-in that has
   the product on two lines is one row (summed).
 - **Document number** is a link that opens the document in a **new browser tab**. Without

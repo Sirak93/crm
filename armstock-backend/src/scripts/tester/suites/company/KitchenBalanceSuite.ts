@@ -78,6 +78,12 @@ export default (context: ICompanySideContext) => defineSuite("Kitchen balance", 
         cake = await createRecipe(chef, [lineOf(sugar, 0.1), lineOf(flour, 0.1)]);
     });
 
+    test("a default chef sees the kitchen balance but not the store balance or movements", async () => {
+        await chef.api.ok("GET", PATHS.KITCHEN_BALANCE);
+        await chef.api.rejects("GET", PATHS.STOCK_BALANCE, ErrorCodes.AUTH.FORBIDDEN);
+        await chef.api.rejects("GET", PATHS.STOCK_MOVEMENT, ErrorCodes.AUTH.FORBIDDEN);
+    });
+
     test("an issue without recipes adds its totals to K", async () => {
         firstOilDoc = await createStockOut(storekeeper, [lineOf(products.oil, 0.9)]);
         await expectKitchen(db, products.oil.uuid, 0.9);

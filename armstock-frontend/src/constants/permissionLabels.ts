@@ -32,6 +32,8 @@ export const PERMISSION_LABEL: Record<Permission, string> = {
   [Permission.SUPPLIER_CONTACT_EDIT]: 'permissions.items.supplierContactEdit',
   [Permission.SUPPLIER_CONTACT_DELETE]: 'permissions.items.supplierContactDelete',
   [Permission.STOCK_BALANCE_VIEW]: 'permissions.items.stockBalanceView',
+  [Permission.KITCHEN_BALANCE_VIEW]: 'permissions.items.kitchenBalanceView',
+  [Permission.STOCK_MOVEMENT_VIEW]: 'permissions.items.stockMovementView',
   [Permission.STOCK_IN_VIEW]: 'permissions.items.stockInView',
   [Permission.STOCK_IN_CREATE]: 'permissions.items.stockInCreate',
   [Permission.STOCK_IN_EDIT]: 'permissions.items.stockInEdit',

@@ -931,6 +931,8 @@ export default {
       supplierContactEdit: 'Edit contacts',
       supplierContactDelete: 'Delete contacts',
       stockBalanceView: 'View stock balance',
+      kitchenBalanceView: 'View kitchen balance',
+      stockMovementView: 'View stock movements',
       stockInView: 'View stock-ins',
       stockInCreate: 'Create stock-ins',
       stockInEdit: 'Edit own stock-ins',

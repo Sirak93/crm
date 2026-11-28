@@ -931,6 +931,8 @@ const hy: typeof en = {
       supplierContactEdit: 'Խմբագրել կոնտակտները',
       supplierContactDelete: 'Ջնջել կոնտակտները',
       stockBalanceView: 'Դիտել պահեստի մնացորդը',
+      kitchenBalanceView: 'Դիտել խոհանոցի մնացորդը',
+      stockMovementView: 'Դիտել ապրանքների շարժը',
       stockInView: 'Դիտել մուտքերը',
       stockInCreate: 'Ստեղծել մուտքեր',
       stockInEdit: 'Խմբագրել սեփական մուտքերը',

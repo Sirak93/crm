@@ -48,7 +48,13 @@ export default (context: ICompanySideContext) => defineSuite("Roles", (test) => 
         }
         matches(sorted([...DEFAULT_ROLE_PERMISSIONS[DefaultRole.CHEF]]), [
             Permission.RECIPE_VIEW, Permission.RECIPE_ADD, Permission.RECIPE_EDIT, Permission.RECIPE_ARCHIVE, Permission.RECIPE_DELETE,
+            Permission.KITCHEN_BALANCE_VIEW,
         ], "chef permissions");
+        for (const role of [DefaultRole.STOREKEEPER, DefaultRole.ACCOUNTANT]) {
+            for (const permission of [Permission.STOCK_BALANCE_VIEW, Permission.KITCHEN_BALANCE_VIEW, Permission.STOCK_MOVEMENT_VIEW]) {
+                isTrue(DEFAULT_ROLE_PERMISSIONS[role].includes(permission), `${DefaultRole[role]} has ${Permission[permission]}`);
+            }
+        }
         isTrue(DEFAULT_ROLE_PERMISSIONS[DefaultRole.STOREKEEPER].includes(Permission.RECIPE_VIEW), "storekeeper views recipes");
         isTrue(!DEFAULT_ROLE_PERMISSIONS[DefaultRole.STOREKEEPER].includes(Permission.RECIPE_EDIT), "storekeeper can't edit recipes");
     });
