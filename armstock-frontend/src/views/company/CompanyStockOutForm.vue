@@ -80,7 +80,6 @@ const totalOverrides = ref<Record<string, number | undefined>>({});
 const original = ref<IStockOutDetails | null>(null);
 // The kitchen balance this doc can count on, by product uuid - on edit without the doc's own part.
 const kitchen = ref<Map<string, number>>(new Map());
-const useKitchen = ref(false);
 const selectedSupplier = ref<INamedRef | null>(null);
 const selectedReceiver = ref<INamedRef | null>(null);
 
@@ -103,13 +102,14 @@ const isOther = computed(() => form.value.reason === StockOutReason.OTHER);
 
 const recipeMap = computed(() => new Map(recipeOptions.value.map((recipe) => [recipe.uuid, recipe])));
 const filledLines = computed(() => lines.value.filter((line) => line.productUuid));
-// Only an issue goes to the kitchen, so only then are its balance and switch shown.
+// Only an issue goes to the kitchen, so only then is its balance shown.
 const showKitchen = computed(() => KITCHEN_BALANCE_ENABLED && isIssued.value);
 const totalRows = computed(() => buildTotals(
   recipeRows.value,
   recipeMap.value,
   filledLines.value,
-  showKitchen.value && useKitchen.value ? kitchen.value : undefined,
+  // Only a new doc prefills need − K: on edit today's K has later docs in it, so it would rewrite an old doc.
+  showKitchen.value && !isEdit.value ? kitchen.value : undefined,
 ));
 const totals = computed(() => Object.fromEntries(totalRows.value.map((row) => [
   row.product.uuid,
@@ -405,7 +405,6 @@ const save = async () => {
 
         <StockOutTotalsPanel
           class="out-layout__totals"
-          v-model:use-kitchen="useKitchen"
           :rows="totalRows"
           :totals="totals"
           :kitchen="showKitchen ? kitchen : undefined"

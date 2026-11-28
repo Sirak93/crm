@@ -21,9 +21,6 @@ const props = defineProps<{
   kitchen?: ReadonlyMap<string, number>;
 }>();
 
-/** The "Use kitchen balance" switch - it only changes the prefilled totals. */
-const useKitchen = defineModel<boolean>('useKitchen', { default: false });
-
 const emit = defineEmits<{
   update: [productUuid: string, value: number | undefined];
   hover: [productUuid: string | null];
@@ -82,13 +79,6 @@ const setRowRef = (uuid: string, el: unknown) => {
 <template>
   <SidePanel accent :title="$t('stockOut.totals.title')" :hint="$t('stockOut.totals.hint')">
     <template #icon><Scale :size="18" aria-hidden="true" /></template>
-
-    <el-switch
-      v-if="kitchen"
-      v-model="useKitchen"
-      class="totals-panel__kitchen-switch"
-      :active-text="$t('stockOut.totals.useKitchen')"
-    />
 
     <p v-if="!rows.length" class="totals-panel__empty">{{ $t('stockOut.totals.empty') }}</p>
 
@@ -226,10 +216,6 @@ const setRowRef = (uuid: string, el: unknown) => {
   font-size: var(--text-xs);
   font-variant-numeric: tabular-nums;
   color: var(--text-muted);
-}
-
-.totals-panel__kitchen-switch {
-  margin-bottom: 0.5rem;
 }
 
 /* Dots from the name to the amount, like the summary panel. */

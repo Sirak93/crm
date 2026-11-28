@@ -46,7 +46,7 @@ export const toSavedRecipeOption = (row: IStockOutRecipe): IRecipeOption => ({
 
 /**
  * Each product of the recipes and extras once, in the order it first shows up. Extras rows only add a
- * product: its total is typed, so it has no prefill. With `kitchen` (the "Use kitchen balance" switch) the
+ * product: its total is typed, so it has no prefill. With `kitchen` (a new doc with the kitchen balance on) the
  * prefill is what the recipes need beyond the kitchen balance, never below 0.
  */
 export const buildTotals = (

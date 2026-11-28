@@ -345,10 +345,17 @@ without recipes is a normal stock-out, like today.
     counted in the recipe persons, so K stays right without manual fixes.
   - Example: K has 0.9 l oil, recipes need 1.5 l, only a 5 l bottle can be given →
     0.9 + 5 − 1.5 = 4.4 l. K can go up or down.
-- **"Use kitchen balance"** switch in the totals list. The form shows K next to each product
-  (e.g. "Kitchen: 0.5 l"). Switch on → prefilled totals = recipe needs − K (not below 0) +
-  extras; the storekeeper can still change them. The switch only changes the prefill - K
-  changes after every Issued doc, switch on or off.
+- **No switch - K in the prefill on create only (decided 2026-11-28, replaces the "Use kitchen
+  balance" switch).** The form shows K next to each product (e.g. "Kitchen: 0.5 l"), on create
+  and edit.
+  - Create: prefilled totals = recipe needs − K (not below 0); the storekeeper can still change
+    them.
+  - Edit: the saved totals come back as saved; a prefill that is worked out again (recipe or
+    persons changed) is the full need, without K - today's K has later docs in it, so using it
+    would rewrite an old doc with stock that came after it. With the flag on, the storekeeper
+    checks all totals by hand against the "Kitchen" hint after a change.
+  - Only the prefill changes - frontend only. The backend saves the final totals and checks S
+    and K as before; K changes after every Issued doc.
 - **K never goes below 0**, like S. If for a product K + total < recipe needs, the doc is
   refused (backend) with "Product X: not enough for the recipes", in the same error list popup
   as the stock errors.
@@ -378,7 +385,12 @@ without recipes is a normal stock-out, like today.
     with the form; on edit the form takes the doc's own part (given − needed) back out.
   - Error `STOCK_KITCHEN_NOT_ENOUGH` with the same product list as "not enough stock": on save the
     amount is K + this doc's total, on delete it is K as it is now.
-  - The form shows "Kitchen: X" and the switch only for reason Issued.
+  - The form shows "Kitchen: X" only for reason Issued.
+- **Turning the flag off and on (decided 2026-11-28):** safe, no data lost, no reset. K is always
+  calculated from all docs, so it keeps counting while `KITCHEN_BALANCE_ENABLED` is off and shows
+  those months when it is on again. S never depends on the flag. A product whose K went below 0
+  while off (no K check then) has its docs refused until K is back to 0 or above.
+  - Later: a way to reset K (e.g. a kitchen stock-out doc) - not designed yet.
 
 ## Tables
 
@@ -696,6 +708,15 @@ Not part of recipes - works for every company.
 - **Seed stock movements (decided 2026-11-28):** the company data seeder makes every stock-in
   and stock-out as the company's default-role Storekeeper; if the company has none, as the
   Owner. Receivers on kitchen issues stay random members.
+- **Seed amounts like real ones (decided 2026-11-28, not built yet):** at most 2 decimals.
+  - Stock-ins (purchases, "other", loose lines): kg / l whole (0.5 steps under 5), g / ml steps
+    of 100, pieces whole. Packs stay as count × pack size.
+  - Stock-outs: by recipe the need rounded **up**, manual / write-off / other / returns rounded
+    to the nearest step - kg / l steps of 0.1 under 2, 0.5 under 10, 1 above; g / ml steps of
+    50; pieces whole. No random +0–8% on top of the recipe need.
+  - Kitchen balance (when `KITCHEN_BALANCE_ENABLED`): the seeder tracks K like the backend, and
+    about 80% of by-recipe issues use it (need − K, not below 0, like the form switch). Manual
+    issues to the kitchen are smaller (1–5% of the product's target instead of 3–12%).
 - Roles keep no link to their default role, so the seeders find the Chef and Storekeeper by
   the default role name (`DEFAULT_ROLE_NAMES`); a renamed role counts as missing.
 

@@ -697,7 +697,6 @@ export default {
       changedBy: 'Changed by hand: {amount}',
       neededPart: 'Recipes: {amount}',
       extraPart: 'Extra: {amount}',
-      useKitchen: 'Use kitchen balance',
       kitchen: 'Kitchen: {amount}',
     },
     panel: {

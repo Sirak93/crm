@@ -697,7 +697,6 @@ const hy: typeof en = {
       changedBy: 'Ձեռքով փոխված՝ {amount}',
       neededPart: 'Բաղադրատոմսեր՝ {amount}',
       extraPart: 'Լրացուցիչ՝ {amount}',
-      useKitchen: 'Օգտագործել խոհանոցի մնացորդը',
       kitchen: 'Խոհանոցում՝ {amount}',
     },
     panel: {
