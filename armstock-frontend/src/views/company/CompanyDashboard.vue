@@ -8,7 +8,6 @@ import QuickActionsCard from '../../components/dashboard/QuickActionsCard.vue';
 import StockBalanceCard from '../../components/dashboard/StockBalanceCard.vue';
 import StockInMonthCard from '../../components/dashboard/StockInMonthCard.vue';
 import StockOutMonthCard from '../../components/dashboard/StockOutMonthCard.vue';
-import UsersCard from '../../components/dashboard/UsersCard.vue';
 import LatestStockInsCard from '../../components/dashboard/LatestStockInsCard.vue';
 import LatestStockOutsCard from '../../components/dashboard/LatestStockOutsCard.vue';
 import { useAuthStore } from '../../stores/auth';
@@ -28,9 +27,8 @@ const showActions = computed(() => !!authStore.user?.canAny(QUICK_ACTION_PERMISS
 const showStockBalance = computed(() => can(Permission.STOCK_BALANCE_VIEW));
 const showStockIn = computed(() => can(Permission.STOCK_IN_VIEW));
 const showStockOut = computed(() => can(Permission.STOCK_OUT_VIEW));
-const showUsers = computed(() => can(Permission.USER_VIEW));
 
-const showNumbers = computed(() => showStockBalance.value || showStockIn.value || showStockOut.value || showUsers.value);
+const showNumbers = computed(() => showStockBalance.value || showStockIn.value || showStockOut.value);
 const hasAnyCard = computed(() => showActions.value || showNumbers.value);
 </script>
 
@@ -51,7 +49,6 @@ const hasAnyCard = computed(() => showActions.value || showNumbers.value);
         <StockBalanceCard v-if="showStockBalance" />
         <StockInMonthCard v-if="showStockIn" />
         <StockOutMonthCard v-if="showStockOut" />
-        <UsersCard v-if="showUsers" />
       </div>
 
       <div v-if="showStockIn || showStockOut" class="dashboard__lists">

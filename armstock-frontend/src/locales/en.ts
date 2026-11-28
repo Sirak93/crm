@@ -58,7 +58,6 @@ export default {
     stockBalance: 'Stock balance',
     stockInMonth: 'Stock in, this month',
     stockOutMonth: 'Stock out, this month',
-    users: 'Users',
     latestStockIns: 'Latest stock-ins',
     latestStockOuts: 'Latest stock-outs',
     noStockIns: 'No stock-ins yet.',

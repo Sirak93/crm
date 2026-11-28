@@ -7,7 +7,6 @@ import {
     Permission,
     UserStatus,
     type ICompanyUser,
-    type ICompanyUsersSummary,
     type IRole,
 } from "armstock-shared";
 import { defineSuite } from "../../core/Suite";
@@ -259,25 +258,14 @@ export default (context: ICompanySideContext) => defineSuite("Company users", (t
 
     // --- Status ---
 
-    test("status: block, archive and back; the summary follows", async () => {
+    test("status: block, archive and back", async () => {
         const user = await create(owner);
-        const summary = async () => (await owner.api.ok<ICompanyUsersSummary>("GET", `${PATHS.COMPANY_USERS}/summary`)).data;
-        const before = await summary();
         const setStatus = (status: UserStatus) => owner.api.ok<ICompanyUser>("PATCH", `${path(user.uuid)}/status`, { status });
 
         matches((await setStatus(UserStatus.BLOCKED)).data, { status: UserStatus.BLOCKED });
-        matches(await summary(), { active: before.active - 1, blocked: before.blocked + 1 });
         matches((await setStatus(UserStatus.ARCHIVED)).data, { status: UserStatus.ARCHIVED });
-        matches(await summary(), { active: before.active - 1, blocked: before.blocked });
-        await setStatus(UserStatus.ACTIVE);
-        matches(await summary(), before);
+        matches((await setStatus(UserStatus.ACTIVE)).data, { status: UserStatus.ACTIVE });
         await owner.api.rejectsField("PATCH", `${path(user.uuid)}/status`, "status", { status: 999 });
-    });
-
-    test("the summary matches the database", async () => {
-        const count = (status: UserStatus) => db.count("users", "company_uuid = $1 AND status = $2", [companyA.uuid, status]);
-        const { data } = await owner.api.ok<ICompanyUsersSummary>("GET", `${PATHS.COMPANY_USERS}/summary`);
-        matches(data, { active: await count(UserStatus.ACTIVE), blocked: await count(UserStatus.BLOCKED) });
     });
 
     // --- List ---

@@ -67,7 +67,6 @@ export type * from "./interfaces/IRecipeLinePayload";
 export type * from "./interfaces/IRecipeOption";
 export type * from "./interfaces/IRecipePayload";
 export type * from "./interfaces/IRefreshResponse";
-export type * from "./interfaces/ICompanyUsersSummary";
 export type * from "./interfaces/IRole";
 export type * from "./interfaces/IRoleInUse";
 export type * from "./interfaces/IRolePayload";

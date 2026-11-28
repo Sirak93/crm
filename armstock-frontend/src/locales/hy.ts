@@ -58,7 +58,6 @@ const hy: typeof en = {
     stockBalance: 'Պահեստի մնացորդ',
     stockInMonth: 'Մուտք, այս ամիս',
     stockOutMonth: 'Ելք, այս ամիս',
-    users: 'Օգտատերեր',
     latestStockIns: 'Վերջին մուտքերը',
     latestStockOuts: 'Վերջին ելքերը',
     noStockIns: 'Մուտքեր դեռ չկան։',

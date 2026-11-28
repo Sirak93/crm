@@ -153,7 +153,8 @@ data the app already has; each shows only with its permission (the Owner sees al
 | Stock out, this month | Documents and products | `STOCK_OUT_VIEW` |
 | Latest stock-ins | Last 5: number, date, supplier, total - each a link | `STOCK_IN_VIEW` |
 | Latest stock-outs | Last 5: number, date, reason, where to - each a link | `STOCK_OUT_VIEW` |
-| Users | Active / blocked counts, link to Users | `USER_VIEW` |
+
+- The Users card (active / blocked counts) was removed from the dashboard, with its `/company/users/summary` endpoint.
 
 - No card at all (no permissions yet): an empty state - "You have no access yet. Ask your
   manager to give you permissions."
@@ -163,7 +164,7 @@ data the app already has; each shows only with its permission (the Owner sees al
   lists side by side; everything stacks on small screens.
 - By default: Storekeeper sees quick actions (stock-in, stock-out, product), stock value,
   both monthly cards, and both latest lists; Accountant the same with the "New supplier"
-  action instead; HR the "Add user" action and the Users card.
+  action instead; HR the "Add user" action.
 
 **Login is per user**, not per role: whoever creates or edits the account chooses "Can log
 in". Yes = email and password required, permissions apply. No = no email, no password, no

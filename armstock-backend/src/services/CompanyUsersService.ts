@@ -1,6 +1,6 @@
 import bcrypt from "bcrypt";
 import { Brackets, In, Not } from "typeorm";
-import { AccountType, ErrorCodes, Permission, UserStatus, can, keepLocked, lockedPermissions, type ICompanyUser, type ICompanyUsersSummary, type IPaginationMeta } from "armstock-shared";
+import { AccountType, ErrorCodes, Permission, UserStatus, can, keepLocked, lockedPermissions, type ICompanyUser, type IPaginationMeta } from "armstock-shared";
 import { AppDataSource } from "../config/database";
 import { User } from "../models/User";
 import { Role } from "../models/Role";
@@ -112,17 +112,6 @@ export class CompanyUsersService {
             items: await this.withRoles(companyUuid, rows),
             meta: { page, pageSize, total, totalPages: Math.ceil(total / pageSize) },
         };
-    }
-
-    async summary(companyUuid: string): Promise<ICompanyUsersSummary> {
-        const row = await this.repo.createQueryBuilder("user")
-            .select("COUNT(*) FILTER (WHERE user.status = :active)", "active")
-            .addSelect("COUNT(*) FILTER (WHERE user.status = :blocked)", "blocked")
-            .where("user.companyUuid = :companyUuid", { companyUuid })
-            .setParameters({ active: UserStatus.ACTIVE, blocked: UserStatus.BLOCKED })
-            .getRawOne<{ active: string; blocked: string }>();
-
-        return { active: Number(row?.active ?? 0), blocked: Number(row?.blocked ?? 0) };
     }
 
     /**
