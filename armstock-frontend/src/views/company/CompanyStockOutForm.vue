@@ -449,7 +449,7 @@ const save = async () => {
 
 /*
  * Small screens: everything in one column. 1200px+: the summary stays on the right, the totals go
- * under the rows. 1600px+: summary and totals side by side on the right, both staying in view.
+ * under the rows. 1550px+: summary and totals side by side on the right, both staying in view.
  */
 .out-layout {
   display: flex;
@@ -474,7 +474,7 @@ const save = async () => {
   margin: 0;
 }
 
-/* Below 1600px the wrapper is left out of the layout, so each panel takes its own place. */
+/* Below 1550px the wrapper is left out of the layout, so each panel takes its own place. */
 .out-layout__side {
   display: contents;
 }
@@ -482,7 +482,7 @@ const save = async () => {
 @media (min-width: 1200px) {
   .out-layout {
     display: grid;
-    grid-template-columns: minmax(0, 1fr) clamp(18rem, 22vw, 24rem);
+    grid-template-columns: minmax(0, 1fr) clamp(20rem, 24vw, 26rem);
     grid-template-areas:
       "main summary"
       "totals summary";
@@ -506,9 +506,9 @@ const save = async () => {
   }
 }
 
-@media (min-width: 1600px) {
+@media (min-width: 1550px) {
   .out-layout {
-    grid-template-columns: minmax(0, 1fr) clamp(38rem, 38vw, 46rem);
+    grid-template-columns: minmax(0, 1fr) clamp(42rem, 40vw, 52rem);
     grid-template-areas: "main side";
     grid-template-rows: auto;
   }
