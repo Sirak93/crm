@@ -708,7 +708,7 @@ Not part of recipes - works for every company.
 - **Seed stock movements (decided 2026-11-28):** the company data seeder makes every stock-in
   and stock-out as the company's default-role Storekeeper; if the company has none, as the
   Owner. Receivers on kitchen issues stay random members.
-- **Seed amounts like real ones (decided 2026-11-28, not built yet):** at most 2 decimals.
+- **Seed amounts like real ones (decided and built 2026-11-28):** at most 2 decimals.
   - Stock-ins (purchases, "other", loose lines): kg / l whole (0.5 steps under 5), g / ml steps
     of 100, pieces whole. Packs stay as count × pack size.
   - Stock-outs: by recipe the need rounded **up**, manual / write-off / other / returns rounded
@@ -717,6 +717,7 @@ Not part of recipes - works for every company.
   - Kitchen balance (when `KITCHEN_BALANCE_ENABLED`): the seeder tracks K like the backend, and
     about 80% of by-recipe issues use it (need − K, not below 0, like the form switch). Manual
     issues to the kitchen are smaller (1–5% of the product's target instead of 3–12%).
+    An extra (2% of the target on one line) is added only to issues that did not use K.
 - Roles keep no link to their default role, so the seeders find the Chef and Storekeeper by
   the default role name (`DEFAULT_ROLE_NAMES`); a renamed role counts as missing.
 

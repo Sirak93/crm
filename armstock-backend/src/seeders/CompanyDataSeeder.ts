@@ -2,11 +2,12 @@ import {
     AccountType,
     DefaultRole,
     fromAppWallClock,
-    MEASURE_UNITS,
+    KITCHEN_BALANCE_ENABLED,
     MeasureUnit,
     ProductReceivedAs,
     ProductStatus,
     QUANTITY_DECIMALS,
+    RECIPE_QUANTITY_DECIMALS,
     RecipeStatus,
     StockInReason,
     StockOutDepartment,
@@ -30,7 +31,8 @@ import { seedSampleProducts, seedSampleRecipes, seedSampleSuppliers, userByDefau
 import recipes from "./data/recipes.json";
 
 const DAY_MS = 24 * 60 * 60 * 1000;
-const RECIPE_EXTRA_FACTOR = 1.08;
+/** How often a by-recipe issue counts on the kitchen balance, like the form does on create. */
+const KITCHEN_USE_SHARE = 0.8;
 
 /** How much of a product the store keeps, and its pack size, by unit. */
 const STOCK_TARGET: Partial<Record<MeasureUnit, { target: number; pack: number }>> = {
@@ -41,6 +43,29 @@ const STOCK_TARGET: Partial<Record<MeasureUnit, { target: number; pack: number }
     [MeasureUnit.MILLILITER]: { target: 5000, pack: 1000 },
 };
 const DEFAULT_TARGET = { target: 50, pack: 1 };
+
+const LARGE_UNITS = [MeasureUnit.KILOGRAM, MeasureUnit.LITER];
+const SMALL_UNITS = [MeasureUnit.GRAM, MeasureUnit.MILLILITER, MeasureUnit.MILLIGRAM];
+
+/** The step a delivery comes in: kg / l whole (halves when small), g / ml in hundreds, the rest whole. */
+const inStep = (unit: MeasureUnit, value: number) => {
+    if (LARGE_UNITS.includes(unit)) return value < 5 ? 0.5 : 1;
+    return SMALL_UNITS.includes(unit) ? 100 : 1;
+};
+
+/** The step a storekeeper hands out: kg / l finer for small amounts, g / ml in fifties, the rest whole. */
+const outStep = (unit: MeasureUnit, value: number) => {
+    if (LARGE_UNITS.includes(unit)) return value < 2 ? 0.1 : value < 10 ? 0.5 : 1;
+    return SMALL_UNITS.includes(unit) ? 50 : 1;
+};
+
+// Float noise is cleared before ceil, else 0.30000000004 / 0.1 would round up to 0.4.
+const toStep = (value: number, step: number, up = false) => {
+    const steps = Number((value / step).toFixed(6));
+    return Number(((up ? Math.ceil(steps) : Math.round(steps)) * step).toFixed(QUANTITY_DECIMALS));
+};
+
+const sum = (a: number, b: number, decimals = QUANTITY_DECIMALS) => Number((a + b).toFixed(decimals));
 
 const OTHER_IN_NOTES = ["Նվեր մատակարարից", "Վերադարձ միջոցառումից"];
 const OTHER_OUT_NOTES = ["Աշխատակազմի սնունդ", "Համտես", "Փորձնական ճաշատեսակ"];
@@ -62,6 +87,8 @@ const shuffle = <T>(items: T[]): T[] => [...items].sort(() => Math.random() - 0.
 
 class Simulation {
     private stock = new Map<string, number>();
+    /** Kitchen balance (K) per product: issued to the kitchen minus recipe needs, as the backend sums it. */
+    private kitchen = new Map<string, number>();
     /** Received minus returned, per supplier and product - what can still go back. */
     private returnable = new Map<string, Map<string, number>>();
     private stockIns = new StockInService();
@@ -80,15 +107,12 @@ class Simulation {
     private target = (p: Product) => (STOCK_TARGET[p.measureUnit] ?? DEFAULT_TARGET).target;
     private packSize = (p: Product) => (STOCK_TARGET[p.measureUnit] ?? DEFAULT_TARGET).pack;
     private inStock = (uuid: string) => this.stock.get(uuid) ?? 0;
+    private inKitchen = (uuid: string) => this.kitchen.get(uuid) ?? 0;
     private product = (uuid: string) => this.products.find((p) => p.uuid === uuid)!;
     private suppliedBy = (supplier: Supplier) => this.products.filter((_, i) => this.suppliers[i % this.suppliers.length] === supplier);
 
-    /** Rounded to what the unit allows: whole numbers or 3 decimals. */
-    private fit(p: Product, value: number, up = false): number {
-        const scale = MEASURE_UNITS[p.measureUnit].allowsDecimals ? 10 ** QUANTITY_DECIMALS : 1;
-        const scaled = up ? Math.ceil(value * scale - 1e-9) : Math.round(value * scale);
-        return Number((scaled / scale).toFixed(QUANTITY_DECIMALS));
-    }
+    private roundIn = (p: Product, value: number) => Math.max(toStep(value, inStep(p.measureUnit, value)), inStep(p.measureUnit, value));
+    private roundOut = (p: Product, value: number, up = false) => toStep(value, outStep(p.measureUnit, value), up);
 
     private packLine(p: Product, wanted: number) {
         const usePacks = p.receivedAs === ProductReceivedAs.PACKS
@@ -97,7 +121,7 @@ class Simulation {
             const size = this.packSize(p);
             return { productUuid: p.uuid, pack: { quantity: size, unit: p.measureUnit, count: Math.max(1, Math.ceil(wanted / size)) } };
         }
-        return { productUuid: p.uuid, pack: { quantity: Math.max(this.fit(p, wanted), 1), unit: p.measureUnit, count: 1 } };
+        return { productUuid: p.uuid, pack: { quantity: this.roundIn(p, wanted), unit: p.measureUnit, count: 1 } };
     }
 
     private async stockIn(date: Date, reason: StockInReason, wanted: Map<Product, number>, supplier: Supplier | null, note: string | null) {
@@ -111,10 +135,10 @@ class Simulation {
         });
         await this.stockIns.create(this.companyUuid, this.storekeeperUuid, body);
         for (const line of body.lines) {
-            this.stock.set(line.productUuid, this.inStock(line.productUuid) + line.quantity);
+            this.stock.set(line.productUuid, sum(this.inStock(line.productUuid), line.quantity));
             if (!supplier) continue;
             const map = this.returnable.get(supplier.uuid) ?? new Map<string, number>();
-            map.set(line.productUuid, (map.get(line.productUuid) ?? 0) + line.quantity);
+            map.set(line.productUuid, sum(map.get(line.productUuid) ?? 0, line.quantity));
             this.returnable.set(supplier.uuid, map);
         }
         this.counts.stockIns++;
@@ -122,6 +146,8 @@ class Simulation {
 
     private async stockOut(date: Date, reason: StockOutReason, lines: (ISimLine & { extraQuantity?: number })[], extra: {
         recipes?: { recipeUuid: string; persons: number }[];
+        /** Recipe needs per product - what the kitchen used of this issue. */
+        needed?: Map<string, number>;
         supplierUuid?: string;
         note?: string;
     } = {}) {
@@ -138,7 +164,12 @@ class Simulation {
             lines: lines.map((l) => ({ productUuid: l.productUuid, quantity: l.quantity, extraQuantity: l.extraQuantity ?? 0 })),
         });
         await this.stockOuts.create(this.companyUuid, this.storekeeperUuid, body);
-        for (const line of body.lines) this.stock.set(line.productUuid, this.inStock(line.productUuid) - line.quantity);
+        for (const line of body.lines) {
+            this.stock.set(line.productUuid, sum(this.inStock(line.productUuid), -line.quantity));
+            if (!KITCHEN_BALANCE_ENABLED || body.department !== StockOutDepartment.KITCHEN) continue;
+            const left = sum(line.quantity, -(extra.needed?.get(line.productUuid) ?? 0), RECIPE_QUANTITY_DECIMALS);
+            this.kitchen.set(line.productUuid, sum(this.inKitchen(line.productUuid), left, RECIPE_QUANTITY_DECIMALS));
+        }
         this.counts.stockOuts++;
     }
 
@@ -162,38 +193,44 @@ class Simulation {
         await this.stockIn(date, StockInReason.OTHER, wanted, null, pick(OTHER_IN_NOTES));
     }
 
-    /** Recipes whose products are in stock, with each product's total a little above the recipes' need. */
+    /**
+     * Recipes whose products are in stock. Each total is the need rounded up to a handing-out step; most issues
+     * first take what the kitchen already has, like the form does on create.
+     */
     async byRecipe(date: Date): Promise<boolean> {
-        const needed = new Map<string, number>();
+        const useKitchen = KITCHEN_BALANCE_ENABLED && Math.random() < KITCHEN_USE_SHARE;
+        const toGive = (uuid: string, need: number) => {
+            const left = useKitchen ? Math.max(0, sum(need, -this.inKitchen(uuid), RECIPE_QUANTITY_DECIMALS)) : need;
+            return left > 0 ? this.roundOut(this.product(uuid), left, true) : 0;
+        };
+
+        let needed = new Map<string, number>();
         const rows: { recipeUuid: string; persons: number }[] = [];
         for (const recipe of shuffle(this.recipes).slice(0, randomInt(1, 4))) {
             const persons = randomInt(5, 40);
-            const lines = recipe.lines;
-            const fits = lines.every((l) => {
-                const p = this.product(l.productUuid);
-                return this.fit(p, ((needed.get(l.productUuid) ?? 0) + l.quantity * persons) * RECIPE_EXTRA_FACTOR, true) <= this.inStock(l.productUuid);
-            });
-            if (!fits) continue;
-            for (const l of lines) needed.set(l.productUuid, (needed.get(l.productUuid) ?? 0) + l.quantity * persons);
+            const next = new Map(needed);
+            for (const l of recipe.lines) {
+                const need = Number((l.quantity * persons).toFixed(RECIPE_QUANTITY_DECIMALS));
+                next.set(l.productUuid, sum(next.get(l.productUuid) ?? 0, need, RECIPE_QUANTITY_DECIMALS));
+            }
+            if (!recipe.lines.every((l) => toGive(l.productUuid, next.get(l.productUuid)!) <= this.inStock(l.productUuid))) continue;
+            needed = next;
             rows.push({ recipeUuid: recipe.uuid, persons });
         }
         if (!rows.length) return false;
 
-        const lines = [...needed].map(([productUuid, need]) => ({
-            productUuid,
-            quantity: this.fit(this.product(productUuid), need * random(1, RECIPE_EXTRA_FACTOR), true),
-            extraQuantity: 0,
-        }));
-        if (Math.random() < 0.2) {
+        const lines = [...needed].map(([productUuid, need]) => ({ productUuid, quantity: toGive(productUuid, need), extraQuantity: 0 }));
+        // An extra is a total above the recipes, so only a full issue gets one.
+        if (!useKitchen && Math.random() < 0.2) {
             const line = pick(lines);
             const p = this.product(line.productUuid);
-            const extraQuantity = this.fit(p, this.target(p) * 0.02);
-            if (extraQuantity > 0 && line.quantity + extraQuantity <= this.inStock(line.productUuid)) {
+            const extraQuantity = this.roundOut(p, this.target(p) * 0.02);
+            if (extraQuantity > 0 && sum(line.quantity, extraQuantity) <= this.inStock(line.productUuid)) {
                 line.extraQuantity = extraQuantity;
-                line.quantity = Number((line.quantity + extraQuantity).toFixed(QUANTITY_DECIMALS));
+                line.quantity = sum(line.quantity, extraQuantity);
             }
         }
-        await this.stockOut(date, StockOutReason.ISSUED, lines, { recipes: rows });
+        await this.stockOut(date, StockOutReason.ISSUED, lines, { recipes: rows, needed });
         this.counts.byRecipe++;
         return true;
     }
@@ -202,12 +239,12 @@ class Simulation {
     private someLines(count: number, min: number, max: number): ISimLine[] {
         return shuffle(this.products.filter((p) => this.inStock(p.uuid) > 0))
             .slice(0, count)
-            .map((p) => ({ productUuid: p.uuid, quantity: this.fit(p, Math.min(this.inStock(p.uuid), this.target(p) * random(min, max))) }))
+            .map((p) => ({ productUuid: p.uuid, quantity: this.roundOut(p, Math.min(this.inStock(p.uuid), this.target(p) * random(min, max))) }))
             .filter((l) => l.quantity > 0 && l.quantity <= this.inStock(l.productUuid));
     }
 
     async manualIssue(date: Date) {
-        await this.stockOut(date, StockOutReason.ISSUED, this.someLines(randomInt(1, 4), 0.03, 0.12));
+        await this.stockOut(date, StockOutReason.ISSUED, this.someLines(randomInt(1, 4), 0.01, 0.05));
     }
 
     async writeOff(date: Date) {
@@ -224,10 +261,10 @@ class Simulation {
         if (!options.length) return;
         const { supplierUuid, uuid, left } = pick(options);
         const p = this.product(uuid);
-        const quantity = this.fit(p, Math.min(left, this.inStock(uuid), this.target(p) * random(0.02, 0.08)));
-        if (quantity <= 0) return;
+        const quantity = this.roundOut(p, Math.min(left, this.inStock(uuid), this.target(p) * random(0.02, 0.08)));
+        if (quantity <= 0 || quantity > Math.min(left, this.inStock(uuid))) return;
         await this.stockOut(date, StockOutReason.RETURNED, [{ productUuid: uuid, quantity }], { supplierUuid });
-        this.returnable.get(supplierUuid)!.set(uuid, left - quantity);
+        this.returnable.get(supplierUuid)!.set(uuid, sum(left, -quantity));
         this.counts.returns++;
     }
 }
