@@ -1,9 +1,12 @@
-import { MeasureUnit, ProductReceivedAs, ProductStatus } from "armstock-shared";
+import { AccountType, DefaultRole, MeasureUnit, ProductReceivedAs, ProductStatus, UserStatus } from "armstock-shared";
 import { AppDataSource } from "../config/database";
+import { DEFAULT_ROLE_NAMES } from "../constants/DefaultRoles";
 import { Product } from "../models/Product";
 import { ProductCategory } from "../models/ProductCategory";
 import { Recipe } from "../models/Recipe";
+import { Role } from "../models/Role";
 import { Supplier } from "../models/Supplier";
+import { User } from "../models/User";
 import { RecipeBodySchema } from "../schemas/RecipeSchema";
 import { ProductService } from "../services/ProductService";
 import { RecipeService } from "../services/RecipeService";
@@ -16,6 +19,14 @@ export const findByName = <T extends { name: string; uuid: string }>(items: T[],
     const item = items.find((i) => i.name === name);
     if (!item) throw new Error(`Seed data names "${name}", which does not exist in the company`);
     return item.uuid;
+};
+
+/** An active user with the default role (found by its name), or the Owner when the company has none. */
+export const userByDefaultRole = async (companyUuid: string, defaultRole: DefaultRole): Promise<User> => {
+    const userRepo = AppDataSource.getRepository(User);
+    const role = await AppDataSource.getRepository(Role).findOneBy({ companyUuid, name: DEFAULT_ROLE_NAMES[defaultRole] });
+    const user = role && await userRepo.findOneBy({ companyUuid, roleUuid: role.uuid, status: UserStatus.ACTIVE });
+    return user ?? userRepo.findOneByOrFail({ companyUuid, accountType: AccountType.COMPANY_OWNER });
 };
 
 /** Adds the sample products the company does not have yet (by name). Returns how many were added. */
@@ -59,11 +70,12 @@ export const seedSampleSuppliers = async (companyUuid: string): Promise<number> 
     return added;
 };
 
-/** Adds the sample recipes the company does not have yet (by name), skipping ones whose products are missing. Returns how many were added. */
-export const seedSampleRecipes = async (companyUuid: string, ownerUuid: string): Promise<number> => {
-    const [existing, companyProducts] = await Promise.all([
+/** Adds the sample recipes the company does not have yet (by name), as its Chef, skipping ones whose products are missing. Returns how many were added. */
+export const seedSampleRecipes = async (companyUuid: string): Promise<number> => {
+    const [existing, companyProducts, chef] = await Promise.all([
         AppDataSource.getRepository(Recipe).find({ where: { companyUuid } }),
         AppDataSource.getRepository(Product).find({ where: { companyUuid, status: ProductStatus.ACTIVE } }),
+        userByDefaultRole(companyUuid, DefaultRole.CHEF),
     ]);
     const names = new Set(existing.map((r) => r.name));
     const recipeService = new RecipeService();
@@ -74,7 +86,7 @@ export const seedSampleRecipes = async (companyUuid: string, ownerUuid: string):
             quantity: Number(quantity),
         }));
         if (lines.some((l) => !l.productUuid)) continue;
-        await recipeService.create(companyUuid, ownerUuid, RecipeBodySchema.parse({ name: recipe.name, note: null, lines }));
+        await recipeService.create(companyUuid, chef.uuid, RecipeBodySchema.parse({ name: recipe.name, note: null, lines }));
         added++;
     }
     return added;

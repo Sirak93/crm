@@ -675,6 +675,14 @@ Not part of recipes - works for every company.
 - **Result (2026-11-27):** all 8 files reviewed with seeded data - the layouts described in
   the Excel sections above are final. The only change was the file name without a period
   (export day added).
+- **Seed recipes (decided 2026-11-28):** the dev seeder (`npm run seed:dev`) also adds the
+  sample recipes, so a fresh database starts with them. Both seeders create recipes as the
+  company's default-role Chef; if the company has none, as the Owner.
+- **Seed stock movements (decided 2026-11-28):** the company data seeder makes every stock-in
+  and stock-out as the company's default-role Storekeeper; if the company has none, as the
+  Owner. Receivers on kitchen issues stay random members.
+- Roles keep no link to their default role, so the seeders find the Chef and Storekeeper by
+  the default role name (`DEFAULT_ROLE_NAMES`); a renamed role counts as missing.
 
 ## Armenian time everywhere
 

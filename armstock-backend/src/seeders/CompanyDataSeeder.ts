@@ -1,5 +1,6 @@
 import {
     AccountType,
+    DefaultRole,
     fromAppWallClock,
     MEASURE_UNITS,
     MeasureUnit,
@@ -25,7 +26,7 @@ import { StockInBodySchema } from "../schemas/StockInSchema";
 import { StockOutBodySchema } from "../schemas/StockOutSchema";
 import { StockInService } from "../services/StockInService";
 import { StockOutService } from "../services/StockOutService";
-import { seedSampleProducts, seedSampleRecipes, seedSampleSuppliers } from "./SampleCatalog";
+import { seedSampleProducts, seedSampleRecipes, seedSampleSuppliers, userByDefaultRole } from "./SampleCatalog";
 import recipes from "./data/recipes.json";
 
 const DAY_MS = 24 * 60 * 60 * 1000;
@@ -69,7 +70,7 @@ class Simulation {
 
     constructor(
         private companyUuid: string,
-        private ownerUuid: string,
+        private storekeeperUuid: string,
         private products: Product[],
         private suppliers: Supplier[],
         private recipes: ISimRecipe[],
@@ -108,7 +109,7 @@ class Simulation {
             note,
             lines: [...wanted].map(([p, quantity]) => this.packLine(p, quantity)),
         });
-        await this.stockIns.create(this.companyUuid, this.ownerUuid, body);
+        await this.stockIns.create(this.companyUuid, this.storekeeperUuid, body);
         for (const line of body.lines) {
             this.stock.set(line.productUuid, this.inStock(line.productUuid) + line.quantity);
             if (!supplier) continue;
@@ -136,7 +137,7 @@ class Simulation {
             recipes: extra.recipes ?? [],
             lines: lines.map((l) => ({ productUuid: l.productUuid, quantity: l.quantity, extraQuantity: l.extraQuantity ?? 0 })),
         });
-        await this.stockOuts.create(this.companyUuid, this.ownerUuid, body);
+        await this.stockOuts.create(this.companyUuid, this.storekeeperUuid, body);
         for (const line of body.lines) this.stock.set(line.productUuid, this.inStock(line.productUuid) - line.quantity);
         this.counts.stockOuts++;
     }
@@ -232,8 +233,8 @@ class Simulation {
 }
 
 /** The active sample recipes (missing ones added first) whose products are all active. */
-const ensureRecipes = async (companyUuid: string, ownerUuid: string, products: Product[]): Promise<ISimRecipe[]> => {
-    await seedSampleRecipes(companyUuid, ownerUuid);
+const ensureRecipes = async (companyUuid: string, products: Product[]): Promise<ISimRecipe[]> => {
+    await seedSampleRecipes(companyUuid);
     const found = await AppDataSource.getRepository(Recipe).find({
         where: { companyUuid, status: RecipeStatus.ACTIVE, name: In(recipes.map((r) => r.name)) },
     });
@@ -264,8 +265,9 @@ export const seedCompanyData = async (companyUuid: string, months: number) => {
         throw new Error(`Company ${companyUuid} not found`);
     }
     const userRepo = AppDataSource.getRepository(User);
-    const owner = await userRepo.findOne({ where: { companyUuid, accountType: AccountType.COMPANY_OWNER } });
-    if (!owner) throw new Error("The company has no owner");
+    if (!(await userRepo.exists({ where: { companyUuid, accountType: AccountType.COMPANY_OWNER } }))) {
+        throw new Error("The company has no owner");
+    }
 
     const started = Date.now();
     const addedProducts = await seedSampleProducts(companyUuid);
@@ -276,10 +278,11 @@ export const seedCompanyData = async (companyUuid: string, months: number) => {
         userRepo.find({ where: { companyUuid, accountType: AccountType.COMPANY_MEMBER } }),
     ]);
     if (!products.length || !suppliers.length) throw new Error("The company needs active products and suppliers");
-    const simRecipes = await ensureRecipes(companyUuid, owner.uuid, products);
+    const simRecipes = await ensureRecipes(companyUuid, products);
     console.log(`Catalog: ${products.length} products (${addedProducts} added), ${suppliers.length} suppliers (${addedSuppliers} added), ${simRecipes.length} recipes`);
 
-    const sim = new Simulation(companyUuid, owner.uuid, products, suppliers, simRecipes, members.map((m) => m.uuid));
+    const storekeeper = await userByDefaultRole(companyUuid, DefaultRole.STOREKEEPER);
+    const sim = new Simulation(companyUuid, storekeeper.uuid, products, suppliers, simRecipes, members.map((m) => m.uuid));
     const now = new Date();
     const today = toAppWallClock(now);
     const lastDay = Date.UTC(today.getUTCFullYear(), today.getUTCMonth(), today.getUTCDate());
