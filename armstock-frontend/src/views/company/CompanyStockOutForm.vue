@@ -518,7 +518,7 @@ const save = async () => {
     position: sticky;
     top: calc(var(--header-height) + 1rem);
     display: grid;
-    grid-template-columns: minmax(0, 18fr) minmax(0, 20fr);
+    grid-template-columns: repeat(2, minmax(0, 1fr));
     gap: 1rem;
     align-items: start;
   }
