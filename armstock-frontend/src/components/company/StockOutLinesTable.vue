@@ -54,7 +54,7 @@ const { unitShortName } = useMeasureUnits();
         <StockOutTotalDiff
           v-if="withRecipes"
           :difference="totalDifference(row.quantity, row.neededQuantity, row.extraQuantity, row.product)"
-          :unit="unitShortName(row.product.measureUnit)"
+          :unit="row.product.measureUnit"
         />
       </template>
     </el-table-column>

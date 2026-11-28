@@ -85,6 +85,11 @@ To keep adding the module later cheap:
   bunch, kg, g, l, ml, mg.
 - **Rule:** every amount field shows which unit it is typed in, and every amount is saved in the
   product's unit and converted only by the factors in code - so all counting stays correct.
+- **Amounts shown in the unit that reads best** (decided 2026-11-28): below 1 կգ / լ an amount is
+  shown in գ / մլ, from 1 կգ / լ in կգ / լ; count units stay as they are (մգ is never picked). Only
+  how it is shown - saved values and amount fields stay in the product's unit. One shared helper
+  (`formatAmount`). **For now only in the stock-out panels** (Ամփոփում and Ընդհանուր, on the
+  form and the details page); tables keep the product's unit and their Unit column.
 
 ## Products (decided 2026-11-25)
 

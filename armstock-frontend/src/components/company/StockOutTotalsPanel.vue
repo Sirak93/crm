@@ -1,12 +1,10 @@
 <script setup lang="ts">
 import { nextTick, ref } from 'vue';
-import { RECIPE_QUANTITY_DECIMALS } from 'armstock-shared';
 import { Check, Pencil, Scale } from 'lucide-vue-next';
 import SidePanel from '../SidePanel.vue';
 import UnitAmountInput from '../UnitAmountInput.vue';
 import StockOutTotalDiff from './StockOutTotalDiff.vue';
 import type { IStockOutTotalRow } from '../../interfaces/IStockOutTotalRow';
-import { formatQuantity } from '../../utils/format';
 import { extraOf, totalDifference } from '../../utils/stockOutTotals';
 import { useMeasureUnits } from '../../composables/useMeasureUnits';
 
@@ -31,13 +29,12 @@ const emit = defineEmits<{
   hover: [productUuid: string | null];
 }>();
 
-const { unitShortName } = useMeasureUnits();
+const { formatAmount } = useMeasureUnits();
 
 const editing = ref<string | null>(null);
 const rowRefs = new Map<string, HTMLElement>();
 
-const amount = (value: number, row: IStockOutTotalRow) =>
-  `${formatQuantity(value, RECIPE_QUANTITY_DECIMALS)} ${unitShortName(row.product.measureUnit)}`;
+const amount = (value: number, row: IStockOutTotalRow) => formatAmount(value, row.product.measureUnit);
 
 // Recipe products always show it, others only when the kitchen has some.
 const kitchenOf = (row: IStockOutTotalRow): number | undefined => {
@@ -125,7 +122,7 @@ const setRowRef = (uuid: string, el: unknown) => {
           <span class="totals-panel__amount">
             {{ isEmpty(row) ? '—' : amount(totals[row.product.uuid]!, row) }}
           </span>
-          <StockOutTotalDiff :difference="shortfall(row)" :unit="unitShortName(row.product.measureUnit)" />
+          <StockOutTotalDiff :difference="shortfall(row)" :unit="row.product.measureUnit" auto-unit />
           <Pencil :size="14" class="totals-panel__pencil" aria-hidden="true" />
         </button>
 

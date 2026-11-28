@@ -1,21 +1,31 @@
 <script setup lang="ts">
 import { computed } from 'vue';
+import type { MeasureUnit } from 'armstock-shared';
 import { formatQuantity } from '../../utils/format';
+import { useMeasureUnits } from '../../composables/useMeasureUnits';
 
 const props = defineProps<{
   /** Total minus recipes + extras; nothing shows when 0. */
   difference: number;
-  unit: string;
+  unit: MeasureUnit;
+  /** Show the amount with its best-reading unit (panels); else the number only, as the table has a unit column. */
+  autoUnit?: boolean;
 }>();
 
-const text = computed(() => `${props.difference > 0 ? '+' : '−'}${formatQuantity(Math.abs(props.difference))}`);
+const { unitShortName, formatAmount } = useMeasureUnits();
+
+const sign = computed(() => (props.difference > 0 ? '+' : '−'));
+const text = computed(() => `${sign.value}${props.autoUnit
+  ? formatAmount(Math.abs(props.difference), props.unit)
+  : formatQuantity(Math.abs(props.difference))}`);
+const title = computed(() => (props.autoUnit ? text.value : `${text.value} ${unitShortName(props.unit)}`));
 </script>
 
 <template>
   <span
     v-if="difference"
     class="total-diff"
-    :title="$t('stockOut.totals.changedBy', { amount: `${text} ${unit}` })"
+    :title="$t('stockOut.totals.changedBy', { amount: title })"
   >
     ({{ text }})
   </span>

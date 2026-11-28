@@ -2,7 +2,7 @@
 import { ChefHat, ClipboardList, Package, Users } from 'lucide-vue-next';
 import SidePanel from '../SidePanel.vue';
 import type { IStockOutPanelGroup } from '../../interfaces/IStockOutPanelGroup';
-import { formatNumber, formatQuantity } from '../../utils/format';
+import { formatNumber } from '../../utils/format';
 import { useMeasureUnits } from '../../composables/useMeasureUnits';
 
 defineProps<{
@@ -15,11 +15,7 @@ defineProps<{
 
 const emit = defineEmits<{ hover: [productUuid: string | null] }>();
 
-const { unitShortName, formatRecipeAmount } = useMeasureUnits();
-
-const amountOf = (group: IStockOutPanelGroup, line: IStockOutPanelGroup['lines'][number]) => (group.persons
-  ? formatRecipeAmount(line.quantity, line.product.measureUnit)
-  : `${formatQuantity(line.quantity)} ${unitShortName(line.product.measureUnit)}`);
+const { formatAmount } = useMeasureUnits();
 </script>
 
 <template>
@@ -50,7 +46,7 @@ const amountOf = (group: IStockOutPanelGroup, line: IStockOutPanelGroup['lines']
         >
           <span class="out-group__product">{{ line.product.name }}</span>
           <span class="out-group__leader" aria-hidden="true" />
-          <span class="out-group__amount">{{ amountOf(group, line) }}</span>
+          <span class="out-group__amount">{{ formatAmount(line.quantity, line.product.measureUnit) }}</span>
         </li>
       </ul>
     </section>
