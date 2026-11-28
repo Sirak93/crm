@@ -2,11 +2,13 @@
 defineProps<{
   title: string;
   hint?: string;
+  /** Marks the panel as the main one to act on - primary border and tinted header. */
+  accent?: boolean;
 }>();
 </script>
 
 <template>
-  <aside class="side-panel" :aria-label="title">
+  <aside :class="['side-panel', { 'side-panel--accent': accent }]" :aria-label="title">
     <header class="side-panel__head">
       <h2 class="side-panel__title">
         <slot name="icon" />
@@ -39,6 +41,16 @@ defineProps<{
 .side-panel__head {
   padding: 1rem 1.125rem 0.75rem;
   border-bottom: 1px solid var(--border);
+}
+
+.side-panel--accent {
+  border-color: var(--primary);
+}
+
+.side-panel--accent .side-panel__head {
+  background-color: var(--primary-light);
+  border-bottom-color: var(--primary);
+  border-radius: var(--radius) var(--radius) 0 0;
 }
 
 .side-panel__title {

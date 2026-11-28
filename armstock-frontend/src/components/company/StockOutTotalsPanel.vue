@@ -83,7 +83,7 @@ const setRowRef = (uuid: string, el: unknown) => {
 </script>
 
 <template>
-  <SidePanel :title="$t('stockOut.totals.title')" :hint="$t('stockOut.totals.hint')">
+  <SidePanel accent :title="$t('stockOut.totals.title')" :hint="$t('stockOut.totals.hint')">
     <template #icon><Scale :size="18" aria-hidden="true" /></template>
 
     <el-switch

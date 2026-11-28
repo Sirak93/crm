@@ -448,7 +448,7 @@ const save = async () => {
 }
 
 /*
- * Small screens: everything in one column. 1200px+: the summary stays on the right, the totals go
+ * Small screens: everything in one column. 1200px+: the totals stay on the right, the summary goes
  * under the rows. 1550px+: summary and totals side by side on the right, both staying in view.
  */
 .out-layout {
@@ -484,8 +484,8 @@ const save = async () => {
     display: grid;
     grid-template-columns: minmax(0, 1fr) clamp(20rem, 24vw, 26rem);
     grid-template-areas:
-      "main summary"
-      "totals summary";
+      "main totals"
+      "summary totals";
     grid-template-rows: auto 1fr;
     align-items: start;
   }
@@ -496,13 +496,14 @@ const save = async () => {
 
   .out-layout__summary {
     grid-area: summary;
+  }
+
+  /* The totals are what the storekeeper gives out, so they stay in view. */
+  .out-layout__totals {
+    grid-area: totals;
     position: sticky;
     top: calc(var(--header-height) + 1rem);
     max-height: calc(100dvh - var(--header-height) - 2rem);
-  }
-
-  .out-layout__totals {
-    grid-area: totals;
   }
 }
 
