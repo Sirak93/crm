@@ -9,6 +9,11 @@
     box-sizing: border-box;
 }
 
+/* Keeps scrolled-to elements from hiding under the fixed header. */
+html {
+    scroll-padding-top: calc(var(--header-height) + 1rem);
+}
+
 body {
     background-color: var(--bg-app);
     background-image: var(--bg-pattern);

@@ -3,9 +3,18 @@ import { computed } from 'vue';
 import type { IPaginationMeta } from 'armstock-shared';
 import { formatNumber } from '../utils/format';
 
-const props = defineProps<{ meta: IPaginationMeta }>();
+const props = defineProps<{ meta: IPaginationMeta; scrollTarget?: HTMLElement | null }>();
 
-defineEmits<{ change: [page: number] }>();
+const emit = defineEmits<{ change: [page: number] }>();
+
+const changePage = (page: number) => {
+  if (props.scrollTarget) {
+    props.scrollTarget.scrollIntoView({ block: 'start' });
+  } else {
+    window.scrollTo({ top: 0 });
+  }
+  emit('change', page);
+};
 
 const range = computed(() => ({
   from: formatNumber((props.meta.page - 1) * props.meta.pageSize + 1),
@@ -23,7 +32,7 @@ const range = computed(() => ({
       :total="meta.total"
       :current-page="meta.page"
       :page-size="meta.pageSize"
-      @current-change="$emit('change', $event)"
+      @current-change="changePage"
     />
   </nav>
 </template>
