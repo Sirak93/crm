@@ -13,6 +13,7 @@ import {
     SupplierStatus,
     toAppWallClock,
 } from "armstock-shared";
+import { In } from "typeorm";
 import { AppDataSource } from "../config/database";
 import { Company } from "../models/Company";
 import { Product } from "../models/Product";
@@ -20,13 +21,11 @@ import { Recipe } from "../models/Recipe";
 import { RecipeLine } from "../models/RecipeLine";
 import { Supplier } from "../models/Supplier";
 import { User } from "../models/User";
-import { RecipeBodySchema } from "../schemas/RecipeSchema";
 import { StockInBodySchema } from "../schemas/StockInSchema";
 import { StockOutBodySchema } from "../schemas/StockOutSchema";
-import { RecipeService } from "../services/RecipeService";
 import { StockInService } from "../services/StockInService";
 import { StockOutService } from "../services/StockOutService";
-import { seedSampleProducts, seedSampleSuppliers } from "./SampleCatalog";
+import { seedSampleProducts, seedSampleRecipes, seedSampleSuppliers } from "./SampleCatalog";
 import recipes from "./data/recipes.json";
 
 const DAY_MS = 24 * 60 * 60 * 1000;
@@ -232,25 +231,18 @@ class Simulation {
     }
 }
 
-/** The sample recipes: existing active ones by name are reused, missing ones are created. */
+/** The active sample recipes (missing ones added first) whose products are all active. */
 const ensureRecipes = async (companyUuid: string, ownerUuid: string, products: Product[]): Promise<ISimRecipe[]> => {
-    const existing = await AppDataSource.getRepository(Recipe).find({ where: { companyUuid } });
-    const recipeService = new RecipeService();
-    const result: ISimRecipe[] = [];
-    for (const recipe of recipes) {
-        const found = existing.find((r) => r.name === recipe.name);
-        if (found) {
-            if (found.status !== RecipeStatus.ACTIVE) continue;
-            const lines = await AppDataSource.getRepository(RecipeLine).find({ where: { recipeUuid: found.uuid } });
-            if (lines.every((l) => products.some((p) => p.uuid === l.productUuid))) result.push({ uuid: found.uuid, lines });
-            continue;
-        }
-        const lines = recipe.lines.map(([name, quantity]) => ({ productUuid: products.find((p) => p.name === name)?.uuid, quantity: Number(quantity) }));
-        if (lines.some((l) => !l.productUuid)) continue;
-        const saved = await recipeService.create(companyUuid, ownerUuid, RecipeBodySchema.parse({ name: recipe.name, note: null, lines }));
-        result.push({ uuid: saved.uuid, lines: lines as ISimLine[] });
-    }
-    return result;
+    await seedSampleRecipes(companyUuid, ownerUuid);
+    const found = await AppDataSource.getRepository(Recipe).find({
+        where: { companyUuid, status: RecipeStatus.ACTIVE, name: In(recipes.map((r) => r.name)) },
+    });
+    const lines = found.length
+        ? await AppDataSource.getRepository(RecipeLine).find({ where: { recipeUuid: In(found.map((r) => r.uuid)) } })
+        : [];
+    return found
+        .map((r) => ({ uuid: r.uuid, lines: lines.filter((l) => l.recipeUuid === r.uuid) }))
+        .filter((r) => r.lines.every((l) => products.some((p) => p.uuid === l.productUuid)));
 };
 
 /** A real moment from an Armenian day start and minutes into that day. */

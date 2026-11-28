@@ -1,4 +1,4 @@
-import { DefaultRole } from "armstock-shared";
+import { AccountType, DefaultRole } from "armstock-shared";
 import { AppDataSource } from "../config/database";
 import { Company } from "../models/Company";
 import { Role } from "../models/Role";
@@ -7,7 +7,7 @@ import { DEFAULT_ROLE_NAMES } from "../constants/DefaultRoles";
 import { requireEnv } from "../utils/requireEnv";
 import { PlatformCompaniesService } from "../services/platform/PlatformCompaniesService";
 import { CompanyUsersService } from "../services/CompanyUsersService";
-import { findByName, seedSampleProducts, seedSampleSuppliers } from "./SampleCatalog";
+import { findByName, seedSampleProducts, seedSampleRecipes, seedSampleSuppliers } from "./SampleCatalog";
 
 const DEMO_COMPANY_NAME = "Armstock Demo";
 
@@ -64,7 +64,9 @@ export const seedDevCompany = async () => {
 
     const productCount = await seedSampleProducts(companyUuid);
     const supplierCount = await seedSampleSuppliers(companyUuid);
+    const owner = await AppDataSource.getRepository(User).findOneByOrFail({ companyUuid, accountType: AccountType.COMPANY_OWNER });
+    const recipeCount = await seedSampleRecipes(companyUuid, owner.uuid);
 
     const userCount = await AppDataSource.getRepository(User).count({ where: { companyUuid } });
-    console.log(`"${DEMO_COMPANY_NAME}" created: ${userCount} users, ${productCount} products, ${supplierCount} suppliers`);
+    console.log(`"${DEMO_COMPANY_NAME}" created: ${userCount} users, ${productCount} products, ${supplierCount} suppliers, ${recipeCount} recipes`);
 };
